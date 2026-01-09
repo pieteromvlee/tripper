@@ -1,0 +1,62 @@
+import { defineSchema, defineTable } from "convex/server";
+import { v } from "convex/values";
+import { authTables } from "@convex-dev/auth/server";
+
+export default defineSchema({
+  ...authTables,
+  trips: defineTable({
+    name: v.string(),
+    ownerId: v.id("users"),
+    defaultLat: v.optional(v.number()),
+    defaultLng: v.optional(v.number()),
+    defaultZoom: v.optional(v.number()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("by_ownerId", ["ownerId"]),
+
+  tripMembers: defineTable({
+    tripId: v.id("trips"),
+    userId: v.id("users"),
+    role: v.union(v.literal("owner"), v.literal("editor"), v.literal("viewer")),
+    invitedBy: v.id("users"),
+    invitedAt: v.number(),
+  })
+    .index("by_tripId", ["tripId"])
+    .index("by_userId", ["userId"]),
+
+  tripInvites: defineTable({
+    tripId: v.id("trips"),
+    email: v.string(),
+    role: v.union(v.literal("owner"), v.literal("editor"), v.literal("viewer")),
+    invitedBy: v.id("users"),
+    expiresAt: v.number(),
+  })
+    .index("by_tripId", ["tripId"])
+    .index("by_email", ["email"]),
+
+  locations: defineTable({
+    tripId: v.id("trips"),
+    name: v.string(),
+    latitude: v.number(),
+    longitude: v.number(),
+    dateTime: v.optional(v.string()),
+    endDateTime: v.optional(v.string()),
+    isHotel: v.boolean(),
+    attachmentId: v.optional(v.id("_storage")),
+    attachmentName: v.optional(v.string()),
+    notes: v.optional(v.string()),
+    address: v.optional(v.string()),
+    sortOrder: v.number(),
+    createdBy: v.id("users"),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("by_tripId", ["tripId"]),
+
+  attachments: defineTable({
+    locationId: v.id("locations"),
+    fileName: v.string(),
+    fileId: v.id("_storage"),
+    mimeType: v.string(),
+    uploadedAt: v.number(),
+  }).index("by_locationId", ["locationId"]),
+});
