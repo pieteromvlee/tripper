@@ -34,12 +34,44 @@ export function TripMap({
 
   const locations = useQuery(api.locations.listByTrip, { tripId });
 
-  // Track if we've done the initial fit
-  const [hasInitialFit, setHasInitialFit] = useState(false);
+  // Track if map has loaded
+  const [mapLoaded, setMapLoaded] = useState(false);
 
-  // Fit bounds to show all locations when none selected
-  useEffect(() => {
+  // Handle map load - position map appropriately
+  const handleMapLoad = useCallback(() => {
+    setMapLoaded(true);
+
     if (!mapRef.current || !locations || locations.length === 0) return;
+
+    // If a location is selected, fly to it
+    if (selectedLocationId) {
+      const selectedLocation = locations.find((loc) => loc._id === selectedLocationId);
+      if (selectedLocation) {
+        mapRef.current.flyTo({
+          center: [selectedLocation.longitude, selectedLocation.latitude],
+          zoom: 15,
+          duration: 0, // Instant on load
+        });
+        return;
+      }
+    }
+
+    // Otherwise fit to all locations
+    const bounds = new LngLatBounds();
+    locations.forEach((loc) => {
+      bounds.extend([loc.longitude, loc.latitude]);
+    });
+
+    mapRef.current.fitBounds(bounds, {
+      padding: 50,
+      maxZoom: 15,
+      duration: 0, // Instant on load
+    });
+  }, [locations, selectedLocationId]);
+
+  // Fit bounds to show all locations when selection is cleared
+  useEffect(() => {
+    if (!mapLoaded || !mapRef.current || !locations || locations.length === 0) return;
     if (selectedLocationId) return; // Don't fit if a location is selected
     if (flyToLocation) return; // Don't fit if flying to search result
 
@@ -49,18 +81,12 @@ export function TripMap({
       bounds.extend([loc.longitude, loc.latitude]);
     });
 
-    // Small delay to ensure map is ready
-    const timer = setTimeout(() => {
-      mapRef.current?.fitBounds(bounds, {
-        padding: 50,
-        maxZoom: 15,
-        duration: hasInitialFit ? 1000 : 0, // No animation on first load
-      });
-      setHasInitialFit(true);
-    }, 100);
-
-    return () => clearTimeout(timer);
-  }, [selectedLocationId, locations, flyToLocation, hasInitialFit]);
+    mapRef.current.fitBounds(bounds, {
+      padding: 50,
+      maxZoom: 15,
+      duration: 1000,
+    });
+  }, [selectedLocationId, locations, flyToLocation, mapLoaded]);
 
   // Fly to selected location when it changes
   useEffect(() => {
@@ -116,6 +142,7 @@ export function TripMap({
         style={{ width: "100%", height: "100%" }}
         mapStyle="mapbox://styles/mapbox/streets-v12"
         onClick={handleMapClick}
+        onLoad={handleMapLoad}
       >
         <NavigationControl position="top-right" />
 

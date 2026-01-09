@@ -9,6 +9,7 @@ interface LocationCardProps {
   location: Doc<"locations">;
   isSelected: boolean;
   onClick: () => void;
+  onOpenDetail?: () => void; // Open full-screen detail view (mobile)
 }
 
 /**
@@ -42,6 +43,7 @@ export function LocationCard({
   location,
   isSelected,
   onClick,
+  onOpenDetail,
 }: LocationCardProps) {
   const [showAttachments, setShowAttachments] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
@@ -130,8 +132,13 @@ export function LocationCard({
           <button
             onClick={(e) => {
               e.stopPropagation();
-              setShowInfo(!showInfo);
-              if (showInfo) setIsEditing(false); // Reset edit mode when closing
+              // Use full-screen detail view when handler provided (mobile)
+              if (onOpenDetail) {
+                onOpenDetail();
+              } else {
+                setShowInfo(!showInfo);
+                if (showInfo) setIsEditing(false);
+              }
             }}
             className={`
               p-1.5 rounded-md transition-colors

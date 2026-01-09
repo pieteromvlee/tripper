@@ -4,7 +4,7 @@ import { useQuery, useMutation } from "convex/react";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
-import { LocationList, DaySelector } from "../components/locations";
+import { LocationList, DaySelector, LocationDetail } from "../components/locations";
 import { TripMap, LocationSearch } from "../components/map";
 
 type ViewMode = "list" | "map" | "both";
@@ -27,6 +27,7 @@ export default function TripPage() {
   const [flyToCounter, setFlyToCounter] = useState(0); // Trigger fly to location
   const [scrollToCounter, setScrollToCounter] = useState(0); // Trigger scroll to location in list
   const [showSearch, setShowSearch] = useState(false); // Toggle search visibility
+  const [detailLocationId, setDetailLocationId] = useState<Id<"locations"> | null>(null); // Full-screen detail view
 
   // Detect mobile viewport
   useEffect(() => {
@@ -46,9 +47,10 @@ export default function TripPage() {
   const trip = useQuery(api.trips.get, tripId ? { tripId: tripId as Id<"trips"> } : "skip");
   const locations = useQuery(api.locations.listByTrip, tripId ? { tripId: tripId as Id<"trips"> } : "skip");
 
-  // Find hotel and selected location
+  // Find hotel, selected location, and detail location
   const hotel = locations?.find((loc) => loc.isHotel);
   const selectedLocation = locations?.find((loc) => loc._id === selectedLocationId);
+  const detailLocation = locations?.find((loc) => loc._id === detailLocationId);
 
   if (!tripId) {
     return <div className="p-4">Invalid trip ID</div>;
@@ -274,6 +276,7 @@ export default function TripPage() {
                   selectedDate={selectedDate ?? undefined}
                   selectedLocationId={selectedLocationId ?? undefined}
                   onLocationSelect={handleLocationSelect}
+                  onOpenDetail={isMobile ? setDetailLocationId : undefined}
                   scrollTrigger={scrollToCounter}
                 />
               )}
@@ -326,7 +329,8 @@ export default function TripPage() {
             {selectedLocationId && (
               <button
                 onClick={handleClearSelection}
-                className="absolute bottom-4 left-4 z-10 bg-white px-3 py-2 rounded-lg shadow-md text-sm font-medium text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                className="absolute left-4 z-10 bg-white px-3 py-2 rounded-lg shadow-md text-sm font-medium text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                style={{ bottom: "calc(1rem + env(safe-area-inset-bottom, 0px))" }}
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
@@ -337,7 +341,10 @@ export default function TripPage() {
 
             {/* Floating action buttons for selected location (map view) */}
             {selectedLocation && viewMode === "map" && (
-              <div className="absolute bottom-4 right-4 z-10 flex flex-col gap-2">
+              <div
+                className="absolute right-4 z-10 flex flex-col gap-2"
+                style={{ bottom: "calc(1rem + env(safe-area-inset-bottom, 0px))" }}
+              >
                 {/* Location name label */}
                 <div className="bg-white px-3 py-2 rounded-lg shadow-md text-sm font-medium text-gray-900 max-w-[200px] truncate">
                   {selectedLocation.name}
@@ -345,7 +352,7 @@ export default function TripPage() {
                 <div className="flex gap-2">
                   {/* Info button */}
                   <button
-                    onClick={() => setViewMode("list")}
+                    onClick={() => setDetailLocationId(selectedLocation._id)}
                     className="bg-white p-3 rounded-full shadow-md text-blue-600 hover:bg-blue-50 transition"
                     title="View details"
                   >
@@ -370,6 +377,14 @@ export default function TripPage() {
           </div>
         )}
       </div>
+
+      {/* Full-screen location detail view */}
+      {detailLocation && (
+        <LocationDetail
+          location={detailLocation}
+          onClose={() => setDetailLocationId(null)}
+        />
+      )}
     </div>
   );
 }

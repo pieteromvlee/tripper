@@ -9,6 +9,7 @@ interface LocationListProps {
   selectedDate?: string; // ISO date string (YYYY-MM-DD) for filtering
   selectedLocationId?: Id<"locations">;
   onLocationSelect: (locationId: Id<"locations">) => void;
+  onOpenDetail?: (locationId: Id<"locations">) => void; // Open full-screen detail view
   scrollTrigger?: number; // Incremented when the list should scroll to the selected location
 }
 
@@ -17,6 +18,7 @@ export function LocationList({
   selectedDate,
   selectedLocationId,
   onLocationSelect,
+  onOpenDetail,
   scrollTrigger,
 }: LocationListProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -107,6 +109,7 @@ export function LocationList({
               location={location}
               isSelected={isSelected}
               onClick={() => onLocationSelect(location._id)}
+              onOpenDetail={onOpenDetail ? () => onOpenDetail(location._id) : undefined}
             />
           </div>
         );
