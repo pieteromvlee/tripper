@@ -33,6 +33,8 @@ export default function TripPage() {
   const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number } | null>(null); // Current map center for search proximity
   const [showFullscreenAddForm, setShowFullscreenAddForm] = useState(false); // Full-screen add form for mobile
   const [showShareModal, setShowShareModal] = useState(false); // Share trip modal
+  const [isTrackingLocation, setIsTrackingLocation] = useState(false); // Location tracking toggle
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null); // User's current location
 
   // Detect mobile viewport
   useEffect(() => {
@@ -48,6 +50,39 @@ export default function TripPage() {
       setViewMode("list");
     }
   }, [isMobile, viewMode]);
+
+  // Geolocation tracking
+  useEffect(() => {
+    if (!isTrackingLocation) {
+      setUserLocation(null);
+      return;
+    }
+
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser");
+      setIsTrackingLocation(false);
+      return;
+    }
+
+    const watchId = navigator.geolocation.watchPosition(
+      (position) => {
+        setUserLocation({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        });
+      },
+      (error) => {
+        console.error("Geolocation error:", error);
+        if (error.code === error.PERMISSION_DENIED) {
+          alert("Location permission denied");
+        }
+        setIsTrackingLocation(false);
+      },
+      { enableHighAccuracy: true, maximumAge: 10000 }
+    );
+
+    return () => navigator.geolocation.clearWatch(watchId);
+  }, [isTrackingLocation]);
 
   const trip = useQuery(api.trips.get, tripId ? { tripId: tripId as Id<"trips"> } : "skip");
   const locations = useQuery(api.locations.listByTrip, tripId ? { tripId: tripId as Id<"trips"> } : "skip");
@@ -172,6 +207,22 @@ export default function TripPage() {
           </div>
 
           <div className="flex items-center gap-3">
+            {/* Location tracking toggle */}
+            <button
+              onClick={() => setIsTrackingLocation(!isTrackingLocation)}
+              className={`p-2 rounded-lg transition ${
+                isTrackingLocation
+                  ? "text-blue-600 bg-blue-500/10"
+                  : "text-text-secondary hover:text-text-primary hover:bg-surface-secondary"
+              }`}
+              title={isTrackingLocation ? "Stop tracking location" : "Show my location"}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 2v2m0 16v2m10-10h-2M4 12H2" />
+              </svg>
+            </button>
+
             {/* Hotel button */}
             {hotel && (
               <button
@@ -339,6 +390,7 @@ export default function TripPage() {
               onCenterChange={(lat, lng) => setMapCenter({ lat, lng })}
               flyToLocation={newLocationData ? { lat: newLocationData.lat, lng: newLocationData.lng, key: flyToCounter } : undefined}
               pendingLocation={showAddForm && newLocationData ? { lat: newLocationData.lat, lng: newLocationData.lng } : null}
+              userLocation={userLocation}
             />
             {/* Show All button - appears when a location is selected */}
             {selectedLocationId && (

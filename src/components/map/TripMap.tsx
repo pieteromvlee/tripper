@@ -31,6 +31,7 @@ interface TripMapProps {
   onCenterChange?: (lat: number, lng: number) => void;
   flyToLocation?: { lat: number; lng: number; key?: number };
   pendingLocation?: { lat: number; lng: number } | null;
+  userLocation?: { lat: number; lng: number } | null;
 }
 
 export function TripMap({
@@ -41,6 +42,7 @@ export function TripMap({
   onCenterChange,
   flyToLocation,
   pendingLocation,
+  userLocation,
 }: TripMapProps) {
   const mapRef = useRef<MapRef>(null);
   const isDark = useDarkMode();
@@ -52,6 +54,9 @@ export function TripMap({
 
   // Track if map is being dragged for cursor style
   const [isDragging, setIsDragging] = useState(false);
+
+  // Track if we've flown to user location this session
+  const [hasFlownToUser, setHasFlownToUser] = useState(false);
 
   // Map style based on dark mode
   const mapStyle = isDark
@@ -141,6 +146,25 @@ export function TripMap({
 
     return () => clearTimeout(timer);
   }, [flyToLocation?.key]);
+
+  // Fly to user location when tracking is first enabled
+  useEffect(() => {
+    if (!userLocation || hasFlownToUser || !mapRef.current) return;
+
+    mapRef.current.flyTo({
+      center: [userLocation.lng, userLocation.lat],
+      zoom: 15,
+      duration: 1000,
+    });
+    setHasFlownToUser(true);
+  }, [userLocation, hasFlownToUser]);
+
+  // Reset fly-to flag when tracking is disabled
+  useEffect(() => {
+    if (!userLocation) {
+      setHasFlownToUser(false);
+    }
+  }, [userLocation]);
 
   const handleMapClick = useCallback(
     async (event: MapMouseEvent) => {
@@ -281,6 +305,18 @@ export function TripMap({
                   clipRule="evenodd"
                 />
               </svg>
+            </div>
+          </Marker>
+        )}
+
+        {/* User's current location */}
+        {userLocation && (
+          <Marker latitude={userLocation.lat} longitude={userLocation.lng}>
+            <div className="relative flex items-center justify-center">
+              {/* Outer pulse ring */}
+              <div className="absolute w-6 h-6 rounded-full bg-blue-500/30 animate-ping" />
+              {/* Inner dot with white border */}
+              <div className="w-4 h-4 rounded-full bg-blue-500 border-2 border-white shadow-lg" />
             </div>
           </Marker>
         )}
