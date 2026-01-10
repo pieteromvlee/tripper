@@ -5,6 +5,22 @@ import { auth } from "./auth";
 const http = httpRouter();
 auth.addHttpRoutes(http);
 
+// Allowed origins for CORS (production and development)
+const ALLOWED_ORIGINS = [
+  "https://tripper.vercel.app",
+  "http://localhost:5173",
+  "http://localhost:5174",
+];
+
+function getCorsHeaders(request: Request): Record<string, string> {
+  const origin = request.headers.get("Origin") || "";
+  const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  return {
+    "Content-Type": "application/json",
+    "Access-Control-Allow-Origin": allowedOrigin,
+  };
+}
+
 // Foursquare Places API proxy (to avoid CORS issues)
 http.route({
   path: "/api/foursquare/places",
@@ -18,7 +34,7 @@ http.route({
     if (!query) {
       return new Response(JSON.stringify({ error: "query parameter required" }), {
         status: 400,
-        headers: { "Content-Type": "application/json" },
+        headers: getCorsHeaders(request),
       });
     }
 
@@ -26,7 +42,7 @@ http.route({
     if (!apiKey) {
       return new Response(JSON.stringify({ error: "Foursquare API key not configured" }), {
         status: 500,
-        headers: { "Content-Type": "application/json" },
+        headers: getCorsHeaders(request),
       });
     }
 
@@ -45,10 +61,7 @@ http.route({
     const data = await response.json();
     return new Response(JSON.stringify(data), {
       status: response.status,
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
-      },
+      headers: getCorsHeaders(request),
     });
   }),
 });
