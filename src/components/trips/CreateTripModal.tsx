@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 
@@ -11,6 +11,16 @@ export function CreateTripModal({ isOpen, onClose }: CreateTripModalProps) {
   const [name, setName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const createTrip = useMutation(api.trips.create);
+
+  // Handle escape key
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -40,10 +50,13 @@ export function CreateTripModal({ isOpen, onClose }: CreateTripModalProps) {
     <div
       className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50"
       onClick={handleBackdropClick}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="create-trip-title"
     >
       <div className="bg-surface-elevated w-full max-w-md border border-border">
         <div className="px-4 py-2 bg-surface-secondary border-b border-border">
-          <h2 className="text-sm font-bold text-text-primary uppercase tracking-wide">
+          <h2 id="create-trip-title" className="text-sm font-bold text-text-primary uppercase tracking-wide">
             Create New Trip
           </h2>
         </div>

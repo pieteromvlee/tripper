@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
@@ -14,6 +14,15 @@ export function TripShareModal({ tripId, isOwner, onClose }: TripShareModalProps
   const [isInviting, setIsInviting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  // Handle escape key
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [onClose]);
 
   const members = useQuery(api.tripMembers.list, { tripId });
   const pendingInvites = useQuery(
@@ -74,14 +83,18 @@ export function TripShareModal({ tripId, isOwner, onClose }: TripShareModalProps
     <div
       className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50"
       onClick={handleBackdropClick}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="share-trip-title"
     >
       <div className="bg-surface-elevated w-full max-w-md max-h-[80vh] flex flex-col border border-border">
         <div className="px-4 py-2 bg-surface-secondary border-b border-border">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-bold text-text-primary uppercase tracking-wide">Share Trip</h2>
+            <h2 id="share-trip-title" className="text-sm font-bold text-text-primary uppercase tracking-wide">Share Trip</h2>
             <button
               onClick={onClose}
               className="p-1 text-text-muted hover:text-text-primary hover:bg-surface-elevated border border-transparent hover:border-border transition-colors"
+              aria-label="Close"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -168,6 +181,7 @@ export function TripShareModal({ tripId, isOwner, onClose }: TripShareModalProps
                           onClick={() => handleRemoveMember(member._id)}
                           className="p-1 text-text-muted hover:text-red-400 border border-transparent hover:border-red-500/50 transition-colors"
                           title="Remove member"
+                          aria-label={`Remove ${member.name || member.email}`}
                         >
                           <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -206,6 +220,7 @@ export function TripShareModal({ tripId, isOwner, onClose }: TripShareModalProps
                       onClick={() => handleCancelInvite(invite._id)}
                       className="p-1 text-text-muted hover:text-red-400 border border-transparent hover:border-red-500/50 transition-colors"
                       title="Cancel invite"
+                      aria-label={`Cancel invite for ${invite.email}`}
                     >
                       <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
