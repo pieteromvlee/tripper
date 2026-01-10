@@ -1,10 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 
+type LocationType = "attraction" | "restaurant" | "hotel";
+
 interface LocationSearchResult {
   name: string;
   address: string;
   latitude: number;
   longitude: number;
+  suggestedType?: LocationType;
 }
 
 interface LocationSearchProps {
@@ -22,6 +25,25 @@ interface SearchResult {
   latitude: number;
   longitude: number;
   source: "foursquare" | "mapbox";
+  suggestedType?: LocationType;
+}
+
+// Map Foursquare category to location type
+function inferLocationType(categories: Array<{ name: string }>): LocationType {
+  const categoryNames = categories.map((c) => c.name.toLowerCase()).join(" ");
+
+  // Check for hotel/lodging
+  if (/hotel|motel|hostel|lodging|inn|resort|bed & breakfast|airbnb|vacation rental/i.test(categoryNames)) {
+    return "hotel";
+  }
+
+  // Check for restaurant/food
+  if (/restaurant|food|café|cafe|coffee|bar|pub|bistro|diner|eatery|bakery|pizza|burger|sushi|steakhouse|seafood|breakfast|brunch|lunch|dinner|grill|kitchen|tavern|cantina|trattoria|osteria|brasserie/i.test(categoryNames)) {
+    return "restaurant";
+  }
+
+  // Default to attraction
+  return "attraction";
 }
 
 // Foursquare API types (new Places API format)
@@ -37,6 +59,7 @@ interface FoursquarePlace {
     region?: string;
     country?: string;
   };
+  categories?: Array<{ name: string }>;
 }
 
 interface FoursquareResponse {
@@ -126,6 +149,7 @@ export function LocationSearch({
                 latitude: place.latitude,
                 longitude: place.longitude,
                 source: "foursquare",
+                suggestedType: place.categories ? inferLocationType(place.categories) : undefined,
               });
             }
           }
@@ -195,6 +219,7 @@ export function LocationSearch({
       address: result.address,
       latitude: result.latitude,
       longitude: result.longitude,
+      suggestedType: result.suggestedType,
     });
 
     setQuery(result.name);
@@ -302,9 +327,19 @@ export function LocationSearch({
                 <span className="font-medium text-gray-900 text-base">
                   {result.name}
                 </span>
-                {result.source === "foursquare" && (
+                {result.suggestedType === "restaurant" && (
+                  <span className="text-xs px-1.5 py-0.5 bg-orange-100 text-orange-700 rounded">
+                    restaurant
+                  </span>
+                )}
+                {result.suggestedType === "hotel" && (
                   <span className="text-xs px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded">
-                    venue
+                    hotel
+                  </span>
+                )}
+                {result.suggestedType === "attraction" && (
+                  <span className="text-xs px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded">
+                    attraction
                   </span>
                 )}
               </div>

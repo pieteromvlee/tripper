@@ -22,6 +22,7 @@ export default function TripPage() {
     lng: number;
     name?: string;
     address?: string;
+    suggestedType?: "attraction" | "restaurant" | "hotel";
   } | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [flyToCounter, setFlyToCounter] = useState(0); // Trigger fly to location
@@ -76,17 +77,23 @@ export default function TripPage() {
     );
   }
 
-  const handleMapClick = (lat: number, lng: number) => {
-    setNewLocationData({ lat, lng });
+  const handleMapClick = (result: { lat: number; lng: number; name?: string; address?: string }) => {
+    setNewLocationData({
+      lat: result.lat,
+      lng: result.lng,
+      name: result.name,
+      address: result.address,
+    });
     setShowAddForm(true);
   };
 
-  const handleSearchSelect = (result: { name: string; address: string; latitude: number; longitude: number }) => {
+  const handleSearchSelect = (result: { name: string; address: string; latitude: number; longitude: number; suggestedType?: "attraction" | "restaurant" | "hotel" }) => {
     setNewLocationData({
       lat: result.latitude,
       lng: result.longitude,
       name: result.name,
       address: result.address,
+      suggestedType: result.suggestedType,
     });
     setShowAddForm(true);
     setShowSearch(false); // Hide search after selection
@@ -270,6 +277,7 @@ export default function TripPage() {
                     longitude={newLocationData.lng}
                     initialName={newLocationData.name}
                     initialAddress={newLocationData.address}
+                    initialLocationType={newLocationData.suggestedType}
                     onSuccess={handleFormSuccess}
                     onCancel={handleFormCancel}
                   />
@@ -435,6 +443,7 @@ export default function TripPage() {
           longitude={newLocationData.lng}
           initialName={newLocationData.name}
           initialAddress={newLocationData.address}
+          initialLocationType={newLocationData.suggestedType}
           onSuccess={handleFormSuccess}
           onClose={handleFormCancel}
         />
@@ -459,6 +468,7 @@ function LocationFormWithCoords({
   longitude,
   initialName,
   initialAddress,
+  initialLocationType,
   onSuccess,
   onCancel,
 }: {
@@ -467,6 +477,7 @@ function LocationFormWithCoords({
   longitude: number;
   initialName?: string;
   initialAddress?: string;
+  initialLocationType?: LocationType;
   onSuccess: () => void;
   onCancel: () => void;
 }) {
@@ -474,7 +485,7 @@ function LocationFormWithCoords({
   const [address, setAddress] = useState(initialAddress || "");
   const [dateTime, setDateTime] = useState("");
   const [endDateTime, setEndDateTime] = useState("");
-  const [locationType, setLocationType] = useState<LocationType>("attraction");
+  const [locationType, setLocationType] = useState<LocationType>(initialLocationType || "attraction");
   const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -614,6 +625,7 @@ function AddLocationFullscreen({
   longitude,
   initialName,
   initialAddress,
+  initialLocationType,
   onSuccess,
   onClose,
 }: {
@@ -622,6 +634,7 @@ function AddLocationFullscreen({
   longitude: number;
   initialName?: string;
   initialAddress?: string;
+  initialLocationType?: LocationType;
   onSuccess: () => void;
   onClose: () => void;
 }) {
@@ -629,7 +642,7 @@ function AddLocationFullscreen({
   const [address, setAddress] = useState(initialAddress || "");
   const [dateTime, setDateTime] = useState("");
   const [endDateTime, setEndDateTime] = useState("");
-  const [locationType, setLocationType] = useState<LocationType>("attraction");
+  const [locationType, setLocationType] = useState<LocationType>(initialLocationType || "attraction");
   const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 

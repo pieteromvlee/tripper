@@ -15,11 +15,18 @@ const DEFAULT_CENTER = {
 };
 const DEFAULT_ZOOM = 12;
 
+interface MapClickResult {
+  lat: number;
+  lng: number;
+  name?: string;
+  address?: string;
+}
+
 interface TripMapProps {
   tripId: Id<"trips">;
   selectedLocationId: Id<"locations"> | null;
   onLocationSelect: (id: Id<"locations">) => void;
-  onMapClick: (lat: number, lng: number) => void;
+  onMapClick: (result: MapClickResult) => void;
   onCenterChange?: (lat: number, lng: number) => void;
   flyToLocation?: { lat: number; lng: number; key?: number };
   pendingLocation?: { lat: number; lng: number } | null;
@@ -129,9 +136,40 @@ export function TripMap({
   }, [flyToLocation?.key]);
 
   const handleMapClick = useCallback(
-    (event: MapMouseEvent) => {
+    async (event: MapMouseEvent) => {
       const { lng, lat } = event.lngLat;
-      onMapClick(lat, lng);
+
+      // Immediately call with coordinates, then update with name if found
+      onMapClick({ lat, lng });
+
+      // Try reverse geocoding to get place name
+      try {
+        const response = await fetch(
+          `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${MAPBOX_TOKEN}&types=poi,address&limit=1`
+        );
+        if (response.ok) {
+          const data = await response.json();
+          if (data.features && data.features.length > 0) {
+            const feature = data.features[0];
+            // Only update if it's a POI (has a specific name)
+            if (feature.properties?.category || feature.place_type?.includes('poi')) {
+              let address = feature.place_name;
+              if (address.startsWith(feature.text)) {
+                address = address.slice(feature.text.length).replace(/^,\s*/, "");
+              }
+              onMapClick({
+                lat,
+                lng,
+                name: feature.text,
+                address: address || undefined,
+              });
+            }
+          }
+        }
+      } catch (error) {
+        // Silently fail - we already have coordinates
+        console.error("Reverse geocoding failed:", error);
+      }
     },
     [onMapClick]
   );
