@@ -1,1 +1,1 @@
-// Custom hooks will be exported here
+export { useDarkMode } from "./useDarkMode";

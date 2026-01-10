@@ -74,7 +74,7 @@ export function CreateTripModal({ isOpen, onClose }: CreateTripModalProps) {
             <button
               type="submit"
               disabled={!name.trim() || isSubmitting}
-              className="flex-1 px-4 py-3 text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed rounded-lg font-medium transition-colors touch-manipulation"
+              className="flex-1 px-4 py-3 text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 dark:disabled:bg-blue-800 disabled:cursor-not-allowed rounded-lg font-medium transition-colors touch-manipulation"
             >
               {isSubmitting ? "Creating..." : "Create Trip"}
             </button>

@@ -4,6 +4,7 @@ import { api } from "../../../convex/_generated/api";
 import type { Doc } from "../../../convex/_generated/dataModel";
 import { AttachmentList } from "./AttachmentList";
 import { AttachmentUpload } from "./AttachmentUpload";
+import { getLocationTypeBadgeClasses, getLocationTypeLabel, locationTypeOptions, type LocationType } from "../../lib/locationStyles";
 
 interface LocationDetailProps {
   location: Doc<"locations">;
@@ -127,14 +128,8 @@ export function LocationDetail({ location, onClose }: LocationDetailProps) {
             <div className="md:hidden">
               <div className="flex items-center gap-2">
                 <h1 className="text-2xl font-bold text-text-primary">{location.name}</h1>
-                <span className={`px-2 py-1 text-xs font-medium rounded ${
-                  location.locationType === "hotel"
-                    ? "bg-purple-500/20 text-purple-700 dark:text-purple-400"
-                    : location.locationType === "restaurant"
-                      ? "bg-orange-500/20 text-orange-700 dark:text-orange-400"
-                      : "bg-blue-500/20 text-blue-700 dark:text-blue-400"
-                }`}>
-                  {location.locationType === "hotel" ? "Hotel" : location.locationType === "restaurant" ? "Restaurant" : "Attraction"}
+                <span className={`px-2 py-1 text-xs font-medium rounded ${getLocationTypeBadgeClasses(location.locationType || "attraction")}`}>
+                  {getLocationTypeLabel(location.locationType || "attraction")}
                 </span>
               </div>
               {location.address && (
@@ -145,14 +140,8 @@ export function LocationDetail({ location, onClose }: LocationDetailProps) {
             {/* Desktop: Compact header with type badge and address */}
             <div className="hidden md:block">
               <div className="flex items-center gap-2 mb-1">
-                <span className={`px-2 py-0.5 text-xs font-medium rounded ${
-                  location.locationType === "hotel"
-                    ? "bg-purple-500/20 text-purple-700 dark:text-purple-400"
-                    : location.locationType === "restaurant"
-                      ? "bg-orange-500/20 text-orange-700 dark:text-orange-400"
-                      : "bg-blue-500/20 text-blue-700 dark:text-blue-400"
-                }`}>
-                  {location.locationType === "hotel" ? "Hotel" : location.locationType === "restaurant" ? "Restaurant" : "Attraction"}
+                <span className={`px-2 py-0.5 text-xs font-medium rounded ${getLocationTypeBadgeClasses(location.locationType || "attraction")}`}>
+                  {getLocationTypeLabel(location.locationType || "attraction")}
                 </span>
               </div>
               {location.address && (
@@ -251,15 +240,6 @@ export function LocationDetail({ location, onClose }: LocationDetailProps) {
     </div>
   );
 }
-
-// Location type options
-type LocationType = "attraction" | "restaurant" | "hotel";
-
-const locationTypeOptions: { value: LocationType; label: string; color: string }[] = [
-  { value: "attraction", label: "Attraction", color: "bg-blue-500" },
-  { value: "restaurant", label: "Restaurant", color: "bg-orange-500" },
-  { value: "hotel", label: "Hotel", color: "bg-purple-500" },
-];
 
 // Edit form component
 function LocationEditForm({

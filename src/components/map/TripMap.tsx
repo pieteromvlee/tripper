@@ -1,25 +1,13 @@
-import { useRef, useEffect, useCallback, useState, useSyncExternalStore } from "react";
+import { useRef, useEffect, useCallback, useState } from "react";
 import Map, { Marker, NavigationControl, type MapRef, type MapMouseEvent } from "react-map-gl/mapbox";
 import { LngLatBounds } from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
+import { useDarkMode } from "../../hooks";
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
-
-// Hook to detect dark mode preference
-function useDarkMode() {
-  return useSyncExternalStore(
-    (callback) => {
-      const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-      mediaQuery.addEventListener("change", callback);
-      return () => mediaQuery.removeEventListener("change", callback);
-    },
-    () => window.matchMedia("(prefers-color-scheme: dark)").matches,
-    () => false
-  );
-}
 
 // Default center: Paris
 const DEFAULT_CENTER = {

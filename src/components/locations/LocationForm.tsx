@@ -2,14 +2,7 @@ import { useState } from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
-
-type LocationType = "attraction" | "restaurant" | "hotel";
-
-const locationTypeOptions: { value: LocationType; label: string; color: string }[] = [
-  { value: "attraction", label: "Attraction", color: "bg-blue-500" },
-  { value: "restaurant", label: "Restaurant", color: "bg-orange-500" },
-  { value: "hotel", label: "Hotel", color: "bg-purple-500" },
-];
+import { locationTypeOptions, type LocationType } from "../../lib/locationStyles";
 
 interface LocationFormProps {
   tripId: Id<"trips">;

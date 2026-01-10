@@ -1,4 +1,5 @@
 import type { Doc } from "../../../convex/_generated/dataModel";
+import { getLocationTypeBadgeClasses, getLocationTypeLabel } from "../../lib/locationStyles";
 
 interface LocationCardProps {
   location: Doc<"locations">;
@@ -182,18 +183,10 @@ export function LocationCard({
           <span
             className={`
               inline-flex items-center px-2 py-1 rounded-md text-xs font-medium
-              ${
-                isSelected
-                  ? "bg-blue-500/20 text-blue-600 dark:text-blue-400"
-                  : location.locationType === "hotel"
-                    ? "bg-purple-500/20 text-purple-700 dark:text-purple-400"
-                    : location.locationType === "restaurant"
-                      ? "bg-orange-500/20 text-orange-700 dark:text-orange-400"
-                      : "bg-blue-500/20 text-blue-700 dark:text-blue-400"
-              }
+              ${isSelected ? "bg-blue-500/20 text-blue-600 dark:text-blue-400" : getLocationTypeBadgeClasses(location.locationType || "attraction")}
             `}
           >
-            {location.locationType === "hotel" ? "Hotel" : location.locationType === "restaurant" ? "Restaurant" : "Attraction"}
+            {getLocationTypeLabel(location.locationType || "attraction")}
           </span>
         </div>
       </div>

@@ -1,4 +1,5 @@
-import { useMemo, useSyncExternalStore } from "react";
+import { useMemo } from "react";
+import { useDarkMode } from "../../hooks";
 
 interface Location {
   latitude: number;
@@ -12,19 +13,6 @@ interface TripMapPreviewProps {
 }
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
-
-// Hook to detect dark mode preference
-function useDarkMode() {
-  return useSyncExternalStore(
-    (callback) => {
-      const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-      mediaQuery.addEventListener("change", callback);
-      return () => mediaQuery.removeEventListener("change", callback);
-    },
-    () => window.matchMedia("(prefers-color-scheme: dark)").matches,
-    () => false
-  );
-}
 
 // Calculate center and zoom to fit all locations
 function calculateBounds(locations: Location[]) {

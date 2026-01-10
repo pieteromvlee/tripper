@@ -1,4 +1,5 @@
 import type { Doc } from "../../../convex/_generated/dataModel";
+import { markerColorSchemes } from "../../lib/locationStyles";
 
 interface LocationMarkerProps {
   location: Doc<"locations">;
@@ -6,44 +7,13 @@ interface LocationMarkerProps {
   onClick: () => void;
 }
 
-// Color schemes for each location type
-const colorSchemes = {
-  hotel: {
-    pin: "fill-purple-600",
-    pinSelected: "fill-purple-500",
-    inner: "fill-purple-200",
-    pulse: "bg-purple-400",
-    label: "bg-purple-600",
-    icon: "fill-purple-700",
-    iconLight: "fill-purple-300",
-  },
-  restaurant: {
-    pin: "fill-orange-600",
-    pinSelected: "fill-orange-500",
-    inner: "fill-orange-200",
-    pulse: "bg-orange-400",
-    label: "bg-orange-600",
-    icon: "fill-orange-700",
-    iconLight: "fill-orange-300",
-  },
-  attraction: {
-    pin: "fill-blue-600",
-    pinSelected: "fill-blue-500",
-    inner: "fill-blue-200",
-    pulse: "bg-blue-400",
-    label: "bg-blue-600",
-    icon: "fill-blue-700",
-    iconLight: "fill-blue-300",
-  },
-};
-
 export function LocationMarker({
   location,
   isSelected,
   onClick,
 }: LocationMarkerProps) {
   const locationType = location.locationType || "attraction";
-  const colors = colorSchemes[locationType];
+  const colors = markerColorSchemes[locationType];
 
   const renderIcon = () => {
     switch (locationType) {

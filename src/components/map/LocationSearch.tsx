@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-
-type LocationType = "attraction" | "restaurant" | "hotel";
+import type { LocationType } from "../../lib/locationStyles";
 
 interface LocationSearchResult {
   name: string;

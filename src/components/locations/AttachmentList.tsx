@@ -44,7 +44,7 @@ function AttachmentItem({ attachment, onDelete, isDeleting }: AttachmentItemProp
       <div className="flex-shrink-0">
         {isPdf ? (
           <svg
-            className="w-8 h-8 text-red-500"
+            className="w-8 h-8 text-red-500 dark:text-red-400"
             fill="currentColor"
             viewBox="0 0 24 24"
           >
@@ -87,7 +87,7 @@ function AttachmentItem({ attachment, onDelete, isDeleting }: AttachmentItemProp
         {(isPdf || isImage) && downloadUrl && (
           <button
             onClick={handleView}
-            className="p-1.5 rounded-md text-text-muted hover:text-blue-600 hover:bg-blue-500/10 transition-colors"
+            className="p-1.5 rounded-md text-text-muted hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-500/10 transition-colors"
             title="View"
             aria-label="View file"
           >
@@ -117,7 +117,7 @@ function AttachmentItem({ attachment, onDelete, isDeleting }: AttachmentItemProp
         {downloadUrl && (
           <button
             onClick={handleDownload}
-            className="p-1.5 rounded-md text-text-muted hover:text-green-600 hover:bg-green-500/10 transition-colors"
+            className="p-1.5 rounded-md text-text-muted hover:text-green-600 dark:hover:text-green-400 hover:bg-green-500/10 transition-colors"
             title="Download"
             aria-label="Download file"
           >
@@ -144,7 +144,7 @@ function AttachmentItem({ attachment, onDelete, isDeleting }: AttachmentItemProp
           className={`p-1.5 rounded-md transition-colors ${
             isDeleting
               ? "text-text-muted cursor-not-allowed"
-              : "text-text-muted hover:text-red-600 hover:bg-red-500/10"
+              : "text-text-muted hover:text-red-600 dark:hover:text-red-400 hover:bg-red-500/10"
           }`}
           title="Delete"
           aria-label="Delete file"
