@@ -156,6 +156,7 @@ export function AttachmentUpload({
         className={`
           w-full flex items-center justify-center gap-2 px-4 py-2.5
           rounded-lg border-2 border-dashed transition-colors
+          lg:w-auto lg:px-3 lg:py-1.5 lg:border lg:rounded
           ${
             isUploading
               ? "border-border bg-surface-secondary text-text-muted cursor-not-allowed"
@@ -165,13 +166,13 @@ export function AttachmentUpload({
       >
         {isUploading ? (
           <>
-            <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-            <span className="text-sm font-medium">Uploading...</span>
+            <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin lg:w-3 lg:h-3" />
+            <span className="text-sm font-medium lg:text-xs">Uploading...</span>
           </>
         ) : (
           <>
             <svg
-              className="w-5 h-5"
+              className="w-5 h-5 lg:w-4 lg:h-4"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -183,7 +184,7 @@ export function AttachmentUpload({
                 d="M12 6v6m0 0v6m0-6h6m-6 0H6"
               />
             </svg>
-            <span className="text-sm font-medium">Add Attachment</span>
+            <span className="text-sm font-medium lg:text-xs">Add Attachment</span>
           </>
         )}
       </button>
@@ -229,8 +230,8 @@ export function AttachmentUpload({
         </div>
       )}
 
-      {/* Help text */}
-      <p className="text-xs text-text-muted text-center">
+      {/* Help text - hidden on desktop */}
+      <p className="text-xs text-text-muted text-center lg:hidden">
         PDF and images up to 10MB
       </p>
     </div>

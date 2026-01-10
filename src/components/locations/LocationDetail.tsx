@@ -77,7 +77,7 @@ export function LocationDetail({ location, onClose }: LocationDetailProps) {
       {/* Modal container - full screen on mobile, centered modal on desktop */}
       <div className="h-full w-full lg:h-auto lg:w-full lg:max-w-lg lg:max-h-[90vh] lg:rounded-xl lg:shadow-xl lg:border lg:border-border-muted bg-surface lg:bg-surface-elevated flex flex-col">
         {/* Header */}
-        <header className="bg-surface-elevated border-b border-border px-4 py-3 flex-shrink-0 lg:rounded-t-xl">
+        <header className="bg-surface-elevated border-b border-border px-4 py-3 flex-shrink-0 lg:rounded-t-xl lg:px-3 lg:py-2">
           <div className="flex items-center justify-between">
             {/* Mobile: Back button */}
             <button
@@ -90,12 +90,12 @@ export function LocationDetail({ location, onClose }: LocationDetailProps) {
               Back
             </button>
             {/* Desktop: Title */}
-            <h2 className="hidden lg:block text-lg font-semibold text-text-primary truncate">{location.name}</h2>
-            <div className="flex items-center gap-2">
+            <h2 className="hidden lg:block text-sm font-medium text-text-primary truncate">{location.name}</h2>
+            <div className="flex items-center gap-2 lg:gap-1">
               {!isEditing && (
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="text-blue-600 font-medium"
+                  className="text-blue-600 font-medium lg:text-xs lg:px-2 lg:py-1 lg:rounded lg:hover:bg-blue-500/10 lg:font-normal"
                 >
                   Edit
                 </button>
@@ -103,9 +103,9 @@ export function LocationDetail({ location, onClose }: LocationDetailProps) {
               {/* Desktop: Close button */}
               <button
                 onClick={onClose}
-                className="hidden lg:flex p-2 text-text-muted hover:text-text-primary rounded-lg hover:bg-surface-secondary transition-colors"
+                className="hidden lg:flex p-1 text-text-muted hover:text-text-primary rounded hover:bg-surface-secondary transition-colors"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
