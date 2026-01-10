@@ -24,22 +24,18 @@ interface SearchResult {
   source: "foursquare" | "mapbox";
 }
 
-// Foursquare API types
+// Foursquare API types (new Places API format)
 interface FoursquarePlace {
-  fsq_id: string;
+  fsq_place_id: string;
   name: string;
+  latitude: number;
+  longitude: number;
   location: {
     formatted_address?: string;
     address?: string;
     locality?: string;
     region?: string;
     country?: string;
-  };
-  geocodes: {
-    main: {
-      latitude: number;
-      longitude: number;
-    };
   };
 }
 
@@ -90,7 +86,7 @@ export function LocationSearch({
         const encodedQuery = encodeURIComponent(query.trim());
 
         // Build API calls
-        const foursquareKey = import.meta.env.VITE_FOURSQUARE_API_KEY;
+        const convexUrl = import.meta.env.VITE_CONVEX_URL?.replace(".cloud", ".site");
         const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
         const llParam = proximity ? `&ll=${proximity.lat},${proximity.lng}` : "";
@@ -98,13 +94,12 @@ export function LocationSearch({
 
         // Parallel API calls
         const [foursquareRes, mapboxRes] = await Promise.allSettled([
-          // Foursquare - great for venues/restaurants
-          foursquareKey
+          // Foursquare via Convex proxy (to avoid CORS)
+          convexUrl
             ? fetch(
-                `https://api.foursquare.com/v3/places/search?query=${encodedQuery}${llParam}&limit=5`,
-                { headers: { Authorization: foursquareKey } }
+                `${convexUrl}/api/foursquare/places?query=${encodedQuery}${llParam}&limit=5`
               )
-            : Promise.reject("No Foursquare API key"),
+            : Promise.reject("No Convex URL configured"),
           // Mapbox - good for addresses and places
           fetch(
             `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodedQuery}.json?access_token=${mapboxToken}&limit=5&types=poi,address,place,locality&fuzzyMatch=true${proximityParam}`
@@ -118,18 +113,18 @@ export function LocationSearch({
         if (foursquareRes.status === "fulfilled" && foursquareRes.value.ok) {
           const data: FoursquareResponse = await foursquareRes.value.json();
           for (const place of data.results || []) {
-            const locKey = `${place.geocodes.main.latitude.toFixed(4)},${place.geocodes.main.longitude.toFixed(4)}`;
+            const locKey = `${place.latitude.toFixed(4)},${place.longitude.toFixed(4)}`;
             if (!seenLocations.has(locKey)) {
               seenLocations.add(locKey);
               const loc = place.location;
               const address = loc.formatted_address ||
                 [loc.address, loc.locality, loc.region, loc.country].filter(Boolean).join(", ");
               combinedResults.push({
-                id: `fsq-${place.fsq_id}`,
+                id: `fsq-${place.fsq_place_id}`,
                 name: place.name,
                 address,
-                latitude: place.geocodes.main.latitude,
-                longitude: place.geocodes.main.longitude,
+                latitude: place.latitude,
+                longitude: place.longitude,
                 source: "foursquare",
               });
             }
