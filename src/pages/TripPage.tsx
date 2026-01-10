@@ -7,6 +7,7 @@ import type { Id } from "../../convex/_generated/dataModel";
 import { LocationList, FilterBar, LocationDetail, LocationForm } from "../components/locations";
 import { TripMap, LocationSearch } from "../components/map";
 import type { LocationType } from "../lib/locationStyles";
+import { getDirectionsUrl } from "../lib/locationUtils";
 import { TripShareModal } from "../components/trips/TripShareModal";
 
 type ViewMode = "list" | "map" | "both";
@@ -186,14 +187,6 @@ export default function TripPage() {
       setSelectedLocationId(accommodation._id);
       setFlyToCounter((prev) => prev + 1);
     }
-  };
-
-  // Helper to get directions URL
-  const getDirectionsUrl = (lat: number, lng: number) => {
-    const isApple = /iPhone|iPad|iPod|Mac/i.test(navigator.userAgent);
-    return isApple
-      ? `https://maps.apple.com/?daddr=${lat},${lng}`
-      : `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
   };
 
   return (

@@ -1,5 +1,6 @@
 import type { Doc } from "../../../convex/_generated/dataModel";
 import { getLocationTypeBadgeClasses, getLocationTypeLabel } from "../../lib/locationStyles";
+import { getDirectionsUrl, formatDateTime } from "../../lib/locationUtils";
 
 interface LocationCardProps {
   location: Doc<"locations">;
@@ -8,57 +9,12 @@ interface LocationCardProps {
   onOpenDetail?: () => void; // Open location detail modal
 }
 
-/**
- * Detects if the user is on an Apple device (iOS or macOS)
- */
-function isAppleDevice(): boolean {
-  if (typeof navigator === "undefined") return false;
-  const userAgent = navigator.userAgent.toLowerCase();
-  const platform = (navigator.platform || "").toLowerCase();
-
-  // Check for iOS devices
-  const isIOS = /iphone|ipad|ipod/.test(userAgent);
-
-  // Check for macOS
-  const isMac = platform.includes("mac") || /macintosh/.test(userAgent);
-
-  return isIOS || isMac;
-}
-
-/**
- * Generates a maps URL for directions to the given coordinates
- */
-function getDirectionsUrl(latitude: number, longitude: number): string {
-  if (isAppleDevice()) {
-    return `https://maps.apple.com/?daddr=${latitude},${longitude}`;
-  }
-  return `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`;
-}
-
 export function LocationCard({
   location,
   isSelected,
   onClick,
   onOpenDetail,
 }: LocationCardProps) {
-  // Format date/time for display
-  const formatDateTime = (dateTime: string | undefined): string => {
-    if (!dateTime) return "";
-
-    try {
-      const date = new Date(dateTime);
-      return date.toLocaleDateString(undefined, {
-        weekday: "short",
-        month: "short",
-        day: "numeric",
-        hour: "numeric",
-        minute: "2-digit",
-      });
-    } catch {
-      return dateTime;
-    }
-  };
-
   return (
     <div
       onClick={onClick}

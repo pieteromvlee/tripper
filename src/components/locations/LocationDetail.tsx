@@ -5,6 +5,7 @@ import type { Doc } from "../../../convex/_generated/dataModel";
 import { AttachmentList } from "./AttachmentList";
 import { AttachmentUpload } from "./AttachmentUpload";
 import { getLocationTypeBadgeClasses, getLocationTypeLabel, locationTypeOptions, type LocationType } from "../../lib/locationStyles";
+import { getDirectionsUrl, formatDateTime } from "../../lib/locationUtils";
 
 interface LocationDetailProps {
   location: Doc<"locations">;
@@ -25,31 +26,6 @@ export function LocationDetail({ location, onClose }: LocationDetailProps) {
   const [isDeleting, setIsDeleting] = useState(false);
 
   const deleteLocation = useMutation(api.locations.remove);
-
-  // Format date/time for display
-  const formatDateTime = (dateTime: string | undefined): string => {
-    if (!dateTime) return "";
-    try {
-      const date = new Date(dateTime);
-      return date.toLocaleDateString(undefined, {
-        weekday: "short",
-        month: "short",
-        day: "numeric",
-        hour: "numeric",
-        minute: "2-digit",
-      });
-    } catch {
-      return dateTime;
-    }
-  };
-
-  // Helper to get directions URL
-  const getDirectionsUrl = (lat: number, lng: number) => {
-    const isApple = /iPhone|iPad|iPod|Mac/i.test(navigator.userAgent);
-    return isApple
-      ? `https://maps.apple.com/?daddr=${lat},${lng}`
-      : `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
-  };
 
   const handleDelete = async () => {
     setIsDeleting(true);
