@@ -63,7 +63,7 @@ export default function TripPage() {
 
   if (trip === undefined) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-surface">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
       </div>
     );
@@ -71,9 +71,9 @@ export default function TripPage() {
 
   if (trip === null) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4">
-        <h1 className="text-xl font-bold text-gray-900 mb-2">Trip not found</h1>
-        <p className="text-gray-600 mb-4">This trip doesn't exist or you don't have access.</p>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-surface px-4">
+        <h1 className="text-xl font-bold text-text-primary mb-2">Trip not found</h1>
+        <p className="text-text-secondary mb-4">This trip doesn't exist or you don't have access.</p>
         <Link to="/" className="text-blue-600 hover:underline">Back to My Trips</Link>
       </div>
     );
@@ -146,20 +146,20 @@ export default function TripPage() {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50">
+    <div className="h-screen flex flex-col bg-surface">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-4 py-3 flex-shrink-0">
+      <header className="bg-surface-elevated border-b border-border px-4 py-3 flex-shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <button
               onClick={() => navigate("/")}
-              className="p-2 -ml-2 text-gray-600 hover:text-gray-900"
+              className="p-2 -ml-2 text-text-secondary hover:text-text-primary"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-            <h1 className="text-lg font-semibold text-gray-900 truncate">{trip.name}</h1>
+            <h1 className="text-lg font-semibold text-text-primary truncate">{trip.name}</h1>
             <button
               onClick={() => setShowSearch(true)}
               className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition"
@@ -186,11 +186,11 @@ export default function TripPage() {
             )}
 
             {/* View toggle */}
-            <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+            <div className="flex items-center gap-1 bg-surface-secondary rounded-lg p-1">
               <button
                 onClick={() => setViewMode("list")}
                 className={`px-3 py-1.5 rounded-md text-sm font-medium transition ${
-                  viewMode === "list" ? "bg-white text-gray-900 shadow-sm" : "text-gray-600"
+                  viewMode === "list" ? "bg-surface-elevated text-text-primary shadow-sm" : "text-text-secondary"
                 }`}
               >
                 List
@@ -198,7 +198,7 @@ export default function TripPage() {
               <button
                 onClick={() => setViewMode("map")}
                 className={`px-3 py-1.5 rounded-md text-sm font-medium transition ${
-                  viewMode === "map" ? "bg-white text-gray-900 shadow-sm" : "text-gray-600"
+                  viewMode === "map" ? "bg-surface-elevated text-text-primary shadow-sm" : "text-text-secondary"
                 }`}
               >
                 Map
@@ -207,7 +207,7 @@ export default function TripPage() {
                 <button
                   onClick={() => setViewMode("both")}
                   className={`px-3 py-1.5 rounded-md text-sm font-medium transition ${
-                    viewMode === "both" ? "bg-white text-gray-900 shadow-sm" : "text-gray-600"
+                    viewMode === "both" ? "bg-surface-elevated text-text-primary shadow-sm" : "text-text-secondary"
                   }`}
                 >
                   Both
@@ -217,7 +217,7 @@ export default function TripPage() {
             {/* Share button */}
             <button
               onClick={() => setShowShareModal(true)}
-              className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition"
+              className="p-2 text-text-secondary hover:text-text-primary hover:bg-surface-secondary rounded-lg transition"
               title="Share trip"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -227,7 +227,7 @@ export default function TripPage() {
             {/* Sign Out */}
             <button
               onClick={() => signOut()}
-              className="text-gray-500 hover:text-gray-700 p-2 transition"
+              className="text-text-secondary hover:text-text-primary p-2 transition"
               title="Sign Out"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -249,17 +249,17 @@ export default function TripPage() {
       <div className="flex-1 flex overflow-hidden">
         {/* List Panel */}
         {(viewMode === "list" || viewMode === "both") && (
-          <div className={`flex flex-col bg-white ${viewMode === "both" ? "w-96 border-r border-gray-200" : "flex-1"}`}>
+          <div className={`flex flex-col bg-surface-elevated ${viewMode === "both" ? "w-96 border-r border-border" : "flex-1"}`}>
             {/* Search (shown when triggered from header + button) */}
             {showSearch && (
-              <div className="p-3 border-b border-gray-200">
+              <div className="p-3 border-b border-border">
                 <div className="flex items-center gap-2">
                   <div className="flex-1">
                     <LocationSearch onSelect={handleSearchSelect} placeholder="Search for a place..." autoFocus proximity={mapCenter} />
                   </div>
                   <button
                     onClick={() => setShowSearch(false)}
-                    className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
+                    className="p-2 text-text-muted hover:text-text-secondary hover:bg-surface-secondary rounded-lg"
                     title="Cancel"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -313,13 +313,13 @@ export default function TripPage() {
             {/* Floating Search for map-only view (triggered from header + button) */}
             {viewMode === "map" && showSearch && (
               <div className="absolute top-3 left-3 right-3 z-10">
-                <div className="flex items-center gap-2 bg-white rounded-lg shadow-md p-2">
+                <div className="flex items-center gap-2 bg-surface-elevated rounded-lg shadow-md p-2">
                   <div className="flex-1">
                     <LocationSearch onSelect={handleSearchSelect} placeholder="Search for a place..." autoFocus proximity={mapCenter} />
                   </div>
                   <button
                     onClick={() => setShowSearch(false)}
-                    className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
+                    className="p-2 text-text-muted hover:text-text-secondary hover:bg-surface-secondary rounded-lg"
                     title="Cancel"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -343,7 +343,7 @@ export default function TripPage() {
             {selectedLocationId && (
               <button
                 onClick={handleClearSelection}
-                className="absolute left-4 z-10 bg-white px-3 py-2 rounded-lg shadow-md text-sm font-medium text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                className="absolute left-4 z-10 bg-surface-elevated px-3 py-2 rounded-lg shadow-md text-sm font-medium text-text-secondary hover:bg-surface-secondary flex items-center gap-2"
                 style={{ bottom: "calc(1rem + env(safe-area-inset-bottom, 0px))" }}
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -360,14 +360,14 @@ export default function TripPage() {
                 style={{ bottom: "calc(1rem + env(safe-area-inset-bottom, 0px))" }}
               >
                 {/* Location name label */}
-                <div className="bg-white px-3 py-2 rounded-lg shadow-md text-sm font-medium text-gray-900 max-w-[200px] truncate">
+                <div className="bg-surface-elevated px-3 py-2 rounded-lg shadow-md text-sm font-medium text-text-primary max-w-[200px] truncate">
                   {selectedLocation.name}
                 </div>
                 <div className="flex gap-2">
                   {/* Info button */}
                   <button
                     onClick={() => setDetailLocationId(selectedLocation._id)}
-                    className="bg-white p-3 rounded-full shadow-md text-blue-600 hover:bg-blue-50 transition"
+                    className="bg-surface-elevated p-3 rounded-full shadow-md text-blue-600 hover:bg-blue-50 transition"
                     title="View details"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -403,7 +403,7 @@ export default function TripPage() {
                   {/* Cancel button */}
                   <button
                     onClick={handleFormCancel}
-                    className="bg-white p-3 rounded-full shadow-md text-gray-600 hover:bg-gray-50 transition"
+                    className="bg-surface-elevated p-3 rounded-full shadow-md text-text-secondary hover:bg-surface-secondary transition"
                     title="Cancel"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -536,35 +536,35 @@ function LocationFormWithCoords({
   return (
     <form onSubmit={handleSubmit} className="p-4 space-y-4">
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+        <label className="block text-sm font-medium text-text-secondary mb-1">Name *</label>
         <input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           placeholder="e.g., Eiffel Tower"
           autoFocus
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+        <label className="block text-sm font-medium text-text-secondary mb-1">Address</label>
         <input
           type="text"
           value={address}
           onChange={(e) => setAddress(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           placeholder="e.g., Champ de Mars, Paris"
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-3 text-sm text-gray-500">
+      <div className="grid grid-cols-2 gap-3 text-sm text-text-secondary">
         <div>Lat: {latitude.toFixed(5)}</div>
         <div>Lng: {longitude.toFixed(5)}</div>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
+        <label className="block text-sm font-medium text-text-secondary mb-2">Type</label>
         <div className="flex gap-2">
           {locationTypeOptions.map((option) => (
             <button
@@ -574,7 +574,7 @@ function LocationFormWithCoords({
               className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
                 locationType === option.value
                   ? `${option.color} text-white`
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  : "bg-surface-secondary text-text-secondary hover:bg-surface-inset"
               }`}
             >
               {option.label}
@@ -584,50 +584,50 @@ function LocationFormWithCoords({
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Date & Time</label>
+        <label className="block text-sm font-medium text-text-secondary mb-1">Date & Time</label>
         <div className="flex gap-2">
           <input
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="flex-1 px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
           <input
             type="time"
             value={time}
             onChange={(e) => setTime(e.target.value)}
-            className="w-28 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-28 px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
       </div>
 
       {locationType === "hotel" && (
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Check-out</label>
+          <label className="block text-sm font-medium text-text-secondary mb-1">Check-out</label>
           <div className="flex gap-2">
             <input
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="flex-1 px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
             <input
               type="time"
               value={endTime}
               onChange={(e) => setEndTime(e.target.value)}
-              className="w-28 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-28 px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
         </div>
       )}
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+        <label className="block text-sm font-medium text-text-secondary mb-1">Notes</label>
         <textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           rows={2}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+          className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
         />
       </div>
 
@@ -635,7 +635,7 @@ function LocationFormWithCoords({
         <button
           type="button"
           onClick={onCancel}
-          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+          className="flex-1 px-4 py-2 border border-border rounded-lg text-text-secondary hover:bg-surface-secondary"
         >
           Cancel
         </button>
@@ -715,18 +715,18 @@ function AddLocationFullscreen({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-white flex flex-col">
+    <div className="fixed inset-0 z-50 bg-surface-elevated flex flex-col">
       {/* Header */}
-      <header className="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-white">
+      <header className="flex items-center justify-between px-4 py-3 border-b border-border bg-surface-elevated">
         <button
           onClick={onClose}
-          className="p-2 -ml-2 text-gray-600 hover:text-gray-900"
+          className="p-2 -ml-2 text-text-secondary hover:text-text-primary"
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
-        <h2 className="text-lg font-semibold text-gray-900">Add Location</h2>
+        <h2 className="text-lg font-semibold text-text-primary">Add Location</h2>
         <button
           onClick={handleSubmit}
           disabled={!name.trim() || isSubmitting}
@@ -740,37 +740,37 @@ function AddLocationFullscreen({
       <div className="flex-1 overflow-y-auto">
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+            <label className="block text-sm font-medium text-text-secondary mb-1">Name *</label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+              className="w-full px-4 py-3 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
               placeholder="e.g., Eiffel Tower"
               autoFocus
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+            <label className="block text-sm font-medium text-text-secondary mb-1">Address</label>
             <input
               type="text"
               value={address}
               onChange={(e) => setAddress(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+              className="w-full px-4 py-3 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
               placeholder="e.g., Champ de Mars, Paris"
             />
           </div>
 
-          <div className="bg-gray-50 rounded-lg p-3">
-            <div className="text-sm text-gray-500 mb-1">Coordinates</div>
-            <div className="text-gray-900">
+          <div className="bg-surface-secondary rounded-lg p-3">
+            <div className="text-sm text-text-secondary mb-1">Coordinates</div>
+            <div className="text-text-primary">
               {latitude.toFixed(5)}, {longitude.toFixed(5)}
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
+            <label className="block text-sm font-medium text-text-secondary mb-2">Type</label>
             <div className="flex gap-2">
               {locationTypeOptions.map((option) => (
                 <button
@@ -780,7 +780,7 @@ function AddLocationFullscreen({
                   className={`flex-1 px-3 py-3 rounded-lg text-sm font-medium transition-all ${
                     locationType === option.value
                       ? `${option.color} text-white`
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      : "bg-surface-secondary text-text-secondary hover:bg-surface-inset"
                   }`}
                 >
                   {option.label}
@@ -790,50 +790,50 @@ function AddLocationFullscreen({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Date & Time</label>
+            <label className="block text-sm font-medium text-text-secondary mb-1">Date & Time</label>
             <div className="flex gap-2">
               <input
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+                className="flex-1 px-4 py-3 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
               />
               <input
                 type="time"
                 value={time}
                 onChange={(e) => setTime(e.target.value)}
-                className="w-28 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+                className="w-28 px-4 py-3 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
               />
             </div>
           </div>
 
           {locationType === "hotel" && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Check-out</label>
+              <label className="block text-sm font-medium text-text-secondary mb-1">Check-out</label>
               <div className="flex gap-2">
                 <input
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+                  className="flex-1 px-4 py-3 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
                 />
                 <input
                   type="time"
                   value={endTime}
                   onChange={(e) => setEndTime(e.target.value)}
-                  className="w-28 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+                  className="w-28 px-4 py-3 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
                 />
               </div>
             </div>
           )}
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+            <label className="block text-sm font-medium text-text-secondary mb-1">Notes</label>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={3}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base resize-none"
+              className="w-full px-4 py-3 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base resize-none"
               placeholder="Add any notes..."
             />
           </div>

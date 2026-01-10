@@ -62,9 +62,9 @@ export function LocationDetail({ location, onClose }: LocationDetailProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-gray-50 flex flex-col">
+    <div className="fixed inset-0 z-50 bg-surface flex flex-col">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-4 py-3 flex-shrink-0">
+      <header className="bg-surface-elevated border-b border-border px-4 py-3 flex-shrink-0">
         <div className="flex items-center justify-between">
           <button
             onClick={onClose}
@@ -99,7 +99,7 @@ export function LocationDetail({ location, onClose }: LocationDetailProps) {
             {/* Title & Type */}
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-2xl font-bold text-gray-900">{location.name}</h1>
+                <h1 className="text-2xl font-bold text-text-primary">{location.name}</h1>
                 <span className={`px-2 py-1 text-xs font-medium rounded ${
                   location.locationType === "hotel"
                     ? "bg-purple-100 text-purple-800"
@@ -111,7 +111,7 @@ export function LocationDetail({ location, onClose }: LocationDetailProps) {
                 </span>
               </div>
               {location.address && (
-                <p className="text-gray-600 mt-1">{location.address}</p>
+                <p className="text-text-secondary mt-1">{location.address}</p>
               )}
             </div>
 
@@ -128,22 +128,22 @@ export function LocationDetail({ location, onClose }: LocationDetailProps) {
             </button>
 
             {/* Details */}
-            <div className="bg-white rounded-lg border border-gray-200 divide-y divide-gray-200">
+            <div className="bg-surface-elevated rounded-lg border border-border divide-y divide-border">
               {location.dateTime && (
                 <div className="px-4 py-3">
-                  <div className="text-sm text-gray-500">Date & Time</div>
-                  <div className="text-gray-900">{formatDateTime(location.dateTime)}</div>
+                  <div className="text-sm text-text-secondary">Date & Time</div>
+                  <div className="text-text-primary">{formatDateTime(location.dateTime)}</div>
                 </div>
               )}
               {location.locationType === "hotel" && location.endDateTime && (
                 <div className="px-4 py-3">
-                  <div className="text-sm text-gray-500">Check-out</div>
-                  <div className="text-gray-900">{formatDateTime(location.endDateTime)}</div>
+                  <div className="text-sm text-text-secondary">Check-out</div>
+                  <div className="text-text-primary">{formatDateTime(location.endDateTime)}</div>
                 </div>
               )}
               <div className="px-4 py-3">
-                <div className="text-sm text-gray-500">Coordinates</div>
-                <div className="text-gray-900">
+                <div className="text-sm text-text-secondary">Coordinates</div>
+                <div className="text-text-primary">
                   {location.latitude.toFixed(5)}, {location.longitude.toFixed(5)}
                 </div>
               </div>
@@ -152,17 +152,17 @@ export function LocationDetail({ location, onClose }: LocationDetailProps) {
             {/* Notes */}
             {location.notes && (
               <div>
-                <h2 className="text-sm font-medium text-gray-500 mb-2">Notes</h2>
-                <div className="bg-white rounded-lg border border-gray-200 p-4">
-                  <p className="text-gray-900 whitespace-pre-wrap">{location.notes}</p>
+                <h2 className="text-sm font-medium text-text-secondary mb-2">Notes</h2>
+                <div className="bg-surface-elevated rounded-lg border border-border p-4">
+                  <p className="text-text-primary whitespace-pre-wrap">{location.notes}</p>
                 </div>
               </div>
             )}
 
             {/* Attachments */}
             <div>
-              <h2 className="text-sm font-medium text-gray-500 mb-2">Attachments</h2>
-              <div className="bg-white rounded-lg border border-gray-200 p-4 space-y-4">
+              <h2 className="text-sm font-medium text-text-secondary mb-2">Attachments</h2>
+              <div className="bg-surface-elevated rounded-lg border border-border p-4 space-y-4">
                 <AttachmentList locationId={location._id} />
                 <AttachmentUpload locationId={location._id} />
               </div>
@@ -177,7 +177,7 @@ export function LocationDetail({ location, onClose }: LocationDetailProps) {
                     <button
                       onClick={() => setShowDeleteConfirm(false)}
                       disabled={isDeleting}
-                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 bg-white"
+                      className="flex-1 px-4 py-2 border border-border rounded-lg text-text-secondary bg-surface-elevated"
                     >
                       Cancel
                     </button>
@@ -364,20 +364,20 @@ function LocationEditForm({
   return (
     <form onSubmit={handleSubmit} className="p-4 space-y-4">
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+        <label className="block text-sm font-medium text-text-secondary mb-1">Name *</label>
         <input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-4 py-3 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           placeholder="e.g., Eiffel Tower"
         />
       </div>
 
       <div ref={addressContainerRef} className="relative">
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-medium text-text-secondary mb-1">
           Address
-          {isSearching && <span className="ml-2 text-gray-400">(searching...)</span>}
+          {isSearching && <span className="ml-2 text-text-muted">(searching...)</span>}
         </label>
         <input
           type="text"
@@ -391,29 +391,29 @@ function LocationEditForm({
               setShowAddressResults(true);
             }
           }}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-4 py-3 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           placeholder="Search for an address..."
         />
 
         {/* Address search results dropdown */}
         {showAddressResults && addressResults.length > 0 && (
-          <div className="absolute z-50 w-full mt-1 bg-white rounded-lg border border-gray-200 shadow-lg max-h-48 overflow-y-auto">
+          <div className="absolute z-50 w-full mt-1 bg-surface-elevated rounded-lg border border-border shadow-lg max-h-48 overflow-y-auto">
             {addressResults.map((feature) => (
               <button
                 key={feature.id}
                 type="button"
                 onClick={() => handleAddressSelect(feature)}
-                className="w-full px-4 py-3 text-left hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
+                className="w-full px-4 py-3 text-left hover:bg-surface-secondary border-b border-border-muted last:border-b-0"
               >
-                <div className="font-medium text-gray-900 truncate">{feature.text}</div>
-                <div className="text-sm text-gray-500 truncate">{feature.place_name}</div>
+                <div className="font-medium text-text-primary truncate">{feature.text}</div>
+                <div className="text-sm text-text-secondary truncate">{feature.place_name}</div>
               </button>
             ))}
           </div>
         )}
 
         {/* Coordinates indicator */}
-        <div className="mt-1 text-sm text-gray-400 flex items-center gap-2">
+        <div className="mt-1 text-sm text-text-muted flex items-center gap-2">
           <span>{latitude.toFixed(5)}, {longitude.toFixed(5)}</span>
           {coordinatesUpdated && (
             <span className="text-green-600 font-medium">Updated</span>
@@ -422,7 +422,7 @@ function LocationEditForm({
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
+        <label className="block text-sm font-medium text-text-secondary mb-2">Type</label>
         <div className="flex gap-2">
           {locationTypeOptions.map((option) => (
             <button
@@ -432,7 +432,7 @@ function LocationEditForm({
               className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
                 locationType === option.value
                   ? `${option.color} text-white`
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  : "bg-surface-secondary text-text-secondary hover:bg-surface-inset"
               }`}
             >
               {option.label}
@@ -442,24 +442,24 @@ function LocationEditForm({
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Date & Time</label>
+        <label className="block text-sm font-medium text-text-secondary mb-1">Date & Time</label>
         <div className="flex gap-2">
           <input
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="flex-1 px-4 py-3 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
           <input
             type="time"
             value={time}
             onChange={(e) => setTime(e.target.value)}
-            className="w-28 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-28 px-4 py-3 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
           <button
             type="button"
             onClick={() => { setDate(""); setTime(""); }}
-            className={`px-3 py-3 rounded-lg border border-gray-300 transition ${date ? "text-gray-400 hover:text-gray-600 hover:bg-gray-100" : "text-gray-200 cursor-not-allowed"}`}
+            className={`px-3 py-3 rounded-lg border border-border transition ${date ? "text-text-muted hover:text-text-secondary hover:bg-surface-secondary" : "text-text-muted cursor-not-allowed"}`}
             title="Clear date"
             disabled={!date}
           >
@@ -472,24 +472,24 @@ function LocationEditForm({
 
       {locationType === "hotel" && (
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Check-out</label>
+          <label className="block text-sm font-medium text-text-secondary mb-1">Check-out</label>
           <div className="flex gap-2">
             <input
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="flex-1 px-4 py-3 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
             <input
               type="time"
               value={endTime}
               onChange={(e) => setEndTime(e.target.value)}
-              className="w-28 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-28 px-4 py-3 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
             <button
               type="button"
               onClick={() => { setEndDate(""); setEndTime(""); }}
-              className={`px-3 py-3 rounded-lg border border-gray-300 transition ${endDate ? "text-gray-400 hover:text-gray-600 hover:bg-gray-100" : "text-gray-200 cursor-not-allowed"}`}
+              className={`px-3 py-3 rounded-lg border border-border transition ${endDate ? "text-text-muted hover:text-text-secondary hover:bg-surface-secondary" : "text-text-muted cursor-not-allowed"}`}
               title="Clear date"
               disabled={!endDate}
             >
@@ -502,12 +502,12 @@ function LocationEditForm({
       )}
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+        <label className="block text-sm font-medium text-text-secondary mb-1">Notes</label>
         <textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           rows={3}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+          className="w-full px-4 py-3 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
         />
       </div>
 
@@ -515,7 +515,7 @@ function LocationEditForm({
         <button
           type="button"
           onClick={onCancel}
-          className="flex-1 px-4 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium"
+          className="flex-1 px-4 py-3 border border-border rounded-lg text-text-secondary font-medium"
         >
           Cancel
         </button>

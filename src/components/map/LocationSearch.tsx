@@ -239,7 +239,7 @@ export function LocationSearch({
         {/* Search icon */}
         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
           <svg
-            className="h-5 w-5 text-gray-400"
+            className="h-5 w-5 text-text-muted"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -264,14 +264,14 @@ export function LocationSearch({
           }}
           placeholder={placeholder}
           autoFocus={autoFocus}
-          className="w-full pl-10 pr-10 py-3 rounded-lg border border-gray-300 bg-white text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full pl-10 pr-10 py-3 rounded-lg border text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
 
         {/* Loading spinner or clear button */}
         <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
           {isLoading ? (
             <svg
-              className="animate-spin h-5 w-5 text-gray-400"
+              className="animate-spin h-5 w-5 text-text-muted"
               fill="none"
               viewBox="0 0 24 24"
             >
@@ -293,7 +293,7 @@ export function LocationSearch({
             <button
               type="button"
               onClick={handleClear}
-              className="text-gray-400 hover:text-gray-600 focus:outline-none"
+              className="text-text-muted hover:text-text-secondary focus:outline-none"
             >
               <svg
                 className="h-5 w-5"
@@ -315,16 +315,16 @@ export function LocationSearch({
 
       {/* Results dropdown */}
       {isOpen && results.length > 0 && (
-        <div className="absolute z-50 w-full mt-1 bg-white rounded-lg border border-gray-200 shadow-lg max-h-60 overflow-y-auto">
+        <div className="absolute z-50 w-full mt-1 bg-surface-elevated rounded-lg border border-border shadow-lg max-h-60 overflow-y-auto">
           {results.map((result) => (
             <button
               key={result.id}
               type="button"
               onClick={() => handleSelect(result)}
-              className="w-full px-4 py-3 text-left hover:bg-gray-50 focus:bg-gray-50 focus:outline-none border-b border-gray-100 last:border-b-0"
+              className="w-full px-4 py-3 text-left hover:bg-surface-secondary focus:bg-surface-secondary focus:outline-none border-b border-border-muted last:border-b-0"
             >
               <div className="flex items-center gap-2">
-                <span className="font-medium text-gray-900 text-base">
+                <span className="font-medium text-text-primary text-base">
                   {result.name}
                 </span>
                 {result.suggestedType === "restaurant" && (
@@ -344,7 +344,7 @@ export function LocationSearch({
                 )}
               </div>
               {result.address && (
-                <div className="text-sm text-gray-500 truncate">
+                <div className="text-sm text-text-muted truncate">
                   {result.address}
                 </div>
               )}

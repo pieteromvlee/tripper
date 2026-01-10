@@ -39,7 +39,7 @@ function AttachmentItem({ attachment, onDelete, isDeleting }: AttachmentItemProp
   };
 
   return (
-    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+    <div className="flex items-center gap-3 p-3 bg-surface-secondary rounded-lg border border-border">
       {/* File icon */}
       <div className="flex-shrink-0">
         {isPdf ? (
@@ -51,7 +51,7 @@ function AttachmentItem({ attachment, onDelete, isDeleting }: AttachmentItemProp
             <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 2l5 5h-5V4zm-3.5 9.5a1 1 0 011-1h1a1 1 0 011 1v3a1 1 0 01-1 1h-1a1 1 0 01-1-1v-3zm-3-1h1c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5H7v1.5a.5.5 0 01-1 0v-4a.5.5 0 01.5-.5zm9.5 0h2a.5.5 0 010 1h-1.5v1h1a.5.5 0 010 1h-1v1.5a.5.5 0 01-1 0v-4a.5.5 0 01.5-.5z" />
           </svg>
         ) : isImage ? (
-          <div className="w-8 h-8 rounded overflow-hidden bg-gray-200">
+          <div className="w-8 h-8 rounded overflow-hidden bg-surface-inset">
             {downloadUrl && (
               <img
                 src={downloadUrl}
@@ -62,7 +62,7 @@ function AttachmentItem({ attachment, onDelete, isDeleting }: AttachmentItemProp
           </div>
         ) : (
           <svg
-            className="w-8 h-8 text-gray-400"
+            className="w-8 h-8 text-text-muted"
             fill="currentColor"
             viewBox="0 0 24 24"
           >
@@ -73,10 +73,10 @@ function AttachmentItem({ attachment, onDelete, isDeleting }: AttachmentItemProp
 
       {/* File name */}
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-gray-900 truncate">
+        <p className="text-sm font-medium text-text-primary truncate">
           {attachment.fileName}
         </p>
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-text-muted">
           {new Date(attachment.uploadedAt).toLocaleDateString()}
         </p>
       </div>
@@ -87,7 +87,7 @@ function AttachmentItem({ attachment, onDelete, isDeleting }: AttachmentItemProp
         {(isPdf || isImage) && downloadUrl && (
           <button
             onClick={handleView}
-            className="p-1.5 rounded-md text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+            className="p-1.5 rounded-md text-text-muted hover:text-blue-600 hover:bg-blue-50 transition-colors"
             title="View"
             aria-label="View file"
           >
@@ -117,7 +117,7 @@ function AttachmentItem({ attachment, onDelete, isDeleting }: AttachmentItemProp
         {downloadUrl && (
           <button
             onClick={handleDownload}
-            className="p-1.5 rounded-md text-gray-400 hover:text-green-600 hover:bg-green-50 transition-colors"
+            className="p-1.5 rounded-md text-text-muted hover:text-green-600 hover:bg-green-50 transition-colors"
             title="Download"
             aria-label="Download file"
           >
@@ -143,8 +143,8 @@ function AttachmentItem({ attachment, onDelete, isDeleting }: AttachmentItemProp
           disabled={isDeleting}
           className={`p-1.5 rounded-md transition-colors ${
             isDeleting
-              ? "text-gray-300 cursor-not-allowed"
-              : "text-gray-400 hover:text-red-600 hover:bg-red-50"
+              ? "text-text-muted cursor-not-allowed"
+              : "text-text-muted hover:text-red-600 hover:bg-red-50"
           }`}
           title="Delete"
           aria-label="Delete file"
@@ -205,7 +205,7 @@ export function AttachmentList({ locationId }: AttachmentListProps) {
   if (attachments.length === 0) {
     return (
       <div className="text-center py-4">
-        <p className="text-sm text-gray-500">No attachments yet</p>
+        <p className="text-sm text-text-muted">No attachments yet</p>
       </div>
     );
   }

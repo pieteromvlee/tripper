@@ -158,8 +158,8 @@ export function AttachmentUpload({
           rounded-lg border-2 border-dashed transition-colors
           ${
             isUploading
-              ? "border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed"
-              : "border-gray-300 hover:border-blue-400 hover:bg-blue-50 text-gray-600 hover:text-blue-600"
+              ? "border-border bg-surface-secondary text-text-muted cursor-not-allowed"
+              : "border-border hover:border-blue-400 hover:bg-blue-50 text-text-secondary hover:text-blue-600"
           }
         `}
       >
@@ -190,7 +190,7 @@ export function AttachmentUpload({
 
       {/* Progress bar */}
       {isUploading && uploadProgress > 0 && (
-        <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+        <div className="w-full bg-surface-inset rounded-full h-2 overflow-hidden">
           <div
             className="bg-blue-500 h-full transition-all duration-300 ease-out"
             style={{ width: `${uploadProgress}%` }}
@@ -230,7 +230,7 @@ export function AttachmentUpload({
       )}
 
       {/* Help text */}
-      <p className="text-xs text-gray-500 text-center">
+      <p className="text-xs text-text-muted text-center">
         PDF and images up to 10MB
       </p>
     </div>

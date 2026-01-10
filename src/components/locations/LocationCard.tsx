@@ -85,7 +85,7 @@ export function LocationCard({
         ${
           isSelected
             ? "bg-blue-50 border-2 border-blue-500 shadow-md"
-            : "bg-white border border-gray-200 hover:border-gray-300 hover:shadow-sm"
+            : "bg-surface-elevated border border-border hover:border-border hover:shadow-sm"
         }
       `}
     >
@@ -95,7 +95,7 @@ export function LocationCard({
           <h3
             className={`
               font-medium text-base truncate
-              ${isSelected ? "text-blue-900" : "text-gray-900"}
+              ${isSelected ? "text-blue-900" : "text-text-primary"}
             `}
           >
             {location.name}
@@ -103,7 +103,7 @@ export function LocationCard({
 
           {/* Address */}
           {location.address && (
-            <p className="text-sm text-gray-500 truncate mt-0.5">
+            <p className="text-sm text-text-secondary truncate mt-0.5">
               {location.address}
             </p>
           )}
@@ -113,12 +113,12 @@ export function LocationCard({
             <p
               className={`
                 text-sm mt-1
-                ${isSelected ? "text-blue-700" : "text-gray-600"}
+                ${isSelected ? "text-blue-700" : "text-text-secondary"}
               `}
             >
               {formatDateTime(location.dateTime)}
               {location.locationType === "hotel" && location.endDateTime && (
-                <span className="text-gray-400">
+                <span className="text-text-muted">
                   {" "}
                   - {formatDateTime(location.endDateTime)}
                 </span>
@@ -145,7 +145,7 @@ export function LocationCard({
               ${
                 isSelected
                   ? "text-blue-600 hover:bg-blue-100"
-                  : "text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+                  : "text-text-muted hover:text-text-secondary hover:bg-surface-secondary"
               }
               ${showInfo ? "bg-blue-100" : ""}
             `}
@@ -178,7 +178,7 @@ export function LocationCard({
               ${
                 isSelected
                   ? "text-blue-600 hover:bg-blue-100"
-                  : "text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+                  : "text-text-muted hover:text-text-secondary hover:bg-surface-secondary"
               }
               ${showAttachments ? "bg-blue-100" : ""}
             `}
@@ -232,7 +232,7 @@ export function LocationCard({
               ${
                 isSelected
                   ? "text-blue-600 hover:bg-blue-100"
-                  : "text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+                  : "text-text-muted hover:text-text-secondary hover:bg-surface-secondary"
               }
             `}
             title="Get Directions"
@@ -275,7 +275,7 @@ export function LocationCard({
 
       {/* Notes preview - only show when info panel is closed */}
       {location.notes && !showInfo && (
-        <p className="text-sm text-gray-400 mt-2 line-clamp-2">
+        <p className="text-sm text-text-muted mt-2 line-clamp-2">
           {location.notes}
         </p>
       )}
@@ -283,11 +283,11 @@ export function LocationCard({
       {/* Info section (expandable) */}
       {showInfo && (
         <div
-          className="mt-3 pt-3 border-t border-gray-200"
+          className="mt-3 pt-3 border-t border-border"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex items-center justify-between mb-3">
-            <h4 className="text-sm font-medium text-gray-700">
+            <h4 className="text-sm font-medium text-text-secondary">
               {isEditing ? "Edit Location" : "Location Details"}
             </h4>
             <div className="flex items-center gap-2">
@@ -304,7 +304,7 @@ export function LocationCard({
                   setShowInfo(false);
                   setIsEditing(false);
                 }}
-                className="p-1 text-gray-400 hover:text-gray-600 rounded"
+                className="p-1 text-text-muted hover:text-text-secondary rounded"
                 aria-label="Close info"
               >
                 <svg
@@ -333,48 +333,48 @@ export function LocationCard({
           ) : (
             <div className="space-y-2 text-sm">
               <div>
-                <span className="text-gray-500">Name:</span>{" "}
-                <span className="text-gray-900">{location.name}</span>
+                <span className="text-text-secondary">Name:</span>{" "}
+                <span className="text-text-primary">{location.name}</span>
               </div>
               {location.address && (
                 <div>
-                  <span className="text-gray-500">Address:</span>{" "}
-                  <span className="text-gray-900">{location.address}</span>
+                  <span className="text-text-secondary">Address:</span>{" "}
+                  <span className="text-text-primary">{location.address}</span>
                 </div>
               )}
               <div>
-                <span className="text-gray-500">Coordinates:</span>{" "}
-                <span className="text-gray-900">
+                <span className="text-text-secondary">Coordinates:</span>{" "}
+                <span className="text-text-primary">
                   {location.latitude.toFixed(5)}, {location.longitude.toFixed(5)}
                 </span>
               </div>
               {location.dateTime && (
                 <div>
-                  <span className="text-gray-500">Date/Time:</span>{" "}
-                  <span className="text-gray-900">{formatDateTime(location.dateTime)}</span>
+                  <span className="text-text-secondary">Date/Time:</span>{" "}
+                  <span className="text-text-primary">{formatDateTime(location.dateTime)}</span>
                 </div>
               )}
               {location.locationType === "hotel" && location.endDateTime && (
                 <div>
-                  <span className="text-gray-500">Check-out:</span>{" "}
-                  <span className="text-gray-900">{formatDateTime(location.endDateTime)}</span>
+                  <span className="text-text-secondary">Check-out:</span>{" "}
+                  <span className="text-text-primary">{formatDateTime(location.endDateTime)}</span>
                 </div>
               )}
               <div>
-                <span className="text-gray-500">Type:</span>{" "}
-                <span className="text-gray-900">
+                <span className="text-text-secondary">Type:</span>{" "}
+                <span className="text-text-primary">
                   {location.locationType === "hotel" ? "Hotel" : location.locationType === "restaurant" ? "Restaurant" : "Attraction"}
                 </span>
               </div>
               {location.notes && (
                 <div>
-                  <span className="text-gray-500">Notes:</span>{" "}
-                  <span className="text-gray-900 whitespace-pre-wrap">{location.notes}</span>
+                  <span className="text-text-secondary">Notes:</span>{" "}
+                  <span className="text-text-primary whitespace-pre-wrap">{location.notes}</span>
                 </div>
               )}
 
               {/* Delete section */}
-              <div className="pt-3 mt-3 border-t border-gray-200">
+              <div className="pt-3 mt-3 border-t border-border">
                 {showDeleteConfirm ? (
                   <div className="space-y-2">
                     <p className="text-xs text-red-600">Delete this location? This cannot be undone.</p>
@@ -382,7 +382,7 @@ export function LocationCard({
                       <button
                         onClick={() => setShowDeleteConfirm(false)}
                         disabled={isDeleting}
-                        className="flex-1 px-3 py-1.5 text-xs border border-gray-300 rounded text-gray-700 hover:bg-gray-50"
+                        className="flex-1 px-3 py-1.5 text-xs border border-border rounded text-text-secondary hover:bg-surface-secondary"
                       >
                         Cancel
                       </button>
@@ -420,14 +420,14 @@ export function LocationCard({
       {/* Attachments section (expandable) */}
       {showAttachments && (
         <div
-          className="mt-3 pt-3 border-t border-gray-200"
+          className="mt-3 pt-3 border-t border-border"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex items-center justify-between mb-3">
-            <h4 className="text-sm font-medium text-gray-700">Attachments</h4>
+            <h4 className="text-sm font-medium text-text-secondary">Attachments</h4>
             <button
               onClick={() => setShowAttachments(false)}
-              className="p-1 text-gray-400 hover:text-gray-600 rounded"
+              className="p-1 text-text-muted hover:text-text-secondary rounded"
               aria-label="Close attachments"
             >
               <svg
@@ -613,20 +613,20 @@ function LocationEditForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
       <div>
-        <label className="block text-xs font-medium text-gray-700 mb-1">Name *</label>
+        <label className="block text-xs font-medium text-text-secondary mb-1">Name *</label>
         <input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 text-sm border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           placeholder="e.g., Eiffel Tower"
         />
       </div>
 
       <div ref={addressContainerRef} className="relative">
-        <label className="block text-xs font-medium text-gray-700 mb-1">
+        <label className="block text-xs font-medium text-text-secondary mb-1">
           Address
-          {isSearching && <span className="ml-2 text-gray-400">(searching...)</span>}
+          {isSearching && <span className="ml-2 text-text-muted">(searching...)</span>}
         </label>
         <input
           type="text"
@@ -640,29 +640,29 @@ function LocationEditForm({
               setShowAddressResults(true);
             }
           }}
-          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 text-sm border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           placeholder="Search for an address..."
         />
 
         {/* Address search results dropdown */}
         {showAddressResults && addressResults.length > 0 && (
-          <div className="absolute z-50 w-full mt-1 bg-white rounded-lg border border-gray-200 shadow-lg max-h-48 overflow-y-auto">
+          <div className="absolute z-50 w-full mt-1 bg-surface-elevated rounded-lg border border-border shadow-lg max-h-48 overflow-y-auto">
             {addressResults.map((feature) => (
               <button
                 key={feature.id}
                 type="button"
                 onClick={() => handleAddressSelect(feature)}
-                className="w-full px-3 py-2 text-left hover:bg-gray-50 text-sm border-b border-gray-100 last:border-b-0"
+                className="w-full px-3 py-2 text-left hover:bg-surface-secondary text-sm border-b border-border-muted last:border-b-0"
               >
-                <div className="font-medium text-gray-900 truncate">{feature.text}</div>
-                <div className="text-xs text-gray-500 truncate">{feature.place_name}</div>
+                <div className="font-medium text-text-primary truncate">{feature.text}</div>
+                <div className="text-xs text-text-secondary truncate">{feature.place_name}</div>
               </button>
             ))}
           </div>
         )}
 
         {/* Coordinates indicator */}
-        <div className="mt-1 text-xs text-gray-400 flex items-center gap-2">
+        <div className="mt-1 text-xs text-text-muted flex items-center gap-2">
           <span>{latitude.toFixed(5)}, {longitude.toFixed(5)}</span>
           {coordinatesUpdated && (
             <span className="text-green-600 font-medium">Updated</span>
@@ -671,7 +671,7 @@ function LocationEditForm({
       </div>
 
       <div>
-        <label className="block text-xs font-medium text-gray-700 mb-1">Type</label>
+        <label className="block text-xs font-medium text-text-secondary mb-1">Type</label>
         <div className="flex gap-1">
           {locationTypeOptions.map((option) => (
             <button
@@ -681,7 +681,7 @@ function LocationEditForm({
               className={`flex-1 px-2 py-1.5 rounded text-xs font-medium transition-all ${
                 locationType === option.value
                   ? `${option.color} text-white`
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  : "bg-surface-secondary text-text-secondary hover:bg-surface-inset"
               }`}
             >
               {option.label}
@@ -691,18 +691,18 @@ function LocationEditForm({
       </div>
 
       <div>
-        <label className="block text-xs font-medium text-gray-700 mb-1">Date & Time</label>
+        <label className="block text-xs font-medium text-text-secondary mb-1">Date & Time</label>
         <div className="flex gap-2">
           <input
             type="datetime-local"
             value={dateTime}
             onChange={(e) => setDateTime(e.target.value)}
-            className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="flex-1 px-3 py-2 text-sm border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
           <button
             type="button"
             onClick={() => setDateTime("")}
-            className={`px-2 py-2 rounded-lg border border-gray-300 transition ${dateTime ? "text-gray-400 hover:text-gray-600 hover:bg-gray-100" : "text-gray-200 cursor-not-allowed"}`}
+            className={`px-2 py-2 rounded-lg border border-border transition ${dateTime ? "text-text-muted hover:text-text-secondary hover:bg-surface-secondary" : "text-text-muted cursor-not-allowed"}`}
             title="Clear date"
             disabled={!dateTime}
           >
@@ -715,18 +715,18 @@ function LocationEditForm({
 
       {locationType === "hotel" && (
         <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1">Check-out</label>
+          <label className="block text-xs font-medium text-text-secondary mb-1">Check-out</label>
           <div className="flex gap-2">
             <input
               type="datetime-local"
               value={endDateTime}
               onChange={(e) => setEndDateTime(e.target.value)}
-              className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="flex-1 px-3 py-2 text-sm border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
             <button
               type="button"
               onClick={() => setEndDateTime("")}
-              className={`px-2 py-2 rounded-lg border border-gray-300 transition ${endDateTime ? "text-gray-400 hover:text-gray-600 hover:bg-gray-100" : "text-gray-200 cursor-not-allowed"}`}
+              className={`px-2 py-2 rounded-lg border border-border transition ${endDateTime ? "text-text-muted hover:text-text-secondary hover:bg-surface-secondary" : "text-text-muted cursor-not-allowed"}`}
               title="Clear date"
               disabled={!endDateTime}
             >
@@ -739,12 +739,12 @@ function LocationEditForm({
       )}
 
       <div>
-        <label className="block text-xs font-medium text-gray-700 mb-1">Notes</label>
+        <label className="block text-xs font-medium text-text-secondary mb-1">Notes</label>
         <textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           rows={2}
-          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+          className="w-full px-3 py-2 text-sm border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
         />
       </div>
 
@@ -752,7 +752,7 @@ function LocationEditForm({
         <button
           type="button"
           onClick={onCancel}
-          className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+          className="flex-1 px-3 py-2 text-sm border border-border rounded-lg text-text-secondary hover:bg-surface-secondary"
         >
           Cancel
         </button>
