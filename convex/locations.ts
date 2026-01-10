@@ -106,6 +106,14 @@ export const create = mutation({
     const userId = await requireAuth(ctx);
     await requireEditorAccess(ctx, args.tripId, userId);
 
+    // Validate coordinates
+    if (args.latitude < -90 || args.latitude > 90) {
+      throw new ConvexError("Invalid latitude: must be between -90 and 90");
+    }
+    if (args.longitude < -180 || args.longitude > 180) {
+      throw new ConvexError("Invalid longitude: must be between -180 and 180");
+    }
+
     const existingLocations = await ctx.db
       .query("locations")
       .withIndex("by_tripId", (q) => q.eq("tripId", args.tripId))
@@ -168,6 +176,14 @@ export const update = mutation({
     }
 
     await requireEditorAccess(ctx, location.tripId, userId);
+
+    // Validate coordinates if provided
+    if (args.latitude !== undefined && (args.latitude < -90 || args.latitude > 90)) {
+      throw new ConvexError("Invalid latitude: must be between -90 and 90");
+    }
+    if (args.longitude !== undefined && (args.longitude < -180 || args.longitude > 180)) {
+      throw new ConvexError("Invalid longitude: must be between -180 and 180");
+    }
 
     const { id, ...updates } = args;
 

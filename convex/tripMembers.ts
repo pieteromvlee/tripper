@@ -131,6 +131,12 @@ export const invite = mutation({
 
     const email = args.email.toLowerCase().trim();
 
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      throw new ConvexError("Invalid email format");
+    }
+
     // Check if this email is already a member
     const existingUser = await getUserByEmail(ctx, email);
     if (existingUser) {
