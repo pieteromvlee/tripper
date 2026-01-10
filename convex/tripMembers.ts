@@ -1,35 +1,14 @@
 import { query, mutation, internalMutation } from "./_generated/server";
-import { v } from "convex/values";
+import { v, ConvexError } from "convex/values";
 import { getAuthUserId } from "@convex-dev/auth/server";
-import { ConvexError } from "convex/values";
-import type { Id } from "./_generated/dataModel";
 import type { QueryCtx, MutationCtx } from "./_generated/server";
+import {
+  checkTripAccess,
+  requireAuth,
+  requireTripAccess,
+  requireOwnerAccess,
+} from "./helpers";
 
-// Helper to check if user has access to a trip
-async function checkTripAccess(
-  ctx: QueryCtx | MutationCtx,
-  tripId: Id<"trips">,
-  userId: Id<"users">
-) {
-  const membership = await ctx.db
-    .query("tripMembers")
-    .withIndex("by_tripId", (q) => q.eq("tripId", tripId))
-    .filter((q) => q.eq(q.field("userId"), userId))
-    .first();
-  return membership;
-}
-
-// Helper to check if user is owner
-async function checkOwnerAccess(
-  ctx: QueryCtx | MutationCtx,
-  tripId: Id<"trips">,
-  userId: Id<"users">
-): Promise<boolean> {
-  const membership = await checkTripAccess(ctx, tripId, userId);
-  return membership?.role === "owner";
-}
-
-// Helper to get user by email
 async function getUserByEmail(ctx: QueryCtx | MutationCtx, email: string) {
   return await ctx.db
     .query("users")
@@ -47,16 +26,8 @@ export const list = query({
     tripId: v.id("trips"),
   },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      throw new ConvexError("Not authenticated");
-    }
-
-    // Check if user has access to this trip
-    const membership = await checkTripAccess(ctx, args.tripId, userId);
-    if (!membership) {
-      throw new ConvexError("You don't have access to this trip");
-    }
+    const userId = await requireAuth(ctx);
+    await requireTripAccess(ctx, args.tripId, userId);
 
     // Get all members
     const members = await ctx.db
@@ -88,16 +59,8 @@ export const listPendingInvites = query({
     tripId: v.id("trips"),
   },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      throw new ConvexError("Not authenticated");
-    }
-
-    // Check if user is owner
-    const isOwner = await checkOwnerAccess(ctx, args.tripId, userId);
-    if (!isOwner) {
-      throw new ConvexError("Only the trip owner can view pending invites");
-    }
+    const userId = await requireAuth(ctx);
+    await requireOwnerAccess(ctx, args.tripId, userId);
 
     // Get all pending invites
     const invites = await ctx.db
@@ -163,16 +126,8 @@ export const invite = mutation({
     email: v.string(),
   },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      throw new ConvexError("Not authenticated");
-    }
-
-    // Check if user is owner
-    const isOwner = await checkOwnerAccess(ctx, args.tripId, userId);
-    if (!isOwner) {
-      throw new ConvexError("Only the trip owner can invite members");
-    }
+    const userId = await requireAuth(ctx);
+    await requireOwnerAccess(ctx, args.tripId, userId);
 
     const email = args.email.toLowerCase().trim();
 
@@ -232,10 +187,7 @@ export const acceptInvite = mutation({
     inviteId: v.id("tripInvites"),
   },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      throw new ConvexError("Not authenticated");
-    }
+    const userId = await requireAuth(ctx);
 
     const invite = await ctx.db.get(args.inviteId);
     if (!invite) {
@@ -289,10 +241,7 @@ export const declineInvite = mutation({
     inviteId: v.id("tripInvites"),
   },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      throw new ConvexError("Not authenticated");
-    }
+    const userId = await requireAuth(ctx);
 
     const invite = await ctx.db.get(args.inviteId);
     if (!invite) {
@@ -321,21 +270,14 @@ export const cancelInvite = mutation({
     inviteId: v.id("tripInvites"),
   },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      throw new ConvexError("Not authenticated");
-    }
+    const userId = await requireAuth(ctx);
 
     const invite = await ctx.db.get(args.inviteId);
     if (!invite) {
       throw new ConvexError("Invite not found");
     }
 
-    // Check if user is owner of the trip
-    const isOwner = await checkOwnerAccess(ctx, invite.tripId, userId);
-    if (!isOwner) {
-      throw new ConvexError("Only the trip owner can cancel invites");
-    }
+    await requireOwnerAccess(ctx, invite.tripId, userId);
 
     // Delete the invite
     await ctx.db.delete(args.inviteId);
@@ -352,21 +294,14 @@ export const removeMember = mutation({
     memberId: v.id("tripMembers"),
   },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      throw new ConvexError("Not authenticated");
-    }
+    const userId = await requireAuth(ctx);
 
     const member = await ctx.db.get(args.memberId);
     if (!member) {
       throw new ConvexError("Member not found");
     }
 
-    // Check if user is owner of the trip
-    const isOwner = await checkOwnerAccess(ctx, member.tripId, userId);
-    if (!isOwner) {
-      throw new ConvexError("Only the trip owner can remove members");
-    }
+    await requireOwnerAccess(ctx, member.tripId, userId);
 
     // Can't remove self (owner)
     if (member.userId === userId) {
@@ -388,15 +323,8 @@ export const leaveTrip = mutation({
     tripId: v.id("trips"),
   },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      throw new ConvexError("Not authenticated");
-    }
-
-    const membership = await checkTripAccess(ctx, args.tripId, userId);
-    if (!membership) {
-      throw new ConvexError("You are not a member of this trip");
-    }
+    const userId = await requireAuth(ctx);
+    const membership = await requireTripAccess(ctx, args.tripId, userId);
 
     // Owners can't leave
     if (membership.role === "owner") {

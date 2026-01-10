@@ -1,22 +1,11 @@
 import { query, mutation } from "./_generated/server";
-import { v } from "convex/values";
+import { v, ConvexError } from "convex/values";
 import { getAuthUserId } from "@convex-dev/auth/server";
-import { ConvexError } from "convex/values";
-
-// Helper function to check if user has access to a trip and return their role
-async function getUserTripRole(
-  ctx: { db: any },
-  tripId: any,
-  userId: any
-): Promise<"owner" | "member" | null> {
-  const membership = await ctx.db
-    .query("tripMembers")
-    .withIndex("by_tripId", (q: any) => q.eq("tripId", tripId))
-    .filter((q: any) => q.eq(q.field("userId"), userId))
-    .first();
-
-  return membership?.role ?? null;
-}
+import {
+  requireAuth,
+  requireTripAccess,
+  requireOwnerAccess,
+} from "./helpers";
 
 // QUERIES
 
@@ -64,25 +53,18 @@ export const get = query({
     tripId: v.id("trips"),
   },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      throw new ConvexError("Not authenticated");
-    }
+    const userId = await requireAuth(ctx);
 
     const trip = await ctx.db.get(args.tripId);
     if (!trip) {
       throw new ConvexError("Trip not found");
     }
 
-    // Check if user has access to this trip
-    const role = await getUserTripRole(ctx, args.tripId, userId);
-    if (!role) {
-      throw new ConvexError("You don't have access to this trip");
-    }
+    const membership = await requireTripAccess(ctx, args.tripId, userId);
 
     return {
       ...trip,
-      role,
+      role: membership.role,
     };
   },
 });
@@ -100,10 +82,7 @@ export const create = mutation({
     defaultZoom: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      throw new ConvexError("Not authenticated");
-    }
+    const userId = await requireAuth(ctx);
 
     const now = Date.now();
 
@@ -143,10 +122,7 @@ export const update = mutation({
     defaultZoom: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      throw new ConvexError("Not authenticated");
-    }
+    const userId = await requireAuth(ctx);
 
     const trip = await ctx.db.get(args.tripId);
     if (!trip) {
@@ -154,10 +130,7 @@ export const update = mutation({
     }
 
     // Check if user has access (owner or member can edit)
-    const role = await getUserTripRole(ctx, args.tripId, userId);
-    if (!role) {
-      throw new ConvexError("You don't have permission to edit this trip");
-    }
+    await requireTripAccess(ctx, args.tripId, userId);
 
     // Build update object with only provided fields
     const updates: Partial<{
@@ -197,21 +170,14 @@ export const remove = mutation({
     tripId: v.id("trips"),
   },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      throw new ConvexError("Not authenticated");
-    }
+    const userId = await requireAuth(ctx);
 
     const trip = await ctx.db.get(args.tripId);
     if (!trip) {
       throw new ConvexError("Trip not found");
     }
 
-    // Check if user is the owner
-    const role = await getUserTripRole(ctx, args.tripId, userId);
-    if (role !== "owner") {
-      throw new ConvexError("Only the trip owner can delete this trip");
-    }
+    await requireOwnerAccess(ctx, args.tripId, userId);
 
     // Delete all tripMembers for this trip
     const members = await ctx.db
