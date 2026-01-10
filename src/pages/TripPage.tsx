@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { useQuery, useMutation } from "convex/react";
+import { useQuery } from "convex/react";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
-import { LocationList, DaySelector, LocationDetail } from "../components/locations";
+import { LocationList, DaySelector, LocationDetail, LocationForm } from "../components/locations";
 import { TripMap, LocationSearch } from "../components/map";
 import { TripShareModal } from "../components/trips/TripShareModal";
 
@@ -162,7 +162,7 @@ export default function TripPage() {
             <h1 className="text-lg font-semibold text-text-primary truncate">{trip.name}</h1>
             <button
               onClick={() => setShowSearch(true)}
-              className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+              className="p-1.5 text-blue-600 hover:bg-blue-500/10 rounded-lg transition"
               title="Add location"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -176,7 +176,7 @@ export default function TripPage() {
             {hotel && (
               <button
                 onClick={handleFlyToHotel}
-                className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition"
+                className="p-2 text-purple-600 hover:bg-purple-500/10 rounded-lg transition"
                 title="Go to hotel"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -274,15 +274,15 @@ export default function TripPage() {
             <div className="flex-1 overflow-y-auto">
               {showAddForm && newLocationData ? (
                 <div>
-                  <div className="px-4 py-2 bg-blue-50 border-b border-blue-100 flex items-center justify-between">
-                    <span className="text-sm font-medium text-blue-800">Add New Location</span>
-                    <button onClick={handleFormCancel} className="text-blue-600 hover:text-blue-800">
+                  <div className="px-4 py-2 bg-blue-500/10 border-b border-blue-500/20 flex items-center justify-between">
+                    <span className="text-sm font-medium text-blue-700 dark:text-blue-400">Add New Location</span>
+                    <button onClick={handleFormCancel} className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                       </svg>
                     </button>
                   </div>
-                  <LocationFormWithCoords
+                  <LocationForm
                     tripId={tripId as Id<"trips">}
                     latitude={newLocationData.lat}
                     longitude={newLocationData.lng}
@@ -291,6 +291,7 @@ export default function TripPage() {
                     initialLocationType={newLocationData.suggestedType}
                     onSuccess={handleFormSuccess}
                     onCancel={handleFormCancel}
+                    variant="inline"
                   />
                 </div>
               ) : (
@@ -367,7 +368,7 @@ export default function TripPage() {
                   {/* Info button */}
                   <button
                     onClick={() => setDetailLocationId(selectedLocation._id)}
-                    className="bg-surface-elevated p-3 rounded-full shadow-md text-blue-600 hover:bg-blue-50 transition"
+                    className="bg-surface-elevated p-3 rounded-full shadow-md text-blue-600 hover:bg-blue-500/10 transition"
                     title="View details"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -396,7 +397,7 @@ export default function TripPage() {
                 style={{ bottom: "calc(1rem + env(safe-area-inset-bottom, 0px))" }}
               >
                 {/* Location name label */}
-                <div className="bg-green-50 border border-green-200 px-3 py-2 rounded-lg shadow-md text-sm font-medium text-green-800 max-w-[200px] truncate">
+                <div className="bg-green-500/10 border border-green-500/30 px-3 py-2 rounded-lg shadow-md text-sm font-medium text-green-700 dark:text-green-400 max-w-[200px] truncate">
                   {newLocationData.name || "New Location"}
                 </div>
                 <div className="flex gap-2">
@@ -437,7 +438,7 @@ export default function TripPage() {
 
       {/* Full-screen add location form */}
       {showFullscreenAddForm && newLocationData && (
-        <AddLocationFullscreen
+        <LocationForm
           tripId={tripId as Id<"trips">}
           latitude={newLocationData.lat}
           longitude={newLocationData.lng}
@@ -445,7 +446,8 @@ export default function TripPage() {
           initialAddress={newLocationData.address}
           initialLocationType={newLocationData.suggestedType}
           onSuccess={handleFormSuccess}
-          onClose={handleFormCancel}
+          onCancel={handleFormCancel}
+          variant="fullscreen"
         />
       )}
 
@@ -457,388 +459,6 @@ export default function TripPage() {
           onClose={() => setShowShareModal(false)}
         />
       )}
-    </div>
-  );
-}
-
-// Location type options
-type LocationType = "attraction" | "restaurant" | "hotel";
-
-const locationTypeOptions: { value: LocationType; label: string; color: string }[] = [
-  { value: "attraction", label: "Attraction", color: "bg-blue-500" },
-  { value: "restaurant", label: "Restaurant", color: "bg-orange-500" },
-  { value: "hotel", label: "Hotel", color: "bg-purple-500" },
-];
-
-// Wrapper component that pre-fills coordinates in LocationForm
-function LocationFormWithCoords({
-  tripId,
-  latitude,
-  longitude,
-  initialName,
-  initialAddress,
-  initialLocationType,
-  onSuccess,
-  onCancel,
-}: {
-  tripId: Id<"trips">;
-  latitude: number;
-  longitude: number;
-  initialName?: string;
-  initialAddress?: string;
-  initialLocationType?: LocationType;
-  onSuccess: () => void;
-  onCancel: () => void;
-}) {
-  const [name, setName] = useState(initialName || "");
-  const [address, setAddress] = useState(initialAddress || "");
-  const [date, setDate] = useState("");
-  const [time, setTime] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [endTime, setEndTime] = useState("");
-  const [locationType, setLocationType] = useState<LocationType>(initialLocationType || "attraction");
-  const [notes, setNotes] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const createLocation = useMutation(api.locations.create);
-
-  // Combine date and time into datetime-local format
-  const combineDateTime = (d: string, t: string) => {
-    if (!d) return undefined;
-    return t ? `${d}T${t}` : `${d}T00:00`;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim() || isSubmitting) return;
-
-    setIsSubmitting(true);
-    try {
-      await createLocation({
-        tripId,
-        name: name.trim(),
-        latitude,
-        longitude,
-        dateTime: combineDateTime(date, time),
-        endDateTime: locationType === "hotel" ? combineDateTime(endDate, endTime) : undefined,
-        locationType,
-        notes: notes.trim() || undefined,
-        address: address.trim() || undefined,
-      });
-      onSuccess();
-    } catch (error) {
-      console.error("Failed to create location:", error);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="p-4 space-y-4">
-      <div>
-        <label className="block text-sm font-medium text-text-secondary mb-1">Name *</label>
-        <input
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          placeholder="e.g., Eiffel Tower"
-          autoFocus
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-text-secondary mb-1">Address</label>
-        <input
-          type="text"
-          value={address}
-          onChange={(e) => setAddress(e.target.value)}
-          className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          placeholder="e.g., Champ de Mars, Paris"
-        />
-      </div>
-
-      <div className="grid grid-cols-2 gap-3 text-sm text-text-secondary">
-        <div>Lat: {latitude.toFixed(5)}</div>
-        <div>Lng: {longitude.toFixed(5)}</div>
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-text-secondary mb-2">Type</label>
-        <div className="flex gap-2">
-          {locationTypeOptions.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              onClick={() => setLocationType(option.value)}
-              className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                locationType === option.value
-                  ? `${option.color} text-white`
-                  : "bg-surface-secondary text-text-secondary hover:bg-surface-inset"
-              }`}
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-text-secondary mb-1">Date & Time</label>
-        <div className="flex gap-2">
-          <input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className="flex-1 px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          />
-          <input
-            type="time"
-            value={time}
-            onChange={(e) => setTime(e.target.value)}
-            className="w-28 px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          />
-        </div>
-      </div>
-
-      {locationType === "hotel" && (
-        <div>
-          <label className="block text-sm font-medium text-text-secondary mb-1">Check-out</label>
-          <div className="flex gap-2">
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="flex-1 px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-            <input
-              type="time"
-              value={endTime}
-              onChange={(e) => setEndTime(e.target.value)}
-              className="w-28 px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-        </div>
-      )}
-
-      <div>
-        <label className="block text-sm font-medium text-text-secondary mb-1">Notes</label>
-        <textarea
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          rows={2}
-          className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
-        />
-      </div>
-
-      <div className="flex gap-3">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="flex-1 px-4 py-2 border border-border rounded-lg text-text-secondary hover:bg-surface-secondary"
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          disabled={!name.trim() || isSubmitting}
-          className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-        >
-          {isSubmitting ? "Adding..." : "Add Location"}
-        </button>
-      </div>
-    </form>
-  );
-}
-
-// Fullscreen add location form for mobile
-function AddLocationFullscreen({
-  tripId,
-  latitude,
-  longitude,
-  initialName,
-  initialAddress,
-  initialLocationType,
-  onSuccess,
-  onClose,
-}: {
-  tripId: Id<"trips">;
-  latitude: number;
-  longitude: number;
-  initialName?: string;
-  initialAddress?: string;
-  initialLocationType?: LocationType;
-  onSuccess: () => void;
-  onClose: () => void;
-}) {
-  const [name, setName] = useState(initialName || "");
-  const [address, setAddress] = useState(initialAddress || "");
-  const [date, setDate] = useState("");
-  const [time, setTime] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [endTime, setEndTime] = useState("");
-  const [locationType, setLocationType] = useState<LocationType>(initialLocationType || "attraction");
-  const [notes, setNotes] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const createLocation = useMutation(api.locations.create);
-
-  // Combine date and time into datetime-local format
-  const combineDateTime = (d: string, t: string) => {
-    if (!d) return undefined;
-    return t ? `${d}T${t}` : `${d}T00:00`;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim() || isSubmitting) return;
-
-    setIsSubmitting(true);
-    try {
-      await createLocation({
-        tripId,
-        name: name.trim(),
-        latitude,
-        longitude,
-        dateTime: combineDateTime(date, time),
-        endDateTime: locationType === "hotel" ? combineDateTime(endDate, endTime) : undefined,
-        locationType,
-        notes: notes.trim() || undefined,
-        address: address.trim() || undefined,
-      });
-      onSuccess();
-    } catch (error) {
-      console.error("Failed to create location:", error);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 bg-surface-elevated flex flex-col">
-      {/* Header */}
-      <header className="flex items-center justify-between px-4 py-3 border-b border-border bg-surface-elevated">
-        <button
-          onClick={onClose}
-          className="p-2 -ml-2 text-text-secondary hover:text-text-primary"
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-        <h2 className="text-lg font-semibold text-text-primary">Add Location</h2>
-        <button
-          onClick={handleSubmit}
-          disabled={!name.trim() || isSubmitting}
-          className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium disabled:opacity-50"
-        >
-          {isSubmitting ? "Adding..." : "Add"}
-        </button>
-      </header>
-
-      {/* Form content */}
-      <div className="flex-1 overflow-y-auto">
-        <form onSubmit={handleSubmit} className="p-4 space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-text-secondary mb-1">Name *</label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full px-4 py-3 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
-              placeholder="e.g., Eiffel Tower"
-              autoFocus
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-text-secondary mb-1">Address</label>
-            <input
-              type="text"
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              className="w-full px-4 py-3 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
-              placeholder="e.g., Champ de Mars, Paris"
-            />
-          </div>
-
-          <div className="bg-surface-secondary rounded-lg p-3">
-            <div className="text-sm text-text-secondary mb-1">Coordinates</div>
-            <div className="text-text-primary">
-              {latitude.toFixed(5)}, {longitude.toFixed(5)}
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-text-secondary mb-2">Type</label>
-            <div className="flex gap-2">
-              {locationTypeOptions.map((option) => (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => setLocationType(option.value)}
-                  className={`flex-1 px-3 py-3 rounded-lg text-sm font-medium transition-all ${
-                    locationType === option.value
-                      ? `${option.color} text-white`
-                      : "bg-surface-secondary text-text-secondary hover:bg-surface-inset"
-                  }`}
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-text-secondary mb-1">Date & Time</label>
-            <div className="flex gap-2">
-              <input
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className="flex-1 px-4 py-3 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
-              />
-              <input
-                type="time"
-                value={time}
-                onChange={(e) => setTime(e.target.value)}
-                className="w-28 px-4 py-3 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
-              />
-            </div>
-          </div>
-
-          {locationType === "hotel" && (
-            <div>
-              <label className="block text-sm font-medium text-text-secondary mb-1">Check-out</label>
-              <div className="flex gap-2">
-                <input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="flex-1 px-4 py-3 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
-                />
-                <input
-                  type="time"
-                  value={endTime}
-                  onChange={(e) => setEndTime(e.target.value)}
-                  className="w-28 px-4 py-3 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
-                />
-              </div>
-            </div>
-          )}
-
-          <div>
-            <label className="block text-sm font-medium text-text-secondary mb-1">Notes</label>
-            <textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              rows={3}
-              className="w-full px-4 py-3 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base resize-none"
-              placeholder="Add any notes..."
-            />
-          </div>
-        </form>
-      </div>
     </div>
   );
 }

@@ -328,17 +328,17 @@ export function LocationSearch({
                   {result.name}
                 </span>
                 {result.suggestedType === "restaurant" && (
-                  <span className="text-xs px-1.5 py-0.5 bg-orange-100 text-orange-700 rounded">
+                  <span className="text-xs px-1.5 py-0.5 bg-orange-500/20 text-orange-700 dark:text-orange-400 rounded">
                     restaurant
                   </span>
                 )}
                 {result.suggestedType === "hotel" && (
-                  <span className="text-xs px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded">
+                  <span className="text-xs px-1.5 py-0.5 bg-purple-500/20 text-purple-700 dark:text-purple-400 rounded">
                     hotel
                   </span>
                 )}
                 {result.suggestedType === "attraction" && (
-                  <span className="text-xs px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded">
+                  <span className="text-xs px-1.5 py-0.5 bg-blue-500/20 text-blue-700 dark:text-blue-400 rounded">
                     attraction
                   </span>
                 )}

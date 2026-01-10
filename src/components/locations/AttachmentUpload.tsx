@@ -159,7 +159,7 @@ export function AttachmentUpload({
           ${
             isUploading
               ? "border-border bg-surface-secondary text-text-muted cursor-not-allowed"
-              : "border-border hover:border-blue-400 hover:bg-blue-50 text-text-secondary hover:text-blue-600"
+              : "border-border hover:border-blue-400 hover:bg-blue-500/10 text-text-secondary hover:text-blue-600"
           }
         `}
       >
@@ -200,7 +200,7 @@ export function AttachmentUpload({
 
       {/* Error message */}
       {error && (
-        <div className="flex items-center gap-2 p-2 bg-red-50 border border-red-200 rounded-lg">
+        <div className="flex items-center gap-2 p-2 bg-red-500/10 border border-red-500/30 rounded-lg">
           <svg
             className="w-4 h-4 text-red-500 flex-shrink-0"
             fill="currentColor"
@@ -212,7 +212,7 @@ export function AttachmentUpload({
               clipRule="evenodd"
             />
           </svg>
-          <p className="text-sm text-red-700">{error}</p>
+          <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
           <button
             onClick={() => setError(null)}
             className="ml-auto p-1 text-red-500 hover:text-red-700"

@@ -1,9 +1,8 @@
-import { useState, type FormEvent } from "react";
+import { useState } from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
-import type { Id, Doc } from "../../../convex/_generated/dataModel";
+import type { Id } from "../../../convex/_generated/dataModel";
 
-// Location type options
 type LocationType = "attraction" | "restaurant" | "hotel";
 
 const locationTypeOptions: { value: LocationType; label: string; color: string }[] = [
@@ -14,273 +13,124 @@ const locationTypeOptions: { value: LocationType; label: string; color: string }
 
 interface LocationFormProps {
   tripId: Id<"trips">;
-  location?: Doc<"locations">; // For editing existing location
+  latitude: number;
+  longitude: number;
+  initialName?: string;
+  initialAddress?: string;
+  initialLocationType?: LocationType;
   onSuccess: () => void;
   onCancel: () => void;
-}
-
-interface FormData {
-  name: string;
-  latitude: string;
-  longitude: string;
-  dateTime: string;
-  endDateTime: string;
-  locationType: LocationType;
-  notes: string;
-  address: string;
-}
-
-interface FormErrors {
-  name?: string;
-  latitude?: string;
-  longitude?: string;
+  variant: "inline" | "fullscreen";
 }
 
 export function LocationForm({
   tripId,
-  location,
+  latitude,
+  longitude,
+  initialName,
+  initialAddress,
+  initialLocationType,
   onSuccess,
   onCancel,
+  variant,
 }: LocationFormProps) {
-  const createLocation = useMutation(api.locations.create);
-  const updateLocation = useMutation(api.locations.update);
-
-  const isEditing = !!location;
-
-  const [formData, setFormData] = useState<FormData>({
-    name: location?.name ?? "",
-    latitude: location?.latitude?.toString() ?? "",
-    longitude: location?.longitude?.toString() ?? "",
-    dateTime: location?.dateTime ?? "",
-    endDateTime: location?.endDateTime ?? "",
-    locationType: location?.locationType ?? "attraction",
-    notes: location?.notes ?? "",
-    address: location?.address ?? "",
-  });
-
-  const [errors, setErrors] = useState<FormErrors>({});
+  const [name, setName] = useState(initialName || "");
+  const [address, setAddress] = useState(initialAddress || "");
+  const [date, setDate] = useState("");
+  const [time, setTime] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [endTime, setEndTime] = useState("");
+  const [locationType, setLocationType] = useState<LocationType>(initialLocationType || "attraction");
+  const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const validateForm = (): boolean => {
-    const newErrors: FormErrors = {};
+  const createLocation = useMutation(api.locations.create);
 
-    if (!formData.name.trim()) {
-      newErrors.name = "Name is required";
-    }
-
-    if (!formData.latitude.trim()) {
-      newErrors.latitude = "Latitude is required";
-    } else if (isNaN(parseFloat(formData.latitude))) {
-      newErrors.latitude = "Latitude must be a number";
-    } else {
-      const lat = parseFloat(formData.latitude);
-      if (lat < -90 || lat > 90) {
-        newErrors.latitude = "Latitude must be between -90 and 90";
-      }
-    }
-
-    if (!formData.longitude.trim()) {
-      newErrors.longitude = "Longitude is required";
-    } else if (isNaN(parseFloat(formData.longitude))) {
-      newErrors.longitude = "Longitude must be a number";
-    } else {
-      const lng = parseFloat(formData.longitude);
-      if (lng < -180 || lng > 180) {
-        newErrors.longitude = "Longitude must be between -180 and 180";
-      }
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+  const combineDateTime = (d: string, t: string) => {
+    if (!d) return undefined;
+    return t ? `${d}T${t}` : `${d}T00:00`;
   };
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!validateForm()) return;
+    if (!name.trim() || isSubmitting) return;
 
     setIsSubmitting(true);
-
     try {
-      if (isEditing && location) {
-        await updateLocation({
-          id: location._id,
-          name: formData.name.trim(),
-          latitude: parseFloat(formData.latitude),
-          longitude: parseFloat(formData.longitude),
-          dateTime: formData.dateTime || undefined,
-          endDateTime: formData.locationType === "hotel" && formData.endDateTime ? formData.endDateTime : undefined,
-          locationType: formData.locationType,
-          notes: formData.notes.trim() || undefined,
-          address: formData.address.trim() || undefined,
-        });
-      } else {
-        await createLocation({
-          tripId,
-          name: formData.name.trim(),
-          latitude: parseFloat(formData.latitude),
-          longitude: parseFloat(formData.longitude),
-          dateTime: formData.dateTime || undefined,
-          endDateTime: formData.locationType === "hotel" && formData.endDateTime ? formData.endDateTime : undefined,
-          locationType: formData.locationType,
-          notes: formData.notes.trim() || undefined,
-          address: formData.address.trim() || undefined,
-        });
-      }
-
+      await createLocation({
+        tripId,
+        name: name.trim(),
+        latitude,
+        longitude,
+        dateTime: combineDateTime(date, time),
+        endDateTime: locationType === "hotel" ? combineDateTime(endDate, endTime) : undefined,
+        locationType,
+        notes: notes.trim() || undefined,
+        address: address.trim() || undefined,
+      });
       onSuccess();
     } catch (error) {
-      console.error("Failed to save location:", error);
+      console.error("Failed to create location:", error);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleChange = (
-    field: keyof FormData,
-    value: string | boolean
-  ) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-    // Clear error when user starts typing
-    if (errors[field as keyof FormErrors]) {
-      setErrors((prev) => ({ ...prev, [field]: undefined }));
-    }
-  };
+  const isFullscreen = variant === "fullscreen";
+  const inputPadding = isFullscreen ? "px-4 py-3" : "px-3 py-2";
+  const inputTextSize = isFullscreen ? "text-base" : "";
 
-  return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4 p-4">
-      {/* Name field */}
+  const formContent = (
+    <form onSubmit={handleSubmit} className={`${isFullscreen ? "p-4" : "p-4"} space-y-4`}>
       <div>
-        <label
-          htmlFor="name"
-          className="block text-sm font-medium text-gray-700 mb-1"
-        >
-          Name <span className="text-red-500">*</span>
-        </label>
+        <label className="block text-sm font-medium text-text-secondary mb-1">Name *</label>
         <input
           type="text"
-          id="name"
-          value={formData.name}
-          onChange={(e) => handleChange("name", e.target.value)}
-          className={`
-            w-full px-3 py-3 rounded-lg border text-base
-            focus:outline-none focus:ring-2 focus:ring-blue-500
-            ${errors.name ? "border-red-500" : "border-gray-300"}
-          `}
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className={`w-full ${inputPadding} border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${inputTextSize}`}
           placeholder="e.g., Eiffel Tower"
+          autoFocus
         />
-        {errors.name && (
-          <p className="text-sm text-red-500 mt-1">{errors.name}</p>
-        )}
       </div>
 
-      {/* Address field */}
       <div>
-        <label
-          htmlFor="address"
-          className="block text-sm font-medium text-gray-700 mb-1"
-        >
-          Address
-        </label>
+        <label className="block text-sm font-medium text-text-secondary mb-1">Address</label>
         <input
           type="text"
-          id="address"
-          value={formData.address}
-          onChange={(e) => handleChange("address", e.target.value)}
-          className="w-full px-3 py-3 rounded-lg border border-gray-300 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
+          value={address}
+          onChange={(e) => setAddress(e.target.value)}
+          className={`w-full ${inputPadding} border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${inputTextSize}`}
           placeholder="e.g., Champ de Mars, Paris"
         />
       </div>
 
-      {/* Latitude/Longitude fields - readonly for now */}
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label
-            htmlFor="latitude"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Latitude <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            id="latitude"
-            value={formData.latitude}
-            onChange={(e) => handleChange("latitude", e.target.value)}
-            readOnly
-            className={`
-              w-full px-3 py-3 rounded-lg border text-base bg-gray-50 text-gray-600
-              focus:outline-none
-              ${errors.latitude ? "border-red-500" : "border-gray-300"}
-            `}
-            placeholder="Set via map"
-          />
-          {errors.latitude && (
-            <p className="text-sm text-red-500 mt-1">{errors.latitude}</p>
-          )}
+      {isFullscreen ? (
+        <div className="bg-surface-secondary rounded-lg p-3">
+          <div className="text-sm text-text-secondary mb-1">Coordinates</div>
+          <div className="text-text-primary">
+            {latitude.toFixed(5)}, {longitude.toFixed(5)}
+          </div>
         </div>
-
-        <div>
-          <label
-            htmlFor="longitude"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Longitude <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            id="longitude"
-            value={formData.longitude}
-            onChange={(e) => handleChange("longitude", e.target.value)}
-            readOnly
-            className={`
-              w-full px-3 py-3 rounded-lg border text-base bg-gray-50 text-gray-600
-              focus:outline-none
-              ${errors.longitude ? "border-red-500" : "border-gray-300"}
-            `}
-            placeholder="Set via map"
-          />
-          {errors.longitude && (
-            <p className="text-sm text-red-500 mt-1">{errors.longitude}</p>
-          )}
+      ) : (
+        <div className="grid grid-cols-2 gap-3 text-sm text-text-secondary">
+          <div>Lat: {latitude.toFixed(5)}</div>
+          <div>Lng: {longitude.toFixed(5)}</div>
         </div>
-      </div>
+      )}
 
-      <p className="text-xs text-gray-500 -mt-2">
-        Coordinates will be set by tapping the map or searching for a location
-      </p>
-
-      {/* Date/Time field */}
       <div>
-        <label
-          htmlFor="dateTime"
-          className="block text-sm font-medium text-gray-700 mb-1"
-        >
-          Date & Time
-        </label>
-        <input
-          type="datetime-local"
-          id="dateTime"
-          value={formData.dateTime}
-          onChange={(e) => handleChange("dateTime", e.target.value)}
-          className="w-full px-3 py-3 rounded-lg border border-gray-300 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-      </div>
-
-      {/* Location Type selector */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Type
-        </label>
+        <label className="block text-sm font-medium text-text-secondary mb-2">Type</label>
         <div className="flex gap-2">
           {locationTypeOptions.map((option) => (
             <button
               key={option.value}
               type="button"
-              onClick={() => handleChange("locationType", option.value)}
-              className={`flex-1 px-3 py-3 rounded-lg text-sm font-medium transition-all ${
-                formData.locationType === option.value
+              onClick={() => setLocationType(option.value)}
+              className={`flex-1 px-3 ${isFullscreen ? "py-3" : "py-2"} rounded-lg text-sm font-medium transition-all ${
+                locationType === option.value
                   ? `${option.color} text-white`
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  : "bg-surface-secondary text-text-secondary hover:bg-surface-inset"
               }`}
             >
               {option.label}
@@ -289,72 +139,103 @@ export function LocationForm({
         </div>
       </div>
 
-      {/* End Date/Time field (only for hotels) */}
-      {formData.locationType === "hotel" && (
-        <div>
-          <label
-            htmlFor="endDateTime"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Check-out Date & Time
-          </label>
+      <div>
+        <label className="block text-sm font-medium text-text-secondary mb-1">Date & Time</label>
+        <div className="flex gap-2">
           <input
-            type="datetime-local"
-            id="endDateTime"
-            value={formData.endDateTime}
-            onChange={(e) => handleChange("endDateTime", e.target.value)}
-            className="w-full px-3 py-3 rounded-lg border border-gray-300 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            className={`flex-1 ${inputPadding} border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${inputTextSize}`}
           />
+          <input
+            type="time"
+            value={time}
+            onChange={(e) => setTime(e.target.value)}
+            className={`w-28 ${inputPadding} border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${inputTextSize}`}
+          />
+        </div>
+      </div>
+
+      {locationType === "hotel" && (
+        <div>
+          <label className="block text-sm font-medium text-text-secondary mb-1">Check-out</label>
+          <div className="flex gap-2">
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className={`flex-1 ${inputPadding} border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${inputTextSize}`}
+            />
+            <input
+              type="time"
+              value={endTime}
+              onChange={(e) => setEndTime(e.target.value)}
+              className={`w-28 ${inputPadding} border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${inputTextSize}`}
+            />
+          </div>
         </div>
       )}
 
-      {/* Notes field */}
       <div>
-        <label
-          htmlFor="notes"
-          className="block text-sm font-medium text-gray-700 mb-1"
-        >
-          Notes
-        </label>
+        <label className="block text-sm font-medium text-text-secondary mb-1">Notes</label>
         <textarea
-          id="notes"
-          value={formData.notes}
-          onChange={(e) => handleChange("notes", e.target.value)}
-          rows={3}
-          className="w-full px-3 py-3 rounded-lg border border-gray-300 text-base resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="Add any additional notes..."
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          rows={isFullscreen ? 3 : 2}
+          className={`w-full ${inputPadding} border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${inputTextSize} resize-none`}
+          placeholder={isFullscreen ? "Add any notes..." : undefined}
         />
       </div>
 
-      {/* Action buttons */}
-      <div className="flex gap-3 mt-2">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="flex-1 px-4 py-3 rounded-lg border border-gray-300 text-gray-700 font-medium text-base hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500"
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className={`
-            flex-1 px-4 py-3 rounded-lg font-medium text-base text-white
-            focus:outline-none focus:ring-2 focus:ring-blue-500
-            ${
-              isSubmitting
-                ? "bg-blue-400 cursor-not-allowed"
-                : "bg-blue-600 hover:bg-blue-700"
-            }
-          `}
-        >
-          {isSubmitting
-            ? "Saving..."
-            : isEditing
-            ? "Update Location"
-            : "Add Location"}
-        </button>
-      </div>
+      {!isFullscreen && (
+        <div className="flex gap-3">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="flex-1 px-4 py-2 border border-border rounded-lg text-text-secondary hover:bg-surface-secondary"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={!name.trim() || isSubmitting}
+            className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+          >
+            {isSubmitting ? "Adding..." : "Add Location"}
+          </button>
+        </div>
+      )}
     </form>
   );
+
+  if (isFullscreen) {
+    return (
+      <div className="fixed inset-0 z-50 bg-surface-elevated flex flex-col">
+        <header className="flex items-center justify-between px-4 py-3 border-b border-border bg-surface-elevated">
+          <button
+            onClick={onCancel}
+            className="p-2 -ml-2 text-text-secondary hover:text-text-primary"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+          <h2 className="text-lg font-semibold text-text-primary">Add Location</h2>
+          <button
+            onClick={handleSubmit}
+            disabled={!name.trim() || isSubmitting}
+            className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium disabled:opacity-50"
+          >
+            {isSubmitting ? "Adding..." : "Add"}
+          </button>
+        </header>
+        <div className="flex-1 overflow-y-auto">
+          {formContent}
+        </div>
+      </div>
+    );
+  }
+
+  return formContent;
 }

@@ -104,7 +104,7 @@ export function DaySelector({
                 isSelected
                   ? "bg-blue-600 text-white shadow-md"
                   : todayFlag
-                  ? "bg-amber-100 text-amber-800 border border-amber-300 hover:bg-amber-200"
+                  ? "bg-amber-500/20 text-amber-700 dark:text-amber-400 border border-amber-500/30 hover:bg-amber-500/30"
                   : "bg-surface-elevated text-text-secondary border border-border hover:border-border-focus"
               }
             `}

@@ -272,6 +272,22 @@ export const remove = mutation({
       throw new Error("You need editor or owner role to delete locations");
     }
 
+    // Delete legacy attachmentId from storage if exists
+    if (location.attachmentId) {
+      await ctx.storage.delete(location.attachmentId);
+    }
+
+    // Delete all attachments from the attachments table
+    const attachments = await ctx.db
+      .query("attachments")
+      .withIndex("by_locationId", (q) => q.eq("locationId", args.id))
+      .collect();
+
+    for (const attachment of attachments) {
+      await ctx.storage.delete(attachment.fileId);
+      await ctx.db.delete(attachment._id);
+    }
+
     await ctx.db.delete(args.id);
 
     return args.id;

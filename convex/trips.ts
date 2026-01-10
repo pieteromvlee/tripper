@@ -233,13 +233,29 @@ export const remove = mutation({
       await ctx.db.delete(invite._id);
     }
 
-    // Delete all locations for this trip
+    // Delete all locations and their attachments for this trip
     const locations = await ctx.db
       .query("locations")
       .withIndex("by_tripId", (q) => q.eq("tripId", args.tripId))
       .collect();
 
     for (const location of locations) {
+      // Delete legacy attachmentId from storage if exists
+      if (location.attachmentId) {
+        await ctx.storage.delete(location.attachmentId);
+      }
+
+      // Delete all attachments from the attachments table
+      const attachments = await ctx.db
+        .query("attachments")
+        .withIndex("by_locationId", (q) => q.eq("locationId", location._id))
+        .collect();
+
+      for (const attachment of attachments) {
+        await ctx.storage.delete(attachment.fileId);
+        await ctx.db.delete(attachment._id);
+      }
+
       await ctx.db.delete(location._id);
     }
 

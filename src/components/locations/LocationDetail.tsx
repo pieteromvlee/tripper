@@ -102,10 +102,10 @@ export function LocationDetail({ location, onClose }: LocationDetailProps) {
                 <h1 className="text-2xl font-bold text-text-primary">{location.name}</h1>
                 <span className={`px-2 py-1 text-xs font-medium rounded ${
                   location.locationType === "hotel"
-                    ? "bg-purple-100 text-purple-800"
+                    ? "bg-purple-500/20 text-purple-700 dark:text-purple-400"
                     : location.locationType === "restaurant"
-                      ? "bg-orange-100 text-orange-800"
-                      : "bg-blue-100 text-blue-800"
+                      ? "bg-orange-500/20 text-orange-700 dark:text-orange-400"
+                      : "bg-blue-500/20 text-blue-700 dark:text-blue-400"
                 }`}>
                   {location.locationType === "hotel" ? "Hotel" : location.locationType === "restaurant" ? "Restaurant" : "Attraction"}
                 </span>
@@ -171,8 +171,8 @@ export function LocationDetail({ location, onClose }: LocationDetailProps) {
             {/* Delete */}
             <div className="pt-4">
               {showDeleteConfirm ? (
-                <div className="bg-red-50 rounded-lg p-4 space-y-3">
-                  <p className="text-red-800">Delete this location? This cannot be undone.</p>
+                <div className="bg-red-500/10 rounded-lg p-4 space-y-3">
+                  <p className="text-red-700 dark:text-red-400">Delete this location? This cannot be undone.</p>
                   <div className="flex gap-3">
                     <button
                       onClick={() => setShowDeleteConfirm(false)}

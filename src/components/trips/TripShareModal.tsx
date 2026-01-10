@@ -141,7 +141,7 @@ export function TripShareModal({ tripId, isOwner, onClose }: TripShareModalProps
                     className="flex items-center justify-between py-2 px-3 bg-surface-secondary rounded-lg"
                   >
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-medium">
+                      <div className="w-8 h-8 bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center text-sm font-medium">
                         {(member.name || member.email || "?").charAt(0).toUpperCase()}
                       </div>
                       <div>
@@ -157,7 +157,7 @@ export function TripShareModal({ tripId, isOwner, onClose }: TripShareModalProps
                       <span
                         className={`px-2 py-0.5 text-xs font-medium rounded-full ${
                           member.role === "owner"
-                            ? "bg-purple-100 text-purple-700"
+                            ? "bg-purple-500/20 text-purple-700 dark:text-purple-400"
                             : "bg-surface-inset text-text-secondary"
                         }`}
                       >
@@ -189,10 +189,10 @@ export function TripShareModal({ tripId, isOwner, onClose }: TripShareModalProps
                 {pendingInvites.map((invite) => (
                   <li
                     key={invite._id}
-                    className="flex items-center justify-between py-2 px-3 bg-yellow-50 rounded-lg"
+                    className="flex items-center justify-between py-2 px-3 bg-yellow-500/10 rounded-lg"
                   >
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center text-sm font-medium">
+                      <div className="w-8 h-8 bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 rounded-full flex items-center justify-center text-sm font-medium">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>

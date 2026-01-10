@@ -84,7 +84,7 @@ export function LocationCard({
         min-h-[72px] touch-manipulation
         ${
           isSelected
-            ? "bg-blue-50 border-2 border-blue-500 shadow-md"
+            ? "bg-blue-500/10 border-2 border-blue-500 shadow-md"
             : "bg-surface-elevated border border-border hover:border-border hover:shadow-sm"
         }
       `}
@@ -95,7 +95,7 @@ export function LocationCard({
           <h3
             className={`
               font-medium text-base truncate
-              ${isSelected ? "text-blue-900" : "text-text-primary"}
+              ${isSelected ? "text-blue-800 dark:text-blue-300" : "text-text-primary"}
             `}
           >
             {location.name}
@@ -113,7 +113,7 @@ export function LocationCard({
             <p
               className={`
                 text-sm mt-1
-                ${isSelected ? "text-blue-700" : "text-text-secondary"}
+                ${isSelected ? "text-blue-700 dark:text-blue-400" : "text-text-secondary"}
               `}
             >
               {formatDateTime(location.dateTime)}
@@ -144,10 +144,10 @@ export function LocationCard({
               p-1.5 rounded-md transition-colors
               ${
                 isSelected
-                  ? "text-blue-600 hover:bg-blue-100"
+                  ? "text-blue-600 hover:bg-blue-500/20"
                   : "text-text-muted hover:text-text-secondary hover:bg-surface-secondary"
               }
-              ${showInfo ? "bg-blue-100" : ""}
+              ${showInfo ? "bg-blue-500/20" : ""}
             `}
             title="Info"
             aria-label="Info"
@@ -177,10 +177,10 @@ export function LocationCard({
               p-1.5 rounded-md transition-colors relative
               ${
                 isSelected
-                  ? "text-blue-600 hover:bg-blue-100"
+                  ? "text-blue-600 hover:bg-blue-500/20"
                   : "text-text-muted hover:text-text-secondary hover:bg-surface-secondary"
               }
-              ${showAttachments ? "bg-blue-100" : ""}
+              ${showAttachments ? "bg-blue-500/20" : ""}
             `}
             title="Attachments"
             aria-label="Attachments"
@@ -231,7 +231,7 @@ export function LocationCard({
               p-1.5 rounded-md transition-colors
               ${
                 isSelected
-                  ? "text-blue-600 hover:bg-blue-100"
+                  ? "text-blue-600 hover:bg-blue-500/20"
                   : "text-text-muted hover:text-text-secondary hover:bg-surface-secondary"
               }
             `}
@@ -294,7 +294,7 @@ export function LocationCard({
               {!isEditing && (
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="px-2 py-1 text-xs font-medium text-blue-600 hover:bg-blue-50 rounded"
+                  className="px-2 py-1 text-xs font-medium text-blue-600 hover:bg-blue-500/10 rounded"
                 >
                   Edit
                 </button>
