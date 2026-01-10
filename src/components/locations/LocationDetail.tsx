@@ -122,7 +122,7 @@ export function LocationDetail({ location, onClose }: LocationDetailProps) {
             onCancel={() => setIsEditing(false)}
           />
         ) : (
-          <div className="p-4 space-y-6 lg:p-3 lg:space-y-3">
+          <div className="p-4 space-y-6 lg:p-3 lg:space-y-2">
             {/* Title & Type - hidden on desktop (shown in header) */}
             <div className="lg:hidden">
               <div className="flex items-center gap-2">

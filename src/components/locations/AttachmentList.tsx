@@ -204,8 +204,8 @@ export function AttachmentList({ locationId }: AttachmentListProps) {
   // Empty state
   if (attachments.length === 0) {
     return (
-      <div className="text-center py-4">
-        <p className="text-sm text-text-muted">No attachments yet</p>
+      <div className="text-center py-4 lg:py-2">
+        <p className="text-sm text-text-muted lg:text-xs">No attachments yet</p>
       </div>
     );
   }
