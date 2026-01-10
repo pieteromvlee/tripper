@@ -169,7 +169,7 @@ export function LocationDetail({ location, onClose }: LocationDetailProps) {
                   <div className="text-text-primary md:text-sm">{formatDateTime(location.dateTime)}</div>
                 </div>
               )}
-              {location.locationType === "hotel" && location.endDateTime && (
+              {location.locationType === "accommodation" && location.endDateTime && (
                 <div className="px-4 py-3 md:px-0 md:py-1 md:flex md:items-center md:gap-2">
                   <div className="text-sm text-text-secondary md:text-xs md:min-w-[80px]">Check-out</div>
                   <div className="text-text-primary md:text-sm">{formatDateTime(location.endDateTime)}</div>
@@ -375,7 +375,7 @@ function LocationEditForm({
         latitude,
         longitude,
         dateTime: combineDateTime(date, time), // Pass empty string to clear
-        endDateTime: locationType === "hotel" ? combineDateTime(endDate, endTime) : "", // Pass empty string to clear
+        endDateTime: locationType === "accommodation" ? combineDateTime(endDate, endTime) : "", // Pass empty string to clear
         locationType,
         notes: notes.trim() || undefined,
       });
@@ -496,7 +496,7 @@ function LocationEditForm({
         </div>
       </div>
 
-      {locationType === "hotel" && (
+      {locationType === "accommodation" && (
         <div>
           <label className="block text-sm font-medium text-text-secondary mb-1 md:text-xs">Check-out</label>
           <div className="flex gap-2 md:gap-1">

@@ -51,7 +51,7 @@ export function DaySelector({
   // Loading state
   if (uniqueDates === undefined) {
     return (
-      <div className="flex items-center justify-center h-12 bg-surface-secondary">
+      <div className="flex items-center justify-center h-12">
         <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -65,7 +65,7 @@ export function DaySelector({
   return (
     <div
       ref={containerRef}
-      className="flex items-center gap-2 overflow-x-auto px-3 py-2 bg-surface-secondary scrollbar-hide"
+      className="flex items-center gap-2 overflow-x-auto px-3 py-2 scrollbar-hide"
       style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
     >
       {/* "All" option */}

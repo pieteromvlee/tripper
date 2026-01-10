@@ -100,7 +100,7 @@ export function LocationCard({
               `}
             >
               {formatDateTime(location.dateTime)}
-              {location.locationType === "hotel" && location.endDateTime && (
+              {location.locationType === "accommodation" && location.endDateTime && (
                 <span className="text-text-muted">
                   {" "}
                   - {formatDateTime(location.endDateTime)}

@@ -4,8 +4,9 @@ import { useQuery } from "convex/react";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
-import { LocationList, DaySelector, LocationDetail, LocationForm } from "../components/locations";
+import { LocationList, FilterBar, LocationDetail, LocationForm } from "../components/locations";
 import { TripMap, LocationSearch } from "../components/map";
+import type { LocationType } from "../lib/locationStyles";
 import { TripShareModal } from "../components/trips/TripShareModal";
 
 type ViewMode = "list" | "map" | "both";
@@ -16,6 +17,9 @@ export default function TripPage() {
   const { signOut } = useAuthActions();
   const [selectedLocationId, setSelectedLocationId] = useState<Id<"locations"> | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [visibleTypes, setVisibleTypes] = useState<Set<LocationType>>(
+    new Set(["attraction", "restaurant", "accommodation", "shop", "snack"])
+  );
   const [viewMode, setViewMode] = useState<ViewMode>("both");
   const [showAddForm, setShowAddForm] = useState(false);
   const [newLocationData, setNewLocationData] = useState<{
@@ -23,7 +27,7 @@ export default function TripPage() {
     lng: number;
     name?: string;
     address?: string;
-    suggestedType?: "attraction" | "restaurant" | "hotel";
+    suggestedType?: LocationType;
   } | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [flyToCounter, setFlyToCounter] = useState(0); // Trigger fly to location
@@ -87,8 +91,8 @@ export default function TripPage() {
   const trip = useQuery(api.trips.get, tripId ? { tripId: tripId as Id<"trips"> } : "skip");
   const locations = useQuery(api.locations.listByTrip, tripId ? { tripId: tripId as Id<"trips"> } : "skip");
 
-  // Find hotel, selected location, and detail location
-  const hotel = locations?.find((loc) => loc.locationType === "hotel");
+  // Find accommodation, selected location, and detail location
+  const accommodation = locations?.find((loc) => loc.locationType === "accommodation");
   const selectedLocation = locations?.find((loc) => loc._id === selectedLocationId);
   const detailLocation = locations?.find((loc) => loc._id === detailLocationId);
 
@@ -124,7 +128,7 @@ export default function TripPage() {
     setShowAddForm(true);
   };
 
-  const handleSearchSelect = (result: { name: string; address: string; latitude: number; longitude: number; suggestedType?: "attraction" | "restaurant" | "hotel" }) => {
+  const handleSearchSelect = (result: { name: string; address: string; latitude: number; longitude: number; suggestedType?: LocationType }) => {
     setNewLocationData({
       lat: result.latitude,
       lng: result.longitude,
@@ -165,9 +169,21 @@ export default function TripPage() {
     setSelectedLocationId(null);
   };
 
-  const handleFlyToHotel = () => {
-    if (hotel) {
-      setSelectedLocationId(hotel._id);
+  const handleToggleType = (type: LocationType) => {
+    setVisibleTypes((prev) => {
+      const next = new Set(prev);
+      if (next.has(type)) {
+        next.delete(type);
+      } else {
+        next.add(type);
+      }
+      return next;
+    });
+  };
+
+  const handleFlyToAccommodation = () => {
+    if (accommodation) {
+      setSelectedLocationId(accommodation._id);
       setFlyToCounter((prev) => prev + 1);
     }
   };
@@ -223,12 +239,12 @@ export default function TripPage() {
               </svg>
             </button>
 
-            {/* Hotel button */}
-            {hotel && (
+            {/* Accommodation button */}
+            {accommodation && (
               <button
-                onClick={handleFlyToHotel}
+                onClick={handleFlyToAccommodation}
                 className="p-2 text-purple-600 hover:bg-purple-500/10 rounded-lg transition"
-                title="Go to hotel"
+                title="Go to accommodation"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
@@ -289,11 +305,13 @@ export default function TripPage() {
         </div>
       </header>
 
-      {/* Day Selector */}
-      <DaySelector
+      {/* Filter Bar (Date + Type filters) */}
+      <FilterBar
         tripId={tripId as Id<"trips">}
         selectedDate={selectedDate}
         onDateSelect={setSelectedDate}
+        visibleTypes={visibleTypes}
+        onToggleType={handleToggleType}
       />
 
       {/* Main Content */}
@@ -350,6 +368,7 @@ export default function TripPage() {
                   tripId={tripId as Id<"trips">}
                   selectedDate={selectedDate ?? undefined}
                   selectedLocationId={selectedLocationId ?? undefined}
+                  visibleTypes={visibleTypes}
                   onLocationSelect={handleLocationSelect}
                   onOpenDetail={setDetailLocationId}
                   scrollTrigger={scrollToCounter}
@@ -385,6 +404,7 @@ export default function TripPage() {
               key={viewMode}
               tripId={tripId as Id<"trips">}
               selectedLocationId={selectedLocationId}
+              visibleTypes={visibleTypes}
               onLocationSelect={handleMarkerSelect}
               onMapClick={handleMapClick}
               onCenterChange={(lat, lng) => setMapCenter({ lat, lng })}

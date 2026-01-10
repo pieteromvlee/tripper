@@ -17,7 +17,7 @@ export function LocationMarker({
 
   const renderIcon = () => {
     switch (locationType) {
-      case "hotel":
+      case "accommodation":
         return (
           <g transform="translate(8, 6)">
             {/* Bed base */}
@@ -42,6 +42,32 @@ export function LocationMarker({
             {/* Knife - right */}
             <path d="M10.5 0 C10.5 0 12.5 0 12.5 3 L12.5 6 L10.5 6 L10.5 0 Z" className={colors.iconLight} />
             <rect x="10.5" y="5" width="2" height="7" rx="0.5" className={colors.icon} />
+          </g>
+        );
+      case "shop":
+        return (
+          <g transform="translate(7, 5)">
+            {/* Shopping bag body */}
+            <rect x="1" y="4" width="12" height="9" rx="1" className={colors.icon} />
+            {/* Bag opening */}
+            <rect x="2" y="4" width="10" height="2" rx="0.5" className={colors.iconLight} />
+            {/* Handle left */}
+            <path d="M4 4 C4 2 5 1 7 1" stroke="currentColor" strokeWidth="1.5" fill="none" className={colors.icon} />
+            {/* Handle right */}
+            <path d="M10 4 C10 2 9 1 7 1" stroke="currentColor" strokeWidth="1.5" fill="none" className={colors.icon} />
+          </g>
+        );
+      case "snack":
+        return (
+          <g transform="translate(7, 5)">
+            {/* Coffee cup body */}
+            <path d="M2 4 L3 13 L11 13 L12 4 Z" className={colors.icon} />
+            {/* Cup rim */}
+            <rect x="1" y="3" width="12" height="2" rx="0.5" className={colors.iconLight} />
+            {/* Steam lines */}
+            <path d="M5 1 Q6 0 5 -1" stroke="currentColor" strokeWidth="1" fill="none" className={colors.iconLight} />
+            <path d="M7 1.5 Q8 0.5 7 -0.5" stroke="currentColor" strokeWidth="1" fill="none" className={colors.iconLight} />
+            <path d="M9 1 Q10 0 9 -1" stroke="currentColor" strokeWidth="1" fill="none" className={colors.iconLight} />
           </g>
         );
       case "attraction":

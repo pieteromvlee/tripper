@@ -5,6 +5,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
+import type { LocationType } from "../../lib/locationStyles";
 import { useDarkMode } from "../../hooks";
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
@@ -26,6 +27,7 @@ interface MapClickResult {
 interface TripMapProps {
   tripId: Id<"trips">;
   selectedLocationId: Id<"locations"> | null;
+  visibleTypes?: Set<LocationType>; // Filter by location type
   onLocationSelect: (id: Id<"locations">) => void;
   onMapClick: (result: MapClickResult) => void;
   onCenterChange?: (lat: number, lng: number) => void;
@@ -37,6 +39,7 @@ interface TripMapProps {
 export function TripMap({
   tripId,
   selectedLocationId,
+  visibleTypes,
   onLocationSelect,
   onMapClick,
   onCenterChange,
@@ -47,7 +50,12 @@ export function TripMap({
   const mapRef = useRef<MapRef>(null);
   const isDark = useDarkMode();
 
-  const locations = useQuery(api.locations.listByTrip, { tripId });
+  const allLocations = useQuery(api.locations.listByTrip, { tripId });
+
+  // Apply type filter
+  const locations = allLocations?.filter(
+    (loc) => !visibleTypes || visibleTypes.has((loc.locationType || "attraction") as LocationType)
+  );
 
   // Track if map has loaded
   const [mapLoaded, setMapLoaded] = useState(false);
@@ -236,8 +244,10 @@ export function TripMap({
           const getMarkerColor = () => {
             if (selectedLocationId === location._id) return "bg-blue-600 scale-125";
             switch (location.locationType) {
-              case "hotel": return "bg-purple-500";
+              case "accommodation": return "bg-purple-500";
               case "restaurant": return "bg-orange-500";
+              case "shop": return "bg-green-500";
+              case "snack": return "bg-pink-500";
               case "attraction":
               default: return "bg-blue-500";
             }
@@ -246,7 +256,7 @@ export function TripMap({
           // Render icon based on location type
           const renderIcon = () => {
             switch (location.locationType) {
-              case "hotel":
+              case "accommodation":
                 return (
                   <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
@@ -256,6 +266,18 @@ export function TripMap({
                 return (
                   <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 16 16">
                     <path d="M7 0a1 1 0 0 1 1 1v5a1 1 0 0 1-.29.71L6 8.41V15a1 1 0 1 1-2 0V8.41L2.29 6.71A1 1 0 0 1 2 6V1a1 1 0 0 1 2 0v4.59l.5.5.5-.5V1a1 1 0 0 1 2 0zm7 1v14a1 1 0 1 1-2 0v-5h-1a1 1 0 0 1-1-1V5c0-2.21 1.79-4 4-4z" />
+                  </svg>
+                );
+              case "shop":
+                return (
+                  <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.11l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zm2 5V6a2 2 0 10-4 0v1h4zm-6 3a1 1 0 112 0 1 1 0 01-2 0zm7-1a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd" />
+                  </svg>
+                );
+              case "snack":
+                return (
+                  <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-.293.707L12 12.414V17a1 1 0 01-1 1h-2a1 1 0 01-1-1v-4.586L3.293 7.707A1 1 0 013 7V5z" clipRule="evenodd" />
                   </svg>
                 );
               case "attraction":

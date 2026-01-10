@@ -31,13 +31,23 @@ interface SearchResult {
 function inferLocationType(categories: Array<{ name: string }>): LocationType {
   const categoryNames = categories.map((c) => c.name.toLowerCase()).join(" ");
 
-  // Check for hotel/lodging
-  if (/hotel|motel|hostel|lodging|inn|resort|bed & breakfast|airbnb|vacation rental/i.test(categoryNames)) {
-    return "hotel";
+  // Check for accommodation/lodging
+  if (/hotel|motel|hostel|lodging|inn|resort|bed & breakfast|airbnb|vacation rental|guest house|apartment|villa/i.test(categoryNames)) {
+    return "accommodation";
   }
 
-  // Check for restaurant/food
-  if (/restaurant|food|café|cafe|coffee|bar|pub|bistro|diner|eatery|bakery|pizza|burger|sushi|steakhouse|seafood|breakfast|brunch|lunch|dinner|grill|kitchen|tavern|cantina|trattoria|osteria|brasserie/i.test(categoryNames)) {
+  // Check for shop/retail
+  if (/shop|store|market|boutique|mall|retail|supermarket|grocery|pharmacy|bookstore|clothing|fashion|gift|souvenir/i.test(categoryNames)) {
+    return "shop";
+  }
+
+  // Check for snack/café (coffee, bakery, ice cream, dessert, tea)
+  if (/café|cafe|coffee|bakery|ice cream|dessert|pastry|patisserie|snack|tea house|gelato|frozen yogurt|donut|cupcake|juice|smoothie/i.test(categoryNames)) {
+    return "snack";
+  }
+
+  // Check for restaurant/food (full meals)
+  if (/restaurant|food|bar|pub|bistro|diner|eatery|pizza|burger|sushi|steakhouse|seafood|breakfast|brunch|lunch|dinner|grill|kitchen|tavern|cantina|trattoria|osteria|brasserie/i.test(categoryNames)) {
     return "restaurant";
   }
 
@@ -331,9 +341,19 @@ export function LocationSearch({
                     restaurant
                   </span>
                 )}
-                {result.suggestedType === "hotel" && (
+                {result.suggestedType === "accommodation" && (
                   <span className="text-xs px-1.5 py-0.5 bg-purple-500/20 text-purple-700 dark:text-purple-400 rounded">
-                    hotel
+                    accommodation
+                  </span>
+                )}
+                {result.suggestedType === "shop" && (
+                  <span className="text-xs px-1.5 py-0.5 bg-green-500/20 text-green-700 dark:text-green-400 rounded">
+                    shop
+                  </span>
+                )}
+                {result.suggestedType === "snack" && (
+                  <span className="text-xs px-1.5 py-0.5 bg-pink-500/20 text-pink-700 dark:text-pink-400 rounded">
+                    snack
                   </span>
                 )}
                 {result.suggestedType === "attraction" && (

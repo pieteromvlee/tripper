@@ -92,7 +92,7 @@ export const listByTripAndDate = query({
       const locationDate = location.dateTime.substring(0, 10);
 
       // For hotels with endDateTime, check if the date falls within the range
-      if (location.locationType === "hotel" && location.endDateTime) {
+      if (location.locationType === "accommodation" && location.endDateTime) {
         const endDate = location.endDateTime.substring(0, 10);
         return args.date >= locationDate && args.date <= endDate;
       }
@@ -143,7 +143,13 @@ export const create = mutation({
     longitude: v.number(),
     dateTime: v.optional(v.string()),
     endDateTime: v.optional(v.string()),
-    locationType: v.union(v.literal("attraction"), v.literal("restaurant"), v.literal("hotel")),
+    locationType: v.union(
+      v.literal("attraction"),
+      v.literal("restaurant"),
+      v.literal("accommodation"),
+      v.literal("shop"),
+      v.literal("snack")
+    ),
     notes: v.optional(v.string()),
     address: v.optional(v.string()),
   },
@@ -201,7 +207,15 @@ export const update = mutation({
     longitude: v.optional(v.number()),
     dateTime: v.optional(v.string()),
     endDateTime: v.optional(v.string()),
-    locationType: v.optional(v.union(v.literal("attraction"), v.literal("restaurant"), v.literal("hotel"))),
+    locationType: v.optional(
+      v.union(
+        v.literal("attraction"),
+        v.literal("restaurant"),
+        v.literal("accommodation"),
+        v.literal("shop"),
+        v.literal("snack")
+      )
+    ),
     notes: v.optional(v.string()),
     address: v.optional(v.string()),
     attachmentId: v.optional(v.id("_storage")),
@@ -369,7 +383,7 @@ export const getUniqueDates = query({
         dates.add(date);
 
         // For hotels, add all dates in range
-        if (loc.locationType === "hotel" && loc.endDateTime) {
+        if (loc.locationType === "accommodation" && loc.endDateTime) {
           const endDate = loc.endDateTime.substring(0, 10);
           let currentDate = new Date(date);
           const end = new Date(endDate);

@@ -2,12 +2,14 @@ import { useEffect, useRef } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
+import type { LocationType } from "../../lib/locationStyles";
 import { LocationCard } from "./LocationCard";
 
 interface LocationListProps {
   tripId: Id<"trips">;
   selectedDate?: string; // ISO date string (YYYY-MM-DD) for filtering
   selectedLocationId?: Id<"locations">;
+  visibleTypes?: Set<LocationType>; // Filter by location type
   onLocationSelect: (locationId: Id<"locations">) => void;
   onOpenDetail?: (locationId: Id<"locations">) => void; // Open full-screen detail view
   scrollTrigger?: number; // Incremented when the list should scroll to the selected location
@@ -17,6 +19,7 @@ export function LocationList({
   tripId,
   selectedDate,
   selectedLocationId,
+  visibleTypes,
   onLocationSelect,
   onOpenDetail,
   scrollTrigger,
@@ -32,7 +35,12 @@ export function LocationList({
   );
 
   // Use filtered locations if date is selected, otherwise all locations
-  const locations = selectedDate ? filteredLocations : allLocations;
+  const dateFilteredLocations = selectedDate ? filteredLocations : allLocations;
+
+  // Apply type filter
+  const locations = dateFilteredLocations?.filter(
+    (loc) => !visibleTypes || visibleTypes.has(loc.locationType || "attraction")
+  );
 
   // Scroll selected location into view when it changes or when triggered from map marker click
   useEffect(() => {
@@ -84,8 +92,8 @@ export function LocationList({
           </div>
           <p className="text-text-secondary font-medium">No locations yet</p>
           <p className="text-sm text-text-muted mt-1">
-            {selectedDate
-              ? "No locations scheduled for this date"
+            {selectedDate || (visibleTypes && visibleTypes.size < 3)
+              ? "No locations match the current filters"
               : "Tap the map or search to add your first location"}
           </p>
         </div>

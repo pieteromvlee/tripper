@@ -41,7 +41,13 @@ export default defineSchema({
     longitude: v.number(),
     dateTime: v.optional(v.string()),
     endDateTime: v.optional(v.string()),
-    locationType: v.union(v.literal("attraction"), v.literal("restaurant"), v.literal("hotel")),
+    locationType: v.union(
+      v.literal("attraction"),
+      v.literal("restaurant"),
+      v.literal("accommodation"),
+      v.literal("shop"),
+      v.literal("snack")
+    ),
     attachmentId: v.optional(v.id("_storage")),
     attachmentName: v.optional(v.string()),
     notes: v.optional(v.string()),

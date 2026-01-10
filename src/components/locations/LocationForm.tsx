@@ -56,7 +56,7 @@ export function LocationForm({
         latitude,
         longitude,
         dateTime: combineDateTime(date, time),
-        endDateTime: locationType === "hotel" ? combineDateTime(endDate, endTime) : undefined,
+        endDateTime: locationType === "accommodation" ? combineDateTime(endDate, endTime) : undefined,
         locationType,
         notes: notes.trim() || undefined,
         address: address.trim() || undefined,
@@ -150,7 +150,7 @@ export function LocationForm({
         </div>
       </div>
 
-      {locationType === "hotel" && (
+      {locationType === "accommodation" && (
         <div>
           <label className="block text-sm font-medium text-text-secondary mb-1">Check-out</label>
           <div className="flex gap-2">
