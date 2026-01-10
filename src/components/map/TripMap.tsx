@@ -1,4 +1,4 @@
-import { useRef, useEffect, useCallback, useState } from "react";
+import { useRef, useEffect, useCallback, useState, useSyncExternalStore } from "react";
 import Map, { Marker, NavigationControl, type MapRef, type MapMouseEvent } from "react-map-gl/mapbox";
 import { LngLatBounds } from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
@@ -7,6 +7,19 @@ import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
+
+// Hook to detect dark mode preference
+function useDarkMode() {
+  return useSyncExternalStore(
+    (callback) => {
+      const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+      mediaQuery.addEventListener("change", callback);
+      return () => mediaQuery.removeEventListener("change", callback);
+    },
+    () => window.matchMedia("(prefers-color-scheme: dark)").matches,
+    () => false
+  );
+}
 
 // Default center: Paris
 const DEFAULT_CENTER = {
@@ -42,6 +55,7 @@ export function TripMap({
   pendingLocation,
 }: TripMapProps) {
   const mapRef = useRef<MapRef>(null);
+  const isDark = useDarkMode();
 
   const locations = useQuery(api.locations.listByTrip, { tripId });
 
@@ -50,6 +64,11 @@ export function TripMap({
 
   // Track if map is being dragged for cursor style
   const [isDragging, setIsDragging] = useState(false);
+
+  // Map style based on dark mode
+  const mapStyle = isDark
+    ? "mapbox://styles/mapbox/dark-v11"
+    : "mapbox://styles/mapbox/streets-v12";
 
   // Handle map load - position map appropriately
   const handleMapLoad = useCallback(() => {
@@ -185,7 +204,7 @@ export function TripMap({
           zoom: DEFAULT_ZOOM,
         }}
         style={{ width: "100%", height: "100%" }}
-        mapStyle="mapbox://styles/mapbox/streets-v12"
+        mapStyle={mapStyle}
         cursor={isDragging ? "grabbing" : "default"}
         onDragStart={() => setIsDragging(true)}
         onDragEnd={() => setIsDragging(false)}

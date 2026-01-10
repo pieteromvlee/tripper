@@ -259,12 +259,12 @@ export function LocationCard({
               inline-flex items-center px-2 py-1 rounded-md text-xs font-medium
               ${
                 isSelected
-                  ? "bg-blue-100 text-blue-800"
+                  ? "bg-blue-500/20 text-blue-600 dark:text-blue-400"
                   : location.locationType === "hotel"
-                    ? "bg-purple-100 text-purple-800"
+                    ? "bg-purple-500/20 text-purple-700 dark:text-purple-400"
                     : location.locationType === "restaurant"
-                      ? "bg-orange-100 text-orange-800"
-                      : "bg-blue-100 text-blue-800"
+                      ? "bg-orange-500/20 text-orange-700 dark:text-orange-400"
+                      : "bg-blue-500/20 text-blue-700 dark:text-blue-400"
               }
             `}
           >
