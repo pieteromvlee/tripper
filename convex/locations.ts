@@ -91,7 +91,7 @@ export const listByTripAndDate = query({
       const locationDate = location.dateTime.substring(0, 10);
 
       // For hotels with endDateTime, check if the date falls within the range
-      if (location.isHotel && location.endDateTime) {
+      if (location.locationType === "hotel" && location.endDateTime) {
         const endDate = location.endDateTime.substring(0, 10);
         return args.date >= locationDate && args.date <= endDate;
       }
@@ -142,7 +142,7 @@ export const create = mutation({
     longitude: v.number(),
     dateTime: v.optional(v.string()),
     endDateTime: v.optional(v.string()),
-    isHotel: v.boolean(),
+    locationType: v.union(v.literal("attraction"), v.literal("restaurant"), v.literal("hotel")),
     notes: v.optional(v.string()),
     address: v.optional(v.string()),
   },
@@ -178,7 +178,7 @@ export const create = mutation({
       longitude: args.longitude,
       dateTime: args.dateTime,
       endDateTime: args.endDateTime,
-      isHotel: args.isHotel,
+      locationType: args.locationType,
       notes: args.notes,
       address: args.address,
       sortOrder: maxSortOrder + 1,
@@ -200,7 +200,7 @@ export const update = mutation({
     longitude: v.optional(v.number()),
     dateTime: v.optional(v.string()),
     endDateTime: v.optional(v.string()),
-    isHotel: v.optional(v.boolean()),
+    locationType: v.optional(v.union(v.literal("attraction"), v.literal("restaurant"), v.literal("hotel"))),
     notes: v.optional(v.string()),
     address: v.optional(v.string()),
     attachmentId: v.optional(v.id("_storage")),
@@ -235,7 +235,7 @@ export const update = mutation({
     if (updates.longitude !== undefined) updateData.longitude = updates.longitude;
     if (updates.dateTime !== undefined) updateData.dateTime = updates.dateTime;
     if (updates.endDateTime !== undefined) updateData.endDateTime = updates.endDateTime;
-    if (updates.isHotel !== undefined) updateData.isHotel = updates.isHotel;
+    if (updates.locationType !== undefined) updateData.locationType = updates.locationType;
     if (updates.notes !== undefined) updateData.notes = updates.notes;
     if (updates.address !== undefined) updateData.address = updates.address;
     if (updates.attachmentId !== undefined) updateData.attachmentId = updates.attachmentId;
@@ -350,7 +350,7 @@ export const getUniqueDates = query({
         dates.add(date);
 
         // For hotels, add all dates in range
-        if (loc.isHotel && loc.endDateTime) {
+        if (loc.locationType === "hotel" && loc.endDateTime) {
           const endDate = loc.endDateTime.substring(0, 10);
           let currentDate = new Date(date);
           const end = new Date(endDate);

@@ -6,12 +6,94 @@ interface LocationMarkerProps {
   onClick: () => void;
 }
 
+// Color schemes for each location type
+const colorSchemes = {
+  hotel: {
+    pin: "fill-purple-600",
+    pinSelected: "fill-purple-500",
+    inner: "fill-purple-200",
+    pulse: "bg-purple-400",
+    label: "bg-purple-600",
+    icon: "fill-purple-700",
+    iconLight: "fill-purple-300",
+  },
+  restaurant: {
+    pin: "fill-orange-600",
+    pinSelected: "fill-orange-500",
+    inner: "fill-orange-200",
+    pulse: "bg-orange-400",
+    label: "bg-orange-600",
+    icon: "fill-orange-700",
+    iconLight: "fill-orange-300",
+  },
+  attraction: {
+    pin: "fill-blue-600",
+    pinSelected: "fill-blue-500",
+    inner: "fill-blue-200",
+    pulse: "bg-blue-400",
+    label: "bg-blue-600",
+    icon: "fill-blue-700",
+    iconLight: "fill-blue-300",
+  },
+};
+
 export function LocationMarker({
   location,
   isSelected,
   onClick,
 }: LocationMarkerProps) {
-  const isHotel = location.isHotel;
+  const locationType = location.locationType || "attraction";
+  const colors = colorSchemes[locationType];
+
+  const renderIcon = () => {
+    switch (locationType) {
+      case "hotel":
+        return (
+          <g transform="translate(8, 6)">
+            {/* Bed base */}
+            <rect x="0" y="8" width="12" height="2" rx="0.5" className={colors.icon} />
+            {/* Headboard */}
+            <rect x="0" y="4" width="3" height="4" rx="0.5" className={colors.icon} />
+            {/* Pillow */}
+            <rect x="1" y="5" width="2" height="2" rx="0.5" className={colors.iconLight} />
+            {/* Blanket */}
+            <rect x="3" y="6" width="8" height="2" rx="0.5" className={colors.pin} />
+            {/* Legs */}
+            <rect x="0" y="10" width="1" height="2" className={colors.icon} />
+            <rect x="11" y="10" width="1" height="2" className={colors.icon} />
+          </g>
+        );
+      case "restaurant":
+        return (
+          <g transform="translate(9, 6)">
+            {/* Fork */}
+            <rect x="0" y="0" width="1.5" height="8" rx="0.5" className={colors.icon} />
+            <rect x="0" y="0" width="1.5" height="4" rx="0.5" className={colors.iconLight} />
+            {/* Knife */}
+            <rect x="4" y="0" width="2" height="8" rx="0.5" className={colors.icon} />
+            <path d="M4 0 L6 0 L6 3 L4 4 Z" className={colors.iconLight} />
+            {/* Spoon */}
+            <ellipse cx="9" cy="2" rx="1.5" ry="2" className={colors.icon} />
+            <rect x="8" y="3" width="2" height="5" rx="0.5" className={colors.icon} />
+          </g>
+        );
+      case "attraction":
+      default:
+        return (
+          <g transform="translate(7, 5)">
+            {/* Camera body */}
+            <rect x="0" y="3" width="14" height="9" rx="1" className={colors.icon} />
+            {/* Camera lens */}
+            <circle cx="7" cy="7.5" r="3" className={colors.iconLight} />
+            <circle cx="7" cy="7.5" r="1.5" className={colors.icon} />
+            {/* Camera top */}
+            <rect x="4" y="1" width="6" height="2" rx="0.5" className={colors.icon} />
+            {/* Flash */}
+            <rect x="11" y="4" width="2" height="1.5" rx="0.25" className={colors.iconLight} />
+          </g>
+        );
+    }
+  };
 
   return (
     <div
@@ -33,7 +115,7 @@ export function LocationMarker({
             <div
               className={`
                 absolute inset-0 rounded-full
-                ${isHotel ? "bg-purple-400" : "bg-blue-400"}
+                ${colors.pulse}
                 animate-ping opacity-75
               `}
               style={{
@@ -63,9 +145,7 @@ export function LocationMarker({
               d="M14 0C6.268 0 0 6.268 0 14c0 7.732 14 22 14 22s14-14.268 14-22C28 6.268 21.732 0 14 0z"
               className={`
                 transition-colors duration-200
-                ${isHotel ? "fill-purple-600" : "fill-blue-600"}
-                ${isSelected && isHotel ? "fill-purple-500" : ""}
-                ${isSelected && !isHotel ? "fill-blue-500" : ""}
+                ${isSelected ? colors.pinSelected : colors.pin}
               `}
             />
             {/* Inner circle */}
@@ -73,61 +153,11 @@ export function LocationMarker({
               cx="14"
               cy="12"
               r="6"
-              className={`
-                transition-colors duration-200
-                ${isHotel ? "fill-purple-200" : "fill-blue-200"}
-              `}
+              className={`transition-colors duration-200 ${colors.inner}`}
             />
 
-            {/* Hotel icon (bed) */}
-            {isHotel && (
-              <g transform="translate(8, 6)">
-                {/* Bed base */}
-                <rect
-                  x="0"
-                  y="8"
-                  width="12"
-                  height="2"
-                  rx="0.5"
-                  className="fill-purple-700"
-                />
-                {/* Headboard */}
-                <rect
-                  x="0"
-                  y="4"
-                  width="3"
-                  height="4"
-                  rx="0.5"
-                  className="fill-purple-700"
-                />
-                {/* Pillow */}
-                <rect
-                  x="1"
-                  y="5"
-                  width="2"
-                  height="2"
-                  rx="0.5"
-                  className="fill-purple-300"
-                />
-                {/* Blanket */}
-                <rect
-                  x="3"
-                  y="6"
-                  width="8"
-                  height="2"
-                  rx="0.5"
-                  className="fill-purple-600"
-                />
-                {/* Legs */}
-                <rect x="0" y="10" width="1" height="2" className="fill-purple-700" />
-                <rect x="11" y="10" width="1" height="2" className="fill-purple-700" />
-              </g>
-            )}
-
-            {/* Regular location icon (circle dot) */}
-            {!isHotel && (
-              <circle cx="14" cy="12" r="3" className="fill-blue-700" />
-            )}
+            {/* Type-specific icon */}
+            {renderIcon()}
           </svg>
 
           {/* Shadow ellipse at base */}
@@ -149,7 +179,7 @@ export function LocationMarker({
             mt-1 px-2 py-1 rounded-md text-xs font-medium
             max-w-[150px] truncate text-center
             shadow-lg backdrop-blur-sm
-            ${isHotel ? "bg-purple-600 text-white" : "bg-blue-600 text-white"}
+            ${colors.label} text-white
             animate-fade-in
           `}
         >

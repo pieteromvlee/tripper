@@ -162,49 +162,61 @@ export function TripMap({
       >
         <NavigationControl position="top-right" />
 
-        {locations?.map((location) => (
-          <Marker
-            key={location._id}
-            latitude={location.latitude}
-            longitude={location.longitude}
-            onClick={(e) => {
-              e.originalEvent.stopPropagation();
-              onLocationSelect(location._id);
-            }}
-          >
-            <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center cursor-pointer transition-transform ${
-                selectedLocationId === location._id
-                  ? "bg-blue-600 scale-125"
-                  : location.isHotel
-                    ? "bg-purple-500"
-                    : "bg-red-500"
-              }`}
+        {locations?.map((location) => {
+          // Determine color based on location type
+          const getMarkerColor = () => {
+            if (selectedLocationId === location._id) return "bg-blue-600 scale-125";
+            switch (location.locationType) {
+              case "hotel": return "bg-purple-500";
+              case "restaurant": return "bg-orange-500";
+              case "attraction":
+              default: return "bg-blue-500";
+            }
+          };
+
+          // Render icon based on location type
+          const renderIcon = () => {
+            switch (location.locationType) {
+              case "hotel":
+                return (
+                  <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
+                  </svg>
+                );
+              case "restaurant":
+                return (
+                  <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M3 4a1 1 0 011-1h1a1 1 0 011 1v3a1 1 0 01-.293.707L4 9.414V16a1 1 0 01-2 0V4zm5-1a1 1 0 00-1 1v12a1 1 0 102 0V9.414l1.707-1.707A1 1 0 0011 7V4a1 1 0 10-2 0v2.586l-.293.293a1 1 0 01-1.414 0L7 6.586V4a1 1 0 00-1-1zm8 0a1 1 0 00-1 1v4.382l-.553.276A1 1 0 0014 9.618V16a1 1 0 102 0v-6.382l.553-.276A1 1 0 0017 8.382V4a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                );
+              case "attraction":
+              default:
+                return (
+                  <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M4 5a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-1.121-1.121A2 2 0 0011.172 3H8.828a2 2 0 00-1.414.586L6.293 4.707A1 1 0 015.586 5H4zm6 9a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
+                  </svg>
+                );
+            }
+          };
+
+          return (
+            <Marker
+              key={location._id}
+              latitude={location.latitude}
+              longitude={location.longitude}
+              onClick={(e) => {
+                e.originalEvent.stopPropagation();
+                onLocationSelect(location._id);
+              }}
             >
-              {location.isHotel ? (
-                <svg
-                  className="w-4 h-4 text-white"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
-                </svg>
-              ) : (
-                <svg
-                  className="w-4 h-4 text-white"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              )}
-            </div>
-          </Marker>
-        ))}
+              <div
+                className={`w-8 h-8 rounded-full flex items-center justify-center cursor-pointer transition-transform ${getMarkerColor()}`}
+              >
+                {renderIcon()}
+              </div>
+            </Marker>
+          );
+        })}
 
         {/* Temporary pin for pending location */}
         {pendingLocation && (
