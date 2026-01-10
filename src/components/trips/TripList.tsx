@@ -17,7 +17,7 @@ export function TripList() {
   if (trips.length === 0) {
     return (
       <div className="text-center py-12">
-        <div className="text-gray-400 mb-2">
+        <div className="text-text-muted mb-2">
           <svg
             className="mx-auto h-12 w-12"
             fill="none"
@@ -32,8 +32,8 @@ export function TripList() {
             />
           </svg>
         </div>
-        <h3 className="text-lg font-medium text-gray-900 mb-1">No trips yet</h3>
-        <p className="text-gray-500">Create your first trip to get started</p>
+        <h3 className="text-lg font-medium text-text-primary mb-1">No trips yet</h3>
+        <p className="text-text-secondary">Create your first trip to get started</p>
       </div>
     );
   }

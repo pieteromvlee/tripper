@@ -29,7 +29,7 @@ export function TripCard({ trip, onClick }: TripCardProps) {
   return (
     <div
       onClick={onClick}
-      className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer border border-gray-100 hover:border-gray-200 active:scale-[0.98] touch-manipulation overflow-hidden"
+      className="bg-surface-elevated rounded-xl shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer border border-border-muted hover:border-border active:scale-[0.98] touch-manipulation overflow-hidden"
     >
       <div className="flex">
         {/* Map Preview */}
@@ -43,14 +43,14 @@ export function TripCard({ trip, onClick }: TripCardProps) {
 
         {/* Trip Info */}
         <div className="flex-1 p-6 min-w-0 flex flex-col justify-center">
-          <h3 className="text-xl font-semibold text-gray-900">
+          <h3 className="text-xl font-semibold text-text-primary">
             {trip.name}
           </h3>
-          <p className="text-sm text-gray-500 mt-2">
+          <p className="text-sm text-text-secondary mt-2">
             Created {formatDate(trip.createdAt)}
           </p>
           {locations && locations.length > 0 && (
-            <p className="text-sm text-gray-400 mt-3">
+            <p className="text-sm text-text-muted mt-3">
               {locations.length} {locations.length === 1 ? "location" : "locations"}
             </p>
           )}

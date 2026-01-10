@@ -1,1 +1,114 @@
 @import "tailwindcss";
+
+/*
+ * Theme Configuration
+ * All colors are defined here. To create a new theme, just change these values.
+ */
+
+@theme {
+  /* Surface colors - backgrounds */
+  --color-surface: var(--surface);
+  --color-surface-secondary: var(--surface-secondary);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-surface-inset: var(--surface-inset);
+
+  /* Border colors */
+  --color-border: var(--border);
+  --color-border-muted: var(--border-muted);
+  --color-border-focus: var(--border-focus);
+
+  /* Text colors */
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-text-inverse: var(--text-inverse);
+
+  /* Interactive elements */
+  --color-interactive: var(--interactive);
+  --color-interactive-hover: var(--interactive-hover);
+  --color-interactive-muted: var(--interactive-muted);
+
+  /* Input fields */
+  --color-input-bg: var(--input-bg);
+  --color-input-border: var(--input-border);
+  --color-input-text: var(--input-text);
+  --color-input-placeholder: var(--input-placeholder);
+}
+
+/* Light theme (default) */
+:root {
+  /* Surfaces */
+  --surface: #f9fafb;           /* gray-50 */
+  --surface-secondary: #f3f4f6; /* gray-100 */
+  --surface-elevated: #ffffff;  /* white */
+  --surface-inset: #e5e7eb;     /* gray-200 */
+
+  /* Borders */
+  --border: #e5e7eb;            /* gray-200 */
+  --border-muted: #f3f4f6;      /* gray-100 */
+  --border-focus: #3b82f6;      /* blue-500 */
+
+  /* Text */
+  --text-primary: #111827;      /* gray-900 */
+  --text-secondary: #6b7280;    /* gray-500 */
+  --text-muted: #9ca3af;        /* gray-400 */
+  --text-inverse: #ffffff;      /* white */
+
+  /* Interactive */
+  --interactive: #2563eb;       /* blue-600 */
+  --interactive-hover: #1d4ed8; /* blue-700 */
+  --interactive-muted: #dbeafe; /* blue-100 */
+
+  /* Inputs */
+  --input-bg: #ffffff;          /* white */
+  --input-border: #d1d5db;      /* gray-300 */
+  --input-text: #111827;        /* gray-900 */
+  --input-placeholder: #9ca3af; /* gray-400 */
+}
+
+/* Dark theme */
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Surfaces */
+    --surface: #111827;           /* gray-900 */
+    --surface-secondary: #1f2937; /* gray-800 */
+    --surface-elevated: #1f2937;  /* gray-800 */
+    --surface-inset: #374151;     /* gray-700 */
+
+    /* Borders */
+    --border: #374151;            /* gray-700 */
+    --border-muted: #1f2937;      /* gray-800 */
+    --border-focus: #3b82f6;      /* blue-500 */
+
+    /* Text */
+    --text-primary: #f9fafb;      /* gray-50 */
+    --text-secondary: #9ca3af;    /* gray-400 */
+    --text-muted: #6b7280;        /* gray-500 */
+    --text-inverse: #111827;      /* gray-900 */
+
+    /* Interactive */
+    --interactive: #3b82f6;       /* blue-500 */
+    --interactive-hover: #2563eb; /* blue-600 */
+    --interactive-muted: #1e3a5f; /* blue-900/50 */
+
+    /* Inputs */
+    --input-bg: #374151;          /* gray-700 */
+    --input-border: #4b5563;      /* gray-600 */
+    --input-text: #f9fafb;        /* gray-50 */
+    --input-placeholder: #9ca3af; /* gray-400 */
+  }
+}
+
+/* Base input styles */
+input:not([type="checkbox"]):not([type="radio"]),
+textarea,
+select {
+  background-color: var(--input-bg);
+  border-color: var(--input-border);
+  color: var(--input-text);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--input-placeholder);
+}

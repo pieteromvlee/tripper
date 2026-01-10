@@ -35,16 +35,16 @@ export default function LoginPage() {
       <Authenticated>
         <Navigate to="/" replace />
       </Authenticated>
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-surface px-4">
         <div className="w-full max-w-md">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2 text-center">
+        <h1 className="text-3xl font-bold text-text-primary mb-2 text-center">
           {isSignUp ? "Create Account" : "Welcome Back"}
         </h1>
-        <p className="text-gray-600 mb-8 text-center">
+        <p className="text-text-secondary mb-8 text-center">
           {isSignUp ? "Sign up to start planning trips" : "Sign in to access your trips"}
         </p>
 
-        <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-lg p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="bg-surface-elevated rounded-xl shadow-lg p-6 space-y-4 border border-border-muted">
           {error && (
             <div className="bg-red-50 text-red-700 px-4 py-3 rounded-lg text-sm">
               {error}
@@ -52,7 +52,7 @@ export default function LoginPage() {
           )}
 
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="email" className="block text-sm font-medium text-text-secondary mb-1">
               Email
             </label>
             <input
@@ -61,13 +61,13 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+              className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
               placeholder="you@example.com"
             />
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="password" className="block text-sm font-medium text-text-secondary mb-1">
               Password
             </label>
             <input
@@ -77,7 +77,7 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               required
               minLength={6}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+              className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
               placeholder="••••••••"
             />
           </div>
@@ -91,7 +91,7 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <p className="mt-6 text-center text-gray-600">
+        <p className="mt-6 text-center text-text-secondary">
           {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
           <button
             type="button"

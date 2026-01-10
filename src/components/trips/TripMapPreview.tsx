@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useSyncExternalStore } from "react";
 
 interface Location {
   latitude: number;
@@ -12,6 +12,19 @@ interface TripMapPreviewProps {
 }
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
+
+// Hook to detect dark mode preference
+function useDarkMode() {
+  return useSyncExternalStore(
+    (callback) => {
+      const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+      mediaQuery.addEventListener("change", callback);
+      return () => mediaQuery.removeEventListener("change", callback);
+    },
+    () => window.matchMedia("(prefers-color-scheme: dark)").matches,
+    () => false
+  );
+}
 
 // Calculate center and zoom to fit all locations
 function calculateBounds(locations: Location[]) {
@@ -48,24 +61,27 @@ function calculateBounds(locations: Location[]) {
 }
 
 export function TripMapPreview({ locations, width = 280, height = 200 }: TripMapPreviewProps) {
+  const isDark = useDarkMode();
+
   const mapUrl = useMemo(() => {
     if (!locations.length || !MAPBOX_TOKEN) return null;
 
     const { centerLat, centerLng, zoom } = calculateBounds(locations);
+    const style = isDark ? "dark-v11" : "streets-v12";
 
     // Static map without markers - just show the area
-    return `https://api.mapbox.com/styles/v1/mapbox/streets-v12/static/${centerLng.toFixed(5)},${centerLat.toFixed(5)},${zoom},0/${width}x${height}@2x?access_token=${MAPBOX_TOKEN}`;
-  }, [locations, width, height]);
+    return `https://api.mapbox.com/styles/v1/mapbox/${style}/static/${centerLng.toFixed(5)},${centerLat.toFixed(5)},${zoom},0/${width}x${height}@2x?access_token=${MAPBOX_TOKEN}`;
+  }, [locations, width, height, isDark]);
 
   if (!mapUrl) {
     // Empty state placeholder
     return (
       <div
-        className="bg-gray-100 rounded-lg flex items-center justify-center"
+        className="bg-surface-secondary rounded-lg flex items-center justify-center"
         style={{ width, height }}
       >
         <svg
-          className="w-12 h-12 text-gray-300"
+          className="w-12 h-12 text-text-muted"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"

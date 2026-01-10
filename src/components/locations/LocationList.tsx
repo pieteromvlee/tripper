@@ -50,7 +50,7 @@ export function LocationList({
       <div className="flex items-center justify-center h-48">
         <div className="flex flex-col items-center gap-3">
           <div className="w-8 h-8 border-3 border-blue-500 border-t-transparent rounded-full animate-spin" />
-          <p className="text-sm text-gray-500">Loading locations...</p>
+          <p className="text-sm text-text-muted">Loading locations...</p>
         </div>
       </div>
     );
@@ -61,9 +61,9 @@ export function LocationList({
     return (
       <div className="flex items-center justify-center h-48">
         <div className="text-center px-4">
-          <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-gray-100 flex items-center justify-center">
+          <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-surface-secondary flex items-center justify-center">
             <svg
-              className="w-6 h-6 text-gray-400"
+              className="w-6 h-6 text-text-muted"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -82,8 +82,8 @@ export function LocationList({
               />
             </svg>
           </div>
-          <p className="text-gray-500 font-medium">No locations yet</p>
-          <p className="text-sm text-gray-400 mt-1">
+          <p className="text-text-secondary font-medium">No locations yet</p>
+          <p className="text-sm text-text-muted mt-1">
             {selectedDate
               ? "No locations scheduled for this date"
               : "Tap the map or search to add your first location"}

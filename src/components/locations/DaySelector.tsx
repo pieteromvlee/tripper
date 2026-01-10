@@ -51,7 +51,7 @@ export function DaySelector({
   // Loading state
   if (uniqueDates === undefined) {
     return (
-      <div className="flex items-center justify-center h-12 bg-gray-50">
+      <div className="flex items-center justify-center h-12 bg-surface-secondary">
         <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -65,7 +65,7 @@ export function DaySelector({
   return (
     <div
       ref={containerRef}
-      className="flex items-center gap-2 overflow-x-auto px-3 py-2 bg-gray-50 scrollbar-hide"
+      className="flex items-center gap-2 overflow-x-auto px-3 py-2 bg-surface-secondary scrollbar-hide"
       style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
     >
       {/* "All" option */}
@@ -79,7 +79,7 @@ export function DaySelector({
           ${
             selectedDate === null
               ? "bg-blue-600 text-white shadow-md"
-              : "bg-white text-gray-700 border border-gray-200 hover:border-gray-300"
+              : "bg-surface-elevated text-text-secondary border border-border hover:border-border-focus"
           }
         `}
       >
@@ -105,7 +105,7 @@ export function DaySelector({
                   ? "bg-blue-600 text-white shadow-md"
                   : todayFlag
                   ? "bg-amber-100 text-amber-800 border border-amber-300 hover:bg-amber-200"
-                  : "bg-white text-gray-700 border border-gray-200 hover:border-gray-300"
+                  : "bg-surface-elevated text-text-secondary border border-border hover:border-border-focus"
               }
             `}
           >

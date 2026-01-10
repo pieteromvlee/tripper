@@ -75,13 +75,13 @@ export function TripShareModal({ tripId, isOwner, onClose }: TripShareModalProps
       className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
       onClick={handleBackdropClick}
     >
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-md max-h-[80vh] flex flex-col">
-        <div className="p-6 border-b border-gray-200">
+      <div className="bg-surface-elevated rounded-xl shadow-xl w-full max-w-md max-h-[80vh] flex flex-col border border-border-muted">
+        <div className="p-6 border-b border-border">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-gray-900">Share Trip</h2>
+            <h2 className="text-xl font-semibold text-text-primary">Share Trip</h2>
             <button
               onClick={onClose}
-              className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+              className="p-2 text-text-muted hover:text-text-primary rounded-lg hover:bg-surface-secondary transition-colors"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -94,7 +94,7 @@ export function TripShareModal({ tripId, isOwner, onClose }: TripShareModalProps
           {/* Invite form - owner only */}
           {isOwner && (
             <form onSubmit={handleInvite}>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-text-secondary mb-2">
                 Invite by email
               </label>
               <div className="flex gap-2">
@@ -107,7 +107,7 @@ export function TripShareModal({ tripId, isOwner, onClose }: TripShareModalProps
                     setSuccessMessage(null);
                   }}
                   placeholder="friend@example.com"
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
+                  className="flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
                 />
                 <button
                   type="submit"
@@ -128,28 +128,28 @@ export function TripShareModal({ tripId, isOwner, onClose }: TripShareModalProps
 
           {/* Members list */}
           <div>
-            <h3 className="text-sm font-medium text-gray-700 mb-3">Members</h3>
+            <h3 className="text-sm font-medium text-text-secondary mb-3">Members</h3>
             {members === undefined ? (
-              <p className="text-gray-500 text-sm">Loading...</p>
+              <p className="text-text-muted text-sm">Loading...</p>
             ) : members.length === 0 ? (
-              <p className="text-gray-500 text-sm">No members yet</p>
+              <p className="text-text-muted text-sm">No members yet</p>
             ) : (
               <ul className="space-y-2">
                 {members.map((member) => (
                   <li
                     key={member._id}
-                    className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded-lg"
+                    className="flex items-center justify-between py-2 px-3 bg-surface-secondary rounded-lg"
                   >
                     <div className="flex items-center gap-2">
                       <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-medium">
                         {(member.name || member.email || "?").charAt(0).toUpperCase()}
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-gray-900">
+                        <p className="text-sm font-medium text-text-primary">
                           {member.name || member.email}
                         </p>
                         {member.name && member.email && (
-                          <p className="text-xs text-gray-500">{member.email}</p>
+                          <p className="text-xs text-text-muted">{member.email}</p>
                         )}
                       </div>
                     </div>
@@ -158,7 +158,7 @@ export function TripShareModal({ tripId, isOwner, onClose }: TripShareModalProps
                         className={`px-2 py-0.5 text-xs font-medium rounded-full ${
                           member.role === "owner"
                             ? "bg-purple-100 text-purple-700"
-                            : "bg-gray-100 text-gray-600"
+                            : "bg-surface-inset text-text-secondary"
                         }`}
                       >
                         {member.role}
@@ -166,7 +166,7 @@ export function TripShareModal({ tripId, isOwner, onClose }: TripShareModalProps
                       {isOwner && member.role !== "owner" && (
                         <button
                           onClick={() => handleRemoveMember(member._id)}
-                          className="p-1 text-gray-400 hover:text-red-600 rounded transition-colors"
+                          className="p-1 text-text-muted hover:text-red-600 rounded transition-colors"
                           title="Remove member"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -184,7 +184,7 @@ export function TripShareModal({ tripId, isOwner, onClose }: TripShareModalProps
           {/* Pending invites - owner only */}
           {isOwner && pendingInvites && pendingInvites.length > 0 && (
             <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-3">Pending Invites</h3>
+              <h3 className="text-sm font-medium text-text-secondary mb-3">Pending Invites</h3>
               <ul className="space-y-2">
                 {pendingInvites.map((invite) => (
                   <li
@@ -198,13 +198,13 @@ export function TripShareModal({ tripId, isOwner, onClose }: TripShareModalProps
                         </svg>
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-gray-900">{invite.email}</p>
-                        <p className="text-xs text-gray-500">Pending</p>
+                        <p className="text-sm font-medium text-text-primary">{invite.email}</p>
+                        <p className="text-xs text-text-muted">Pending</p>
                       </div>
                     </div>
                     <button
                       onClick={() => handleCancelInvite(invite._id)}
-                      className="p-1 text-gray-400 hover:text-red-600 rounded transition-colors"
+                      className="p-1 text-text-muted hover:text-red-600 rounded transition-colors"
                       title="Cancel invite"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -218,10 +218,10 @@ export function TripShareModal({ tripId, isOwner, onClose }: TripShareModalProps
           )}
         </div>
 
-        <div className="p-4 border-t border-gray-200">
+        <div className="p-4 border-t border-border">
           <button
             onClick={onClose}
-            className="w-full px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition-colors"
+            className="w-full px-4 py-2 text-text-primary bg-surface-secondary hover:bg-surface-inset rounded-lg font-medium transition-colors"
           >
             Close
           </button>

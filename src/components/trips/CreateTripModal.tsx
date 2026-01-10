@@ -41,15 +41,15 @@ export function CreateTripModal({ isOpen, onClose }: CreateTripModalProps) {
       className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
       onClick={handleBackdropClick}
     >
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">
+      <div className="bg-surface-elevated rounded-xl shadow-xl w-full max-w-md p-6 border border-border-muted">
+        <h2 className="text-xl font-semibold text-text-primary mb-4">
           Create New Trip
         </h2>
         <form onSubmit={handleSubmit}>
           <div className="mb-6">
             <label
               htmlFor="trip-name"
-              className="block text-sm font-medium text-gray-700 mb-2"
+              className="block text-sm font-medium text-text-secondary mb-2"
             >
               Trip Name
             </label>
@@ -59,7 +59,7 @@ export function CreateTripModal({ isOpen, onClose }: CreateTripModalProps) {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g., Summer Vacation 2024"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors text-base"
+              className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors text-base"
               autoFocus
             />
           </div>
@@ -67,7 +67,7 @@ export function CreateTripModal({ isOpen, onClose }: CreateTripModalProps) {
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-3 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition-colors touch-manipulation"
+              className="flex-1 px-4 py-3 text-text-primary bg-surface-secondary hover:bg-surface-inset rounded-lg font-medium transition-colors touch-manipulation"
             >
               Cancel
             </button>

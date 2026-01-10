@@ -10,15 +10,15 @@ export default function HomePage() {
   return (
     <>
       <AuthLoading>
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="min-h-screen flex items-center justify-center bg-surface">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
         </div>
       </AuthLoading>
 
       <Unauthenticated>
-        <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Tripper</h1>
-          <p className="text-gray-600 mb-8 text-center">Plan your city trips with interactive maps</p>
+        <div className="min-h-screen flex flex-col items-center justify-center bg-surface px-4">
+          <h1 className="text-3xl font-bold text-text-primary mb-2">Tripper</h1>
+          <p className="text-text-secondary mb-8 text-center">Plan your city trips with interactive maps</p>
           <Link
             to="/login"
             className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition"
@@ -62,10 +62,10 @@ function AuthenticatedHome() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200 px-4 py-4">
+    <div className="min-h-screen bg-surface">
+      <header className="bg-surface-elevated border-b border-border px-4 py-4">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <h1 className="text-xl font-bold text-gray-900">My Trips</h1>
+          <h1 className="text-xl font-bold text-text-primary">My Trips</h1>
           <div className="flex items-center gap-3">
             <button
               onClick={() => setShowCreateModal(true)}
@@ -78,7 +78,7 @@ function AuthenticatedHome() {
             </button>
             <button
               onClick={() => signOut()}
-              className="text-gray-500 hover:text-gray-700 px-3 py-2 text-sm font-medium transition"
+              className="text-text-secondary hover:text-text-primary px-3 py-2 text-sm font-medium transition"
               title="Sign Out"
             >
               Sign Out
@@ -91,23 +91,23 @@ function AuthenticatedHome() {
         {/* Pending Invites */}
         {pendingInvites && pendingInvites.length > 0 && (
           <div className="mb-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-3">Pending Invitations</h2>
+            <h2 className="text-lg font-semibold text-text-primary mb-3">Pending Invitations</h2>
             <div className="space-y-3">
               {pendingInvites.map((invite) => (
                 <div
                   key={invite._id}
-                  className="bg-white border border-yellow-200 rounded-lg p-4 flex items-center justify-between"
+                  className="bg-surface-elevated border border-yellow-500/30 rounded-lg p-4 flex items-center justify-between"
                 >
                   <div>
-                    <p className="font-medium text-gray-900">{invite.tripName}</p>
-                    <p className="text-sm text-gray-500">
+                    <p className="font-medium text-text-primary">{invite.tripName}</p>
+                    <p className="text-sm text-text-secondary">
                       Invited by {invite.inviterEmail}
                     </p>
                   </div>
                   <div className="flex gap-2">
                     <button
                       onClick={() => handleDeclineInvite(invite._id)}
-                      className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition"
+                      className="px-3 py-1.5 text-sm font-medium text-text-secondary hover:text-text-primary hover:bg-surface-secondary rounded-lg transition"
                     >
                       Decline
                     </button>
