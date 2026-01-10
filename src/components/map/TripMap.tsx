@@ -20,7 +20,9 @@ interface TripMapProps {
   selectedLocationId: Id<"locations"> | null;
   onLocationSelect: (id: Id<"locations">) => void;
   onMapClick: (lat: number, lng: number) => void;
+  onCenterChange?: (lat: number, lng: number) => void;
   flyToLocation?: { lat: number; lng: number; key?: number };
+  pendingLocation?: { lat: number; lng: number } | null;
 }
 
 export function TripMap({
@@ -28,7 +30,9 @@ export function TripMap({
   selectedLocationId,
   onLocationSelect,
   onMapClick,
+  onCenterChange,
   flyToLocation,
+  pendingLocation,
 }: TripMapProps) {
   const mapRef = useRef<MapRef>(null);
 
@@ -108,9 +112,9 @@ export function TripMap({
     }
   }, [selectedLocationId, locations]);
 
-  // Fly to search result location
+  // Fly to search result location (only when key changes, not on every map click)
   useEffect(() => {
-    if (!flyToLocation || !mapRef.current) return;
+    if (!flyToLocation || !mapRef.current || !flyToLocation.key) return;
 
     // Small delay to ensure map is ready
     const timer = setTimeout(() => {
@@ -122,7 +126,7 @@ export function TripMap({
     }, 100);
 
     return () => clearTimeout(timer);
-  }, [flyToLocation?.lat, flyToLocation?.lng, flyToLocation?.key]);
+  }, [flyToLocation?.key]);
 
   const handleMapClick = useCallback(
     (event: MapMouseEvent) => {
@@ -149,6 +153,12 @@ export function TripMap({
         onDragEnd={() => setIsDragging(false)}
         onClick={handleMapClick}
         onLoad={handleMapLoad}
+        onMoveEnd={(e) => {
+          if (onCenterChange) {
+            const center = e.viewState;
+            onCenterChange(center.latitude, center.longitude);
+          }
+        }}
       >
         <NavigationControl position="top-right" />
 
@@ -195,6 +205,28 @@ export function TripMap({
             </div>
           </Marker>
         ))}
+
+        {/* Temporary pin for pending location */}
+        {pendingLocation && (
+          <Marker
+            latitude={pendingLocation.lat}
+            longitude={pendingLocation.lng}
+          >
+            <div className="w-8 h-8 rounded-full flex items-center justify-center bg-green-500 animate-pulse border-2 border-white shadow-lg">
+              <svg
+                className="w-4 h-4 text-white"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </div>
+          </Marker>
+        )}
       </Map>
     </div>
   );

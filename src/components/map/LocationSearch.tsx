@@ -11,6 +11,7 @@ interface LocationSearchProps {
   onSelect: (result: LocationSearchResult) => void;
   placeholder?: string;
   autoFocus?: boolean;
+  proximity?: { lat: number; lng: number } | null;
 }
 
 interface MapboxFeature {
@@ -29,6 +30,7 @@ export function LocationSearch({
   onSelect,
   placeholder = "Search for a location...",
   autoFocus = false,
+  proximity,
 }: LocationSearchProps) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<MapboxFeature[]>([]);
@@ -54,8 +56,9 @@ export function LocationSearch({
       try {
         const token = import.meta.env.VITE_MAPBOX_TOKEN;
         const encodedQuery = encodeURIComponent(query.trim());
+        const proximityParam = proximity ? `&proximity=${proximity.lng},${proximity.lat}` : "";
         const response = await fetch(
-          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodedQuery}.json?access_token=${token}&limit=8&types=poi,address,place,locality&fuzzyMatch=true`
+          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodedQuery}.json?access_token=${token}&limit=8&types=poi,address,place,locality&fuzzyMatch=true${proximityParam}`
         );
 
         if (!response.ok) {
@@ -78,7 +81,7 @@ export function LocationSearch({
         clearTimeout(debounceRef.current);
       }
     };
-  }, [query]);
+  }, [query, proximity]);
 
   // Close dropdown when clicking outside
   useEffect(() => {

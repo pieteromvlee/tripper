@@ -28,6 +28,7 @@ export default function TripPage() {
   const [scrollToCounter, setScrollToCounter] = useState(0); // Trigger scroll to location in list
   const [showSearch, setShowSearch] = useState(false); // Toggle search visibility
   const [detailLocationId, setDetailLocationId] = useState<Id<"locations"> | null>(null); // Full-screen detail view
+  const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number } | null>(null); // Current map center for search proximity
 
   // Detect mobile viewport
   useEffect(() => {
@@ -223,7 +224,7 @@ export default function TripPage() {
               {showSearch ? (
                 <div className="flex items-center gap-2">
                   <div className="flex-1">
-                    <LocationSearch onSelect={handleSearchSelect} placeholder="Search for a place..." autoFocus />
+                    <LocationSearch onSelect={handleSearchSelect} placeholder="Search for a place..." autoFocus proximity={mapCenter} />
                   </div>
                   <button
                     onClick={() => setShowSearch(false)}
@@ -293,7 +294,7 @@ export default function TripPage() {
                 {showSearch ? (
                   <div className="flex items-center gap-2 bg-white rounded-lg shadow-md p-2">
                     <div className="flex-1">
-                      <LocationSearch onSelect={handleSearchSelect} placeholder="Search for a place..." autoFocus />
+                      <LocationSearch onSelect={handleSearchSelect} placeholder="Search for a place..." autoFocus proximity={mapCenter} />
                     </div>
                     <button
                       onClick={() => setShowSearch(false)}
@@ -323,7 +324,9 @@ export default function TripPage() {
               selectedLocationId={selectedLocationId}
               onLocationSelect={handleMarkerSelect}
               onMapClick={handleMapClick}
+              onCenterChange={(lat, lng) => setMapCenter({ lat, lng })}
               flyToLocation={newLocationData ? { lat: newLocationData.lat, lng: newLocationData.lng, key: flyToCounter } : undefined}
+              pendingLocation={showAddForm && newLocationData ? { lat: newLocationData.lat, lng: newLocationData.lng } : null}
             />
             {/* Show All button - appears when a location is selected */}
             {selectedLocationId && (
