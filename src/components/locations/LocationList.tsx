@@ -28,7 +28,11 @@ export function LocationList({
   const selectedRef = useRef<HTMLDivElement>(null);
 
   // Query locations based on whether a date filter is applied
-  const allLocations = useQuery(api.locations.listByTrip, { tripId });
+  // Only run one query at a time to avoid unnecessary database calls
+  const allLocations = useQuery(
+    api.locations.listByTrip,
+    selectedDate ? "skip" : { tripId }
+  );
   const filteredLocations = useQuery(
     api.locations.listByTripAndDate,
     selectedDate ? { tripId, date: selectedDate } : "skip"
