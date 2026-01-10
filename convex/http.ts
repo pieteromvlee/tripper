@@ -31,8 +31,21 @@ http.route({
     const ll = url.searchParams.get("ll");
     const limit = url.searchParams.get("limit") || "5";
 
+    // Validate query parameter
     if (!query) {
       return new Response(JSON.stringify({ error: "query parameter required" }), {
+        status: 400,
+        headers: getCorsHeaders(request),
+      });
+    }
+    if (query.length < 2) {
+      return new Response(JSON.stringify({ error: "Query too short (min 2 characters)" }), {
+        status: 400,
+        headers: getCorsHeaders(request),
+      });
+    }
+    if (query.length > 200) {
+      return new Response(JSON.stringify({ error: "Query too long (max 200 characters)" }), {
         status: 400,
         headers: getCorsHeaders(request),
       });
@@ -51,18 +64,35 @@ http.route({
     fsqUrl.searchParams.set("limit", limit);
     if (ll) fsqUrl.searchParams.set("ll", ll);
 
-    const response = await fetch(fsqUrl.toString(), {
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "X-Places-Api-Version": "2025-06-17",
-      },
-    });
+    // Add timeout to prevent hanging requests
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
 
-    const data = await response.json();
-    return new Response(JSON.stringify(data), {
-      status: response.status,
-      headers: getCorsHeaders(request),
-    });
+    try {
+      const response = await fetch(fsqUrl.toString(), {
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "X-Places-Api-Version": "2025-06-17",
+        },
+        signal: controller.signal,
+      });
+
+      const data = await response.json();
+      return new Response(JSON.stringify(data), {
+        status: response.status,
+        headers: getCorsHeaders(request),
+      });
+    } catch (error) {
+      if (error instanceof Error && error.name === "AbortError") {
+        return new Response(JSON.stringify({ error: "Request timeout" }), {
+          status: 504,
+          headers: getCorsHeaders(request),
+        });
+      }
+      throw error;
+    } finally {
+      clearTimeout(timeout);
+    }
   }),
 });
 
