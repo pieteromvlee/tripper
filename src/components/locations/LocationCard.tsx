@@ -117,7 +117,7 @@ export function LocationCard({
               `}
             >
               {formatDateTime(location.dateTime)}
-              {location.isHotel && location.endDateTime && (
+              {location.locationType === "hotel" && location.endDateTime && (
                 <span className="text-gray-400">
                   {" "}
                   - {formatDateTime(location.endDateTime)}
@@ -253,21 +253,23 @@ export function LocationCard({
             </svg>
           </button>
 
-          {/* Hotel badge */}
-          {location.isHotel && (
-            <span
-              className={`
-                inline-flex items-center px-2 py-1 rounded-md text-xs font-medium
-                ${
-                  isSelected
-                    ? "bg-blue-100 text-blue-800"
-                    : "bg-purple-100 text-purple-800"
-                }
-              `}
-            >
-              Hotel
-            </span>
-          )}
+          {/* Type badge */}
+          <span
+            className={`
+              inline-flex items-center px-2 py-1 rounded-md text-xs font-medium
+              ${
+                isSelected
+                  ? "bg-blue-100 text-blue-800"
+                  : location.locationType === "hotel"
+                    ? "bg-purple-100 text-purple-800"
+                    : location.locationType === "restaurant"
+                      ? "bg-orange-100 text-orange-800"
+                      : "bg-blue-100 text-blue-800"
+              }
+            `}
+          >
+            {location.locationType === "hotel" ? "Hotel" : location.locationType === "restaurant" ? "Restaurant" : "Attraction"}
+          </span>
         </div>
       </div>
 
@@ -352,7 +354,7 @@ export function LocationCard({
                   <span className="text-gray-900">{formatDateTime(location.dateTime)}</span>
                 </div>
               )}
-              {location.isHotel && location.endDateTime && (
+              {location.locationType === "hotel" && location.endDateTime && (
                 <div>
                   <span className="text-gray-500">Check-out:</span>{" "}
                   <span className="text-gray-900">{formatDateTime(location.endDateTime)}</span>
@@ -360,7 +362,9 @@ export function LocationCard({
               )}
               <div>
                 <span className="text-gray-500">Type:</span>{" "}
-                <span className="text-gray-900">{location.isHotel ? "Hotel" : "Location"}</span>
+                <span className="text-gray-900">
+                  {location.locationType === "hotel" ? "Hotel" : location.locationType === "restaurant" ? "Restaurant" : "Attraction"}
+                </span>
               </div>
               {location.notes && (
                 <div>
@@ -463,6 +467,15 @@ interface MapboxFeature {
   center: [number, number];
 }
 
+// Location type options
+type LocationType = "attraction" | "restaurant" | "hotel";
+
+const locationTypeOptions: { value: LocationType; label: string; color: string }[] = [
+  { value: "attraction", label: "Attraction", color: "bg-blue-500" },
+  { value: "restaurant", label: "Restaurant", color: "bg-orange-500" },
+  { value: "hotel", label: "Hotel", color: "bg-purple-500" },
+];
+
 // Edit form component
 function LocationEditForm({
   location,
@@ -483,7 +496,7 @@ function LocationEditForm({
   const [endDateTime, setEndDateTime] = useState(
     location.endDateTime ? toDateTimeLocal(location.endDateTime) : ""
   );
-  const [isHotel, setIsHotel] = useState(location.isHotel);
+  const [locationType, setLocationType] = useState<LocationType>(location.locationType || "attraction");
   const [notes, setNotes] = useState(location.notes || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -585,8 +598,8 @@ function LocationEditForm({
         latitude,
         longitude,
         dateTime: dateTime || undefined,
-        endDateTime: isHotel && endDateTime ? endDateTime : undefined,
-        isHotel,
+        endDateTime: locationType === "hotel" && endDateTime ? endDateTime : undefined,
+        locationType,
         notes: notes.trim() || undefined,
       });
       onSave();
@@ -658,6 +671,26 @@ function LocationEditForm({
       </div>
 
       <div>
+        <label className="block text-xs font-medium text-gray-700 mb-1">Type</label>
+        <div className="flex gap-1">
+          {locationTypeOptions.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => setLocationType(option.value)}
+              className={`flex-1 px-2 py-1.5 rounded text-xs font-medium transition-all ${
+                locationType === option.value
+                  ? `${option.color} text-white`
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div>
         <label className="block text-xs font-medium text-gray-700 mb-1">Date & Time</label>
         <input
           type="datetime-local"
@@ -667,20 +700,7 @@ function LocationEditForm({
         />
       </div>
 
-      <div className="flex items-center gap-2">
-        <input
-          type="checkbox"
-          id={`isHotel-${location._id}`}
-          checked={isHotel}
-          onChange={(e) => setIsHotel(e.target.checked)}
-          className="w-4 h-4 text-blue-600 rounded"
-        />
-        <label htmlFor={`isHotel-${location._id}`} className="text-xs text-gray-700">
-          This is a hotel
-        </label>
-      </div>
-
-      {isHotel && (
+      {locationType === "hotel" && (
         <div>
           <label className="block text-xs font-medium text-gray-700 mb-1">Check-out</label>
           <input

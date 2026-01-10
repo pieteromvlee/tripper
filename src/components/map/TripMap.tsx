@@ -185,8 +185,8 @@ export function TripMap({
                 );
               case "restaurant":
                 return (
-                  <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M3 4a1 1 0 011-1h1a1 1 0 011 1v3a1 1 0 01-.293.707L4 9.414V16a1 1 0 01-2 0V4zm5-1a1 1 0 00-1 1v12a1 1 0 102 0V9.414l1.707-1.707A1 1 0 0011 7V4a1 1 0 10-2 0v2.586l-.293.293a1 1 0 01-1.414 0L7 6.586V4a1 1 0 00-1-1zm8 0a1 1 0 00-1 1v4.382l-.553.276A1 1 0 0014 9.618V16a1 1 0 102 0v-6.382l.553-.276A1 1 0 0017 8.382V4a1 1 0 00-1-1z" clipRule="evenodd" />
+                  <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M7 0a1 1 0 0 1 1 1v5a1 1 0 0 1-.29.71L6 8.41V15a1 1 0 1 1-2 0V8.41L2.29 6.71A1 1 0 0 1 2 6V1a1 1 0 0 1 2 0v4.59l.5.5.5-.5V1a1 1 0 0 1 2 0zm7 1v14a1 1 0 1 1-2 0v-5h-1a1 1 0 0 1-1-1V5c0-2.21 1.79-4 4-4z" />
                   </svg>
                 );
               case "attraction":

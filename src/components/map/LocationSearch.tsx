@@ -14,12 +14,45 @@ interface LocationSearchProps {
   proximity?: { lat: number; lng: number } | null;
 }
 
+// Unified search result from either source
+interface SearchResult {
+  id: string;
+  name: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+  source: "foursquare" | "mapbox";
+}
+
+// Foursquare API types
+interface FoursquarePlace {
+  fsq_id: string;
+  name: string;
+  location: {
+    formatted_address?: string;
+    address?: string;
+    locality?: string;
+    region?: string;
+    country?: string;
+  };
+  geocodes: {
+    main: {
+      latitude: number;
+      longitude: number;
+    };
+  };
+}
+
+interface FoursquareResponse {
+  results: FoursquarePlace[];
+}
+
+// Mapbox API types
 interface MapboxFeature {
   id: string;
   place_name: string;
   text: string;
-  center: [number, number]; // [longitude, latitude]
-  context?: Array<{ id: string; text: string }>;
+  center: [number, number];
 }
 
 interface MapboxResponse {
@@ -33,13 +66,13 @@ export function LocationSearch({
   proximity,
 }: LocationSearchProps) {
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<MapboxFeature[]>([]);
+  const [results, setResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Debounced search
+  // Debounced search - calls both APIs in parallel
   useEffect(() => {
     if (debounceRef.current) {
       clearTimeout(debounceRef.current);
@@ -54,22 +87,83 @@ export function LocationSearch({
     debounceRef.current = setTimeout(async () => {
       setIsLoading(true);
       try {
-        const token = import.meta.env.VITE_MAPBOX_TOKEN;
         const encodedQuery = encodeURIComponent(query.trim());
-        const proximityParam = proximity ? `&proximity=${proximity.lng},${proximity.lat}` : "";
-        const response = await fetch(
-          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodedQuery}.json?access_token=${token}&limit=8&types=poi,address,place,locality&fuzzyMatch=true${proximityParam}`
-        );
 
-        if (!response.ok) {
-          throw new Error("Geocoding request failed");
+        // Build API calls
+        const foursquareKey = import.meta.env.VITE_FOURSQUARE_API_KEY;
+        const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN;
+
+        const llParam = proximity ? `&ll=${proximity.lat},${proximity.lng}` : "";
+        const proximityParam = proximity ? `&proximity=${proximity.lng},${proximity.lat}` : "";
+
+        // Parallel API calls
+        const [foursquareRes, mapboxRes] = await Promise.allSettled([
+          // Foursquare - great for venues/restaurants
+          foursquareKey
+            ? fetch(
+                `https://api.foursquare.com/v3/places/search?query=${encodedQuery}${llParam}&limit=5`,
+                { headers: { Authorization: foursquareKey } }
+              )
+            : Promise.reject("No Foursquare API key"),
+          // Mapbox - good for addresses and places
+          fetch(
+            `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodedQuery}.json?access_token=${mapboxToken}&limit=5&types=poi,address,place,locality&fuzzyMatch=true${proximityParam}`
+          ),
+        ]);
+
+        const combinedResults: SearchResult[] = [];
+        const seenLocations = new Set<string>();
+
+        // Process Foursquare results first (better for businesses)
+        if (foursquareRes.status === "fulfilled" && foursquareRes.value.ok) {
+          const data: FoursquareResponse = await foursquareRes.value.json();
+          for (const place of data.results || []) {
+            const locKey = `${place.geocodes.main.latitude.toFixed(4)},${place.geocodes.main.longitude.toFixed(4)}`;
+            if (!seenLocations.has(locKey)) {
+              seenLocations.add(locKey);
+              const loc = place.location;
+              const address = loc.formatted_address ||
+                [loc.address, loc.locality, loc.region, loc.country].filter(Boolean).join(", ");
+              combinedResults.push({
+                id: `fsq-${place.fsq_id}`,
+                name: place.name,
+                address,
+                latitude: place.geocodes.main.latitude,
+                longitude: place.geocodes.main.longitude,
+                source: "foursquare",
+              });
+            }
+          }
         }
 
-        const data: MapboxResponse = await response.json();
-        setResults(data.features || []);
-        setIsOpen(data.features.length > 0);
+        // Process Mapbox results
+        if (mapboxRes.status === "fulfilled" && mapboxRes.value.ok) {
+          const data: MapboxResponse = await mapboxRes.value.json();
+          for (const feature of data.features || []) {
+            const [lng, lat] = feature.center;
+            const locKey = `${lat.toFixed(4)},${lng.toFixed(4)}`;
+            if (!seenLocations.has(locKey)) {
+              seenLocations.add(locKey);
+              let address = feature.place_name;
+              if (address.startsWith(feature.text)) {
+                address = address.slice(feature.text.length).replace(/^,\s*/, "");
+              }
+              combinedResults.push({
+                id: `mb-${feature.id}`,
+                name: feature.text,
+                address: address || feature.place_name,
+                latitude: lat,
+                longitude: lng,
+                source: "mapbox",
+              });
+            }
+          }
+        }
+
+        setResults(combinedResults);
+        setIsOpen(combinedResults.length > 0);
       } catch (error) {
-        console.error("Geocoding error:", error);
+        console.error("Search error:", error);
         setResults([]);
       } finally {
         setIsLoading(false);
@@ -100,23 +194,15 @@ export function LocationSearch({
     };
   }, []);
 
-  const handleSelect = (feature: MapboxFeature) => {
-    const [longitude, latitude] = feature.center;
-
-    // Extract address from place_name (remove the place name itself if it's at the start)
-    let address = feature.place_name;
-    if (address.startsWith(feature.text)) {
-      address = address.slice(feature.text.length).replace(/^,\s*/, "");
-    }
-
+  const handleSelect = (result: SearchResult) => {
     onSelect({
-      name: feature.text,
-      address: address || feature.place_name,
-      latitude,
-      longitude,
+      name: result.name,
+      address: result.address,
+      latitude: result.latitude,
+      longitude: result.longitude,
     });
 
-    setQuery(feature.text);
+    setQuery(result.name);
     setIsOpen(false);
   };
 
@@ -210,33 +296,30 @@ export function LocationSearch({
       {/* Results dropdown */}
       {isOpen && results.length > 0 && (
         <div className="absolute z-50 w-full mt-1 bg-white rounded-lg border border-gray-200 shadow-lg max-h-60 overflow-y-auto">
-          {results.map((feature) => {
-            // Parse address from place_name
-            let displayAddress = feature.place_name;
-            if (displayAddress.startsWith(feature.text)) {
-              displayAddress = displayAddress
-                .slice(feature.text.length)
-                .replace(/^,\s*/, "");
-            }
-
-            return (
-              <button
-                key={feature.id}
-                type="button"
-                onClick={() => handleSelect(feature)}
-                className="w-full px-4 py-3 text-left hover:bg-gray-50 focus:bg-gray-50 focus:outline-none border-b border-gray-100 last:border-b-0"
-              >
-                <div className="font-medium text-gray-900 text-base">
-                  {feature.text}
-                </div>
-                {displayAddress && (
-                  <div className="text-sm text-gray-500 truncate">
-                    {displayAddress}
-                  </div>
+          {results.map((result) => (
+            <button
+              key={result.id}
+              type="button"
+              onClick={() => handleSelect(result)}
+              className="w-full px-4 py-3 text-left hover:bg-gray-50 focus:bg-gray-50 focus:outline-none border-b border-gray-100 last:border-b-0"
+            >
+              <div className="flex items-center gap-2">
+                <span className="font-medium text-gray-900 text-base">
+                  {result.name}
+                </span>
+                {result.source === "foursquare" && (
+                  <span className="text-xs px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded">
+                    venue
+                  </span>
                 )}
-              </button>
-            );
-          })}
+              </div>
+              {result.address && (
+                <div className="text-sm text-gray-500 truncate">
+                  {result.address}
+                </div>
+              )}
+            </button>
+          ))}
         </div>
       )}
     </div>

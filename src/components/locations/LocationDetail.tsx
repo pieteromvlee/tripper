@@ -100,11 +100,15 @@ export function LocationDetail({ location, onClose }: LocationDetailProps) {
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-2xl font-bold text-gray-900">{location.name}</h1>
-                {location.isHotel && (
-                  <span className="px-2 py-1 bg-purple-100 text-purple-800 text-xs font-medium rounded">
-                    Hotel
-                  </span>
-                )}
+                <span className={`px-2 py-1 text-xs font-medium rounded ${
+                  location.locationType === "hotel"
+                    ? "bg-purple-100 text-purple-800"
+                    : location.locationType === "restaurant"
+                      ? "bg-orange-100 text-orange-800"
+                      : "bg-blue-100 text-blue-800"
+                }`}>
+                  {location.locationType === "hotel" ? "Hotel" : location.locationType === "restaurant" ? "Restaurant" : "Attraction"}
+                </span>
               </div>
               {location.address && (
                 <p className="text-gray-600 mt-1">{location.address}</p>
@@ -131,7 +135,7 @@ export function LocationDetail({ location, onClose }: LocationDetailProps) {
                   <div className="text-gray-900">{formatDateTime(location.dateTime)}</div>
                 </div>
               )}
-              {location.isHotel && location.endDateTime && (
+              {location.locationType === "hotel" && location.endDateTime && (
                 <div className="px-4 py-3">
                   <div className="text-sm text-gray-500">Check-out</div>
                   <div className="text-gray-900">{formatDateTime(location.endDateTime)}</div>
@@ -202,6 +206,15 @@ export function LocationDetail({ location, onClose }: LocationDetailProps) {
   );
 }
 
+// Location type options
+type LocationType = "attraction" | "restaurant" | "hotel";
+
+const locationTypeOptions: { value: LocationType; label: string; color: string }[] = [
+  { value: "attraction", label: "Attraction", color: "bg-blue-500" },
+  { value: "restaurant", label: "Restaurant", color: "bg-orange-500" },
+  { value: "hotel", label: "Hotel", color: "bg-purple-500" },
+];
+
 // Edit form component
 function LocationEditForm({
   location,
@@ -222,7 +235,7 @@ function LocationEditForm({
   const [endDateTime, setEndDateTime] = useState(
     location.endDateTime ? toDateTimeLocal(location.endDateTime) : ""
   );
-  const [isHotel, setIsHotel] = useState(location.isHotel);
+  const [locationType, setLocationType] = useState<LocationType>(location.locationType || "attraction");
   const [notes, setNotes] = useState(location.notes || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -323,8 +336,8 @@ function LocationEditForm({
         latitude,
         longitude,
         dateTime: dateTime || undefined,
-        endDateTime: isHotel && endDateTime ? endDateTime : undefined,
-        isHotel,
+        endDateTime: locationType === "hotel" && endDateTime ? endDateTime : undefined,
+        locationType,
         notes: notes.trim() || undefined,
       });
       onSave();
@@ -396,6 +409,26 @@ function LocationEditForm({
       </div>
 
       <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
+        <div className="flex gap-2">
+          {locationTypeOptions.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => setLocationType(option.value)}
+              className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                locationType === option.value
+                  ? `${option.color} text-white`
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Date & Time</label>
         <input
           type="datetime-local"
@@ -405,20 +438,7 @@ function LocationEditForm({
         />
       </div>
 
-      <div className="flex items-center gap-3">
-        <input
-          type="checkbox"
-          id="isHotel-edit"
-          checked={isHotel}
-          onChange={(e) => setIsHotel(e.target.checked)}
-          className="w-5 h-5 text-blue-600 rounded"
-        />
-        <label htmlFor="isHotel-edit" className="text-gray-700">
-          This is a hotel
-        </label>
-      </div>
-
-      {isHotel && (
+      {locationType === "hotel" && (
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Check-out</label>
           <input

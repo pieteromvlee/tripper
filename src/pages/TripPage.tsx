@@ -49,7 +49,7 @@ export default function TripPage() {
   const locations = useQuery(api.locations.listByTrip, tripId ? { tripId: tripId as Id<"trips"> } : "skip");
 
   // Find hotel, selected location, and detail location
-  const hotel = locations?.find((loc) => loc.isHotel);
+  const hotel = locations?.find((loc) => loc.locationType === "hotel");
   const selectedLocation = locations?.find((loc) => loc._id === selectedLocationId);
   const detailLocation = locations?.find((loc) => loc._id === detailLocationId);
 
@@ -392,6 +392,15 @@ export default function TripPage() {
   );
 }
 
+// Location type options
+type LocationType = "attraction" | "restaurant" | "hotel";
+
+const locationTypeOptions: { value: LocationType; label: string; color: string }[] = [
+  { value: "attraction", label: "Attraction", color: "bg-blue-500" },
+  { value: "restaurant", label: "Restaurant", color: "bg-orange-500" },
+  { value: "hotel", label: "Hotel", color: "bg-purple-500" },
+];
+
 // Wrapper component that pre-fills coordinates in LocationForm
 function LocationFormWithCoords({
   tripId,
@@ -414,7 +423,7 @@ function LocationFormWithCoords({
   const [address, setAddress] = useState(initialAddress || "");
   const [dateTime, setDateTime] = useState("");
   const [endDateTime, setEndDateTime] = useState("");
-  const [isHotel, setIsHotel] = useState(false);
+  const [locationType, setLocationType] = useState<LocationType>("attraction");
   const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -432,8 +441,8 @@ function LocationFormWithCoords({
         latitude,
         longitude,
         dateTime: dateTime || undefined,
-        endDateTime: isHotel && endDateTime ? endDateTime : undefined,
-        isHotel,
+        endDateTime: locationType === "hotel" && endDateTime ? endDateTime : undefined,
+        locationType,
         notes: notes.trim() || undefined,
         address: address.trim() || undefined,
       });
@@ -476,6 +485,26 @@ function LocationFormWithCoords({
       </div>
 
       <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
+        <div className="flex gap-2">
+          {locationTypeOptions.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => setLocationType(option.value)}
+              className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                locationType === option.value
+                  ? `${option.color} text-white`
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Date & Time</label>
         <input
           type="datetime-local"
@@ -485,18 +514,7 @@ function LocationFormWithCoords({
         />
       </div>
 
-      <div className="flex items-center gap-2">
-        <input
-          type="checkbox"
-          id="isHotel"
-          checked={isHotel}
-          onChange={(e) => setIsHotel(e.target.checked)}
-          className="w-4 h-4 text-blue-600 rounded"
-        />
-        <label htmlFor="isHotel" className="text-sm text-gray-700">This is a hotel</label>
-      </div>
-
-      {isHotel && (
+      {locationType === "hotel" && (
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Check-out</label>
           <input

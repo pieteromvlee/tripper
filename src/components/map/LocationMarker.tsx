@@ -65,16 +65,13 @@ export function LocationMarker({
         );
       case "restaurant":
         return (
-          <g transform="translate(9, 6)">
-            {/* Fork */}
-            <rect x="0" y="0" width="1.5" height="8" rx="0.5" className={colors.icon} />
-            <rect x="0" y="0" width="1.5" height="4" rx="0.5" className={colors.iconLight} />
-            {/* Knife */}
-            <rect x="4" y="0" width="2" height="8" rx="0.5" className={colors.icon} />
-            <path d="M4 0 L6 0 L6 3 L4 4 Z" className={colors.iconLight} />
-            {/* Spoon */}
-            <ellipse cx="9" cy="2" rx="1.5" ry="2" className={colors.icon} />
-            <rect x="8" y="3" width="2" height="5" rx="0.5" className={colors.icon} />
+          <g transform="translate(8, 6)">
+            {/* Fork - left */}
+            <rect x="0" y="0" width="1.5" height="4" rx="0.3" className={colors.iconLight} />
+            <rect x="0" y="3" width="1.5" height="9" rx="0.5" className={colors.icon} />
+            {/* Knife - right */}
+            <path d="M10.5 0 C10.5 0 12.5 0 12.5 3 L12.5 6 L10.5 6 L10.5 0 Z" className={colors.iconLight} />
+            <rect x="10.5" y="5" width="2" height="7" rx="0.5" className={colors.icon} />
           </g>
         );
       case "attraction":

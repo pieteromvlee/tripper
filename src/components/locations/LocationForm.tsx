@@ -3,6 +3,15 @@ import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Id, Doc } from "../../../convex/_generated/dataModel";
 
+// Location type options
+type LocationType = "attraction" | "restaurant" | "hotel";
+
+const locationTypeOptions: { value: LocationType; label: string; color: string }[] = [
+  { value: "attraction", label: "Attraction", color: "bg-blue-500" },
+  { value: "restaurant", label: "Restaurant", color: "bg-orange-500" },
+  { value: "hotel", label: "Hotel", color: "bg-purple-500" },
+];
+
 interface LocationFormProps {
   tripId: Id<"trips">;
   location?: Doc<"locations">; // For editing existing location
@@ -16,7 +25,7 @@ interface FormData {
   longitude: string;
   dateTime: string;
   endDateTime: string;
-  isHotel: boolean;
+  locationType: LocationType;
   notes: string;
   address: string;
 }
@@ -44,7 +53,7 @@ export function LocationForm({
     longitude: location?.longitude?.toString() ?? "",
     dateTime: location?.dateTime ?? "",
     endDateTime: location?.endDateTime ?? "",
-    isHotel: location?.isHotel ?? false,
+    locationType: location?.locationType ?? "attraction",
     notes: location?.notes ?? "",
     address: location?.address ?? "",
   });
@@ -100,8 +109,8 @@ export function LocationForm({
           latitude: parseFloat(formData.latitude),
           longitude: parseFloat(formData.longitude),
           dateTime: formData.dateTime || undefined,
-          endDateTime: formData.isHotel && formData.endDateTime ? formData.endDateTime : undefined,
-          isHotel: formData.isHotel,
+          endDateTime: formData.locationType === "hotel" && formData.endDateTime ? formData.endDateTime : undefined,
+          locationType: formData.locationType,
           notes: formData.notes.trim() || undefined,
           address: formData.address.trim() || undefined,
         });
@@ -112,8 +121,8 @@ export function LocationForm({
           latitude: parseFloat(formData.latitude),
           longitude: parseFloat(formData.longitude),
           dateTime: formData.dateTime || undefined,
-          endDateTime: formData.isHotel && formData.endDateTime ? formData.endDateTime : undefined,
-          isHotel: formData.isHotel,
+          endDateTime: formData.locationType === "hotel" && formData.endDateTime ? formData.endDateTime : undefined,
+          locationType: formData.locationType,
           notes: formData.notes.trim() || undefined,
           address: formData.address.trim() || undefined,
         });
@@ -257,25 +266,31 @@ export function LocationForm({
         />
       </div>
 
-      {/* Is Hotel checkbox */}
-      <div className="flex items-center gap-3">
-        <input
-          type="checkbox"
-          id="isHotel"
-          checked={formData.isHotel}
-          onChange={(e) => handleChange("isHotel", e.target.checked)}
-          className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-        />
-        <label
-          htmlFor="isHotel"
-          className="text-sm font-medium text-gray-700"
-        >
-          This is a hotel / accommodation
+      {/* Location Type selector */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Type
         </label>
+        <div className="flex gap-2">
+          {locationTypeOptions.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => handleChange("locationType", option.value)}
+              className={`flex-1 px-3 py-3 rounded-lg text-sm font-medium transition-all ${
+                formData.locationType === option.value
+                  ? `${option.color} text-white`
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* End Date/Time field (only for hotels) */}
-      {formData.isHotel && (
+      {formData.locationType === "hotel" && (
         <div>
           <label
             htmlFor="endDateTime"
