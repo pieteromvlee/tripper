@@ -101,8 +101,15 @@ export const listByTripAndDate = query({
       return locationDate === args.date;
     });
 
-    // Sort by sortOrder
-    return filteredLocations.sort((a, b) => a.sortOrder - b.sortOrder);
+    // Sort chronologically by time (parse as Date for correct ordering)
+    return filteredLocations.sort((a, b) => {
+      if (a.dateTime && b.dateTime) {
+        const timeA = new Date(a.dateTime).getTime();
+        const timeB = new Date(b.dateTime).getTime();
+        return timeA - timeB;
+      }
+      return a.sortOrder - b.sortOrder;
+    });
   },
 });
 

@@ -27,6 +27,7 @@ interface MapClickResult {
 interface TripMapProps {
   tripId: Id<"trips">;
   selectedLocationId: Id<"locations"> | null;
+  selectedDate?: string | null; // ISO date string for filtering
   visibleTypes?: Set<LocationType>; // Filter by location type
   onLocationSelect: (id: Id<"locations">) => void;
   onMapClick: (result: MapClickResult) => void;
@@ -39,6 +40,7 @@ interface TripMapProps {
 export function TripMap({
   tripId,
   selectedLocationId,
+  selectedDate,
   visibleTypes,
   onLocationSelect,
   onMapClick,
@@ -51,9 +53,16 @@ export function TripMap({
   const isDark = useDarkMode();
 
   const allLocations = useQuery(api.locations.listByTrip, { tripId });
+  const filteredLocations = useQuery(
+    api.locations.listByTripAndDate,
+    selectedDate ? { tripId, date: selectedDate } : "skip"
+  );
+
+  // Use filtered locations when date is selected, otherwise all
+  const baseLocations = selectedDate ? filteredLocations : allLocations;
 
   // Apply type filter
-  const locations = allLocations?.filter(
+  const locations = baseLocations?.filter(
     (loc) => !visibleTypes || visibleTypes.has((loc.locationType || "attraction") as LocationType)
   );
 
@@ -103,15 +112,23 @@ export function TripMap({
     });
   }, [locations, selectedLocationId]);
 
+  // Track previous selection to detect when it's cleared
+  const prevSelectedLocationId = useRef(selectedLocationId);
+
   // Fit bounds to show all locations when selection is cleared
   useEffect(() => {
-    if (!mapLoaded || !mapRef.current || !locations || locations.length === 0) return;
+    // Only fit bounds when selection is cleared (was selected, now null)
+    const wasSelected = prevSelectedLocationId.current !== null;
+    prevSelectedLocationId.current = selectedLocationId;
+
+    if (!mapLoaded || !mapRef.current || !allLocations || allLocations.length === 0) return;
     if (selectedLocationId) return; // Don't fit if a location is selected
     if (flyToLocation) return; // Don't fit if flying to search result
+    if (!wasSelected) return; // Only fit when clearing selection, not on filter changes
 
-    // Create bounds from all locations
+    // Create bounds from ALL locations (not filtered) when clearing selection
     const bounds = new LngLatBounds();
-    locations.forEach((loc) => {
+    allLocations.forEach((loc) => {
       bounds.extend([loc.longitude, loc.latitude]);
     });
 
@@ -120,13 +137,14 @@ export function TripMap({
       maxZoom: 15,
       duration: 1000,
     });
-  }, [selectedLocationId, locations, flyToLocation, mapLoaded]);
+  }, [selectedLocationId, allLocations, flyToLocation, mapLoaded]);
 
   // Fly to selected location when it changes
   useEffect(() => {
-    if (!selectedLocationId || !locations || !mapRef.current) return;
+    if (!selectedLocationId || !allLocations || !mapRef.current) return;
 
-    const selectedLocation = locations.find(
+    // Use allLocations to find the location (stable, not affected by filtering)
+    const selectedLocation = allLocations.find(
       (loc) => loc._id === selectedLocationId
     );
 
@@ -137,7 +155,7 @@ export function TripMap({
         duration: 1000,
       });
     }
-  }, [selectedLocationId, locations]);
+  }, [selectedLocationId, allLocations]);
 
   // Fly to search result location (only when key changes, not on every map click)
   useEffect(() => {
@@ -239,7 +257,7 @@ export function TripMap({
       >
         <NavigationControl position="top-right" />
 
-        {locations?.map((location) => {
+        {locations?.map((location, index) => {
           // Determine color based on location type
           const getMarkerColor = () => {
             if (selectedLocationId === location._id) return "bg-blue-600 scale-125";
@@ -253,8 +271,15 @@ export function TripMap({
             }
           };
 
-          // Render icon based on location type
+          // Render icon based on location type (or number when filtered by date)
           const renderIcon = () => {
+            // Show number when filtered by date
+            if (selectedDate) {
+              return (
+                <span className="text-white text-sm font-bold">{index + 1}</span>
+              );
+            }
+
             switch (location.locationType) {
               case "accommodation":
                 return (

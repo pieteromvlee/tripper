@@ -404,6 +404,7 @@ export default function TripPage() {
               key={viewMode}
               tripId={tripId as Id<"trips">}
               selectedLocationId={selectedLocationId}
+              selectedDate={selectedDate}
               visibleTypes={visibleTypes}
               onLocationSelect={handleMarkerSelect}
               onMapClick={handleMapClick}
