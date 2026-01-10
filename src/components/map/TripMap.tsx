@@ -37,6 +37,9 @@ export function TripMap({
   // Track if map has loaded
   const [mapLoaded, setMapLoaded] = useState(false);
 
+  // Track if map is being dragged for cursor style
+  const [isDragging, setIsDragging] = useState(false);
+
   // Handle map load - position map appropriately
   const handleMapLoad = useCallback(() => {
     setMapLoaded(true);
@@ -141,6 +144,9 @@ export function TripMap({
         }}
         style={{ width: "100%", height: "100%" }}
         mapStyle="mapbox://styles/mapbox/streets-v12"
+        cursor={isDragging ? "grabbing" : "default"}
+        onDragStart={() => setIsDragging(true)}
+        onDragEnd={() => setIsDragging(false)}
         onClick={handleMapClick}
         onLoad={handleMapLoad}
       >

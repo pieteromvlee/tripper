@@ -55,7 +55,7 @@ export function LocationSearch({
         const token = import.meta.env.VITE_MAPBOX_TOKEN;
         const encodedQuery = encodeURIComponent(query.trim());
         const response = await fetch(
-          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodedQuery}.json?access_token=${token}&limit=5`
+          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodedQuery}.json?access_token=${token}&limit=8&types=poi,address,place,locality&fuzzyMatch=true`
         );
 
         if (!response.ok) {
