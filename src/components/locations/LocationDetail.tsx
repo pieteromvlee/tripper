@@ -163,13 +163,13 @@ export function LocationDetail({ location, onClose }: LocationDetailProps) {
             {/* Get Directions Button */}
             <button
               onClick={() => window.open(getDirectionsUrl(location.latitude, location.longitude), "_blank")}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg font-medium md:w-auto md:px-3 md:py-1.5 md:text-sm"
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg font-medium md:w-auto md:px-2 md:py-1 md:text-xs md:rounded md:gap-1"
             >
-              <svg className="w-5 h-5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 md:w-3.5 md:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
-              Get Directions
+              Directions
             </button>
 
             {/* Details */}
