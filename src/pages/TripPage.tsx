@@ -6,6 +6,7 @@ import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 import { LocationList, DaySelector, LocationDetail } from "../components/locations";
 import { TripMap, LocationSearch } from "../components/map";
+import { TripShareModal } from "../components/trips/TripShareModal";
 
 type ViewMode = "list" | "map" | "both";
 
@@ -31,6 +32,7 @@ export default function TripPage() {
   const [detailLocationId, setDetailLocationId] = useState<Id<"locations"> | null>(null); // Full-screen detail view
   const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number } | null>(null); // Current map center for search proximity
   const [showFullscreenAddForm, setShowFullscreenAddForm] = useState(false); // Full-screen add form for mobile
+  const [showShareModal, setShowShareModal] = useState(false); // Share trip modal
 
   // Detect mobile viewport
   useEffect(() => {
@@ -212,6 +214,16 @@ export default function TripPage() {
                 </button>
               )}
             </div>
+            {/* Share button */}
+            <button
+              onClick={() => setShowShareModal(true)}
+              className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition"
+              title="Share trip"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+              </svg>
+            </button>
             {/* Sign Out */}
             <button
               onClick={() => signOut()}
@@ -436,6 +448,15 @@ export default function TripPage() {
           onClose={handleFormCancel}
         />
       )}
+
+      {/* Share trip modal */}
+      {showShareModal && (
+        <TripShareModal
+          tripId={tripId as Id<"trips">}
+          isOwner={trip.role === "owner"}
+          onClose={() => setShowShareModal(false)}
+        />
+      )}
     </div>
   );
 }
@@ -471,13 +492,21 @@ function LocationFormWithCoords({
 }) {
   const [name, setName] = useState(initialName || "");
   const [address, setAddress] = useState(initialAddress || "");
-  const [dateTime, setDateTime] = useState("");
-  const [endDateTime, setEndDateTime] = useState("");
+  const [date, setDate] = useState("");
+  const [time, setTime] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [endTime, setEndTime] = useState("");
   const [locationType, setLocationType] = useState<LocationType>(initialLocationType || "attraction");
   const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const createLocation = useMutation(api.locations.create);
+
+  // Combine date and time into datetime-local format
+  const combineDateTime = (d: string, t: string) => {
+    if (!d) return undefined;
+    return t ? `${d}T${t}` : `${d}T00:00`;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -490,8 +519,8 @@ function LocationFormWithCoords({
         name: name.trim(),
         latitude,
         longitude,
-        dateTime: dateTime || undefined,
-        endDateTime: locationType === "hotel" && endDateTime ? endDateTime : undefined,
+        dateTime: combineDateTime(date, time),
+        endDateTime: locationType === "hotel" ? combineDateTime(endDate, endTime) : undefined,
         locationType,
         notes: notes.trim() || undefined,
         address: address.trim() || undefined,
@@ -556,23 +585,39 @@ function LocationFormWithCoords({
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Date & Time</label>
-        <input
-          type="datetime-local"
-          value={dateTime}
-          onChange={(e) => setDateTime(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-        />
+        <div className="flex gap-2">
+          <input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+          <input
+            type="time"
+            value={time}
+            onChange={(e) => setTime(e.target.value)}
+            className="w-28 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
       </div>
 
       {locationType === "hotel" && (
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Check-out</label>
-          <input
-            type="datetime-local"
-            value={endDateTime}
-            onChange={(e) => setEndDateTime(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          />
+          <div className="flex gap-2">
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+            <input
+              type="time"
+              value={endTime}
+              onChange={(e) => setEndTime(e.target.value)}
+              className="w-28 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
         </div>
       )}
 
@@ -628,13 +673,21 @@ function AddLocationFullscreen({
 }) {
   const [name, setName] = useState(initialName || "");
   const [address, setAddress] = useState(initialAddress || "");
-  const [dateTime, setDateTime] = useState("");
-  const [endDateTime, setEndDateTime] = useState("");
+  const [date, setDate] = useState("");
+  const [time, setTime] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [endTime, setEndTime] = useState("");
   const [locationType, setLocationType] = useState<LocationType>(initialLocationType || "attraction");
   const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const createLocation = useMutation(api.locations.create);
+
+  // Combine date and time into datetime-local format
+  const combineDateTime = (d: string, t: string) => {
+    if (!d) return undefined;
+    return t ? `${d}T${t}` : `${d}T00:00`;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -647,8 +700,8 @@ function AddLocationFullscreen({
         name: name.trim(),
         latitude,
         longitude,
-        dateTime: dateTime || undefined,
-        endDateTime: locationType === "hotel" && endDateTime ? endDateTime : undefined,
+        dateTime: combineDateTime(date, time),
+        endDateTime: locationType === "hotel" ? combineDateTime(endDate, endTime) : undefined,
         locationType,
         notes: notes.trim() || undefined,
         address: address.trim() || undefined,
@@ -738,23 +791,39 @@ function AddLocationFullscreen({
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Date & Time</label>
-            <input
-              type="datetime-local"
-              value={dateTime}
-              onChange={(e) => setDateTime(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
-            />
+            <div className="flex gap-2">
+              <input
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+              />
+              <input
+                type="time"
+                value={time}
+                onChange={(e) => setTime(e.target.value)}
+                className="w-28 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+              />
+            </div>
           </div>
 
           {locationType === "hotel" && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Check-out</label>
-              <input
-                type="datetime-local"
-                value={endDateTime}
-                onChange={(e) => setEndDateTime(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
-              />
+              <div className="flex gap-2">
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+                />
+                <input
+                  type="time"
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                  className="w-28 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+                />
+              </div>
             </div>
           )}
 

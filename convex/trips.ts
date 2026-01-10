@@ -8,7 +8,7 @@ async function getUserTripRole(
   ctx: { db: any },
   tripId: any,
   userId: any
-): Promise<"owner" | "editor" | "viewer" | null> {
+): Promise<"owner" | "member" | null> {
   const membership = await ctx.db
     .query("tripMembers")
     .withIndex("by_tripId", (q: any) => q.eq("tripId", tripId))
@@ -153,9 +153,9 @@ export const update = mutation({
       throw new ConvexError("Trip not found");
     }
 
-    // Check if user has editor or owner role
+    // Check if user has access (owner or member can edit)
     const role = await getUserTripRole(ctx, args.tripId, userId);
-    if (!role || role === "viewer") {
+    if (!role) {
       throw new ConvexError("You don't have permission to edit this trip");
     }
 
@@ -221,6 +221,16 @@ export const remove = mutation({
 
     for (const member of members) {
       await ctx.db.delete(member._id);
+    }
+
+    // Delete all pending invites for this trip
+    const invites = await ctx.db
+      .query("tripInvites")
+      .withIndex("by_tripId", (q) => q.eq("tripId", args.tripId))
+      .collect();
+
+    for (const invite of invites) {
+      await ctx.db.delete(invite._id);
     }
 
     // Delete all locations for this trip

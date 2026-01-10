@@ -39,7 +39,7 @@ export function TripList() {
   }
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="flex flex-col gap-4 max-w-2xl mx-auto">
       {trips.map((trip) => (
         <Link key={trip._id} to={`/trip/${trip._id}`}>
           <TripCard trip={trip} />

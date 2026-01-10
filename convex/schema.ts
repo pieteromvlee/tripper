@@ -17,7 +17,7 @@ export default defineSchema({
   tripMembers: defineTable({
     tripId: v.id("trips"),
     userId: v.id("users"),
-    role: v.union(v.literal("owner"), v.literal("editor"), v.literal("viewer")),
+    role: v.union(v.literal("owner"), v.literal("member")),
     invitedBy: v.id("users"),
     invitedAt: v.number(),
   })
@@ -27,7 +27,7 @@ export default defineSchema({
   tripInvites: defineTable({
     tripId: v.id("trips"),
     email: v.string(),
-    role: v.union(v.literal("owner"), v.literal("editor"), v.literal("viewer")),
+    role: v.literal("member"),
     invitedBy: v.id("users"),
     expiresAt: v.number(),
   })

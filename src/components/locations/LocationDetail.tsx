@@ -225,16 +225,33 @@ function LocationEditForm({
   onSave: () => void;
   onCancel: () => void;
 }) {
+  // Helper functions for date/time conversion
+  function toDatePart(isoString: string): string {
+    try {
+      const date = new Date(isoString);
+      return date.toISOString().slice(0, 10);
+    } catch {
+      return "";
+    }
+  }
+
+  function toTimePart(isoString: string): string {
+    try {
+      const date = new Date(isoString);
+      return date.toISOString().slice(11, 16);
+    } catch {
+      return "";
+    }
+  }
+
   const [name, setName] = useState(location.name);
   const [address, setAddress] = useState(location.address || "");
   const [latitude, setLatitude] = useState(location.latitude);
   const [longitude, setLongitude] = useState(location.longitude);
-  const [dateTime, setDateTime] = useState(
-    location.dateTime ? toDateTimeLocal(location.dateTime) : ""
-  );
-  const [endDateTime, setEndDateTime] = useState(
-    location.endDateTime ? toDateTimeLocal(location.endDateTime) : ""
-  );
+  const [date, setDate] = useState(location.dateTime ? toDatePart(location.dateTime) : "");
+  const [time, setTime] = useState(location.dateTime ? toTimePart(location.dateTime) : "");
+  const [endDate, setEndDate] = useState(location.endDateTime ? toDatePart(location.endDateTime) : "");
+  const [endTime, setEndTime] = useState(location.endDateTime ? toTimePart(location.endDateTime) : "");
   const [locationType, setLocationType] = useState<LocationType>(location.locationType || "attraction");
   const [notes, setNotes] = useState(location.notes || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -249,14 +266,10 @@ function LocationEditForm({
 
   const updateLocation = useMutation(api.locations.update);
 
-  // Convert ISO string to datetime-local format
-  function toDateTimeLocal(isoString: string): string {
-    try {
-      const date = new Date(isoString);
-      return date.toISOString().slice(0, 16);
-    } catch {
-      return "";
-    }
+  // Combine date and time into datetime-local format
+  function combineDateTime(d: string, t: string): string {
+    if (!d) return "";
+    return t ? `${d}T${t}` : `${d}T00:00`;
   }
 
   // Search for addresses when typing
@@ -335,8 +348,8 @@ function LocationEditForm({
         address: address.trim() || undefined,
         latitude,
         longitude,
-        dateTime: dateTime || undefined,
-        endDateTime: locationType === "hotel" && endDateTime ? endDateTime : undefined,
+        dateTime: combineDateTime(date, time), // Pass empty string to clear
+        endDateTime: locationType === "hotel" ? combineDateTime(endDate, endTime) : "", // Pass empty string to clear
         locationType,
         notes: notes.trim() || undefined,
       });
@@ -430,23 +443,61 @@ function LocationEditForm({
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Date & Time</label>
-        <input
-          type="datetime-local"
-          value={dateTime}
-          onChange={(e) => setDateTime(e.target.value)}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-        />
+        <div className="flex gap-2">
+          <input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+          <input
+            type="time"
+            value={time}
+            onChange={(e) => setTime(e.target.value)}
+            className="w-28 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+          <button
+            type="button"
+            onClick={() => { setDate(""); setTime(""); }}
+            className={`px-3 py-3 rounded-lg border border-gray-300 transition ${date ? "text-gray-400 hover:text-gray-600 hover:bg-gray-100" : "text-gray-200 cursor-not-allowed"}`}
+            title="Clear date"
+            disabled={!date}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
       </div>
 
       {locationType === "hotel" && (
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Check-out</label>
-          <input
-            type="datetime-local"
-            value={endDateTime}
-            onChange={(e) => setEndDateTime(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          />
+          <div className="flex gap-2">
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+            <input
+              type="time"
+              value={endTime}
+              onChange={(e) => setEndTime(e.target.value)}
+              className="w-28 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+            <button
+              type="button"
+              onClick={() => { setEndDate(""); setEndTime(""); }}
+              className={`px-3 py-3 rounded-lg border border-gray-300 transition ${endDate ? "text-gray-400 hover:text-gray-600 hover:bg-gray-100" : "text-gray-200 cursor-not-allowed"}`}
+              title="Clear date"
+              disabled={!endDate}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
         </div>
       )}
 

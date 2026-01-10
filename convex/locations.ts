@@ -18,7 +18,7 @@ async function checkTripAccess(
   return membership;
 }
 
-// Helper function to check if user has editor or owner role on a trip
+// Helper function to check if user has edit access (owner or member)
 async function checkEditorAccess(
   ctx: QueryCtx | MutationCtx,
   tripId: Id<"trips">,
@@ -26,7 +26,8 @@ async function checkEditorAccess(
 ): Promise<boolean> {
   const membership = await checkTripAccess(ctx, tripId, userId);
   if (!membership) return false;
-  return membership.role === "owner" || membership.role === "editor";
+  // Both owners and members can edit
+  return membership.role === "owner" || membership.role === "member";
 }
 
 // QUERIES
@@ -233,8 +234,10 @@ export const update = mutation({
     if (updates.name !== undefined) updateData.name = updates.name;
     if (updates.latitude !== undefined) updateData.latitude = updates.latitude;
     if (updates.longitude !== undefined) updateData.longitude = updates.longitude;
-    if (updates.dateTime !== undefined) updateData.dateTime = updates.dateTime;
-    if (updates.endDateTime !== undefined) updateData.endDateTime = updates.endDateTime;
+    // Handle dateTime: empty string clears the field
+    if (updates.dateTime !== undefined) updateData.dateTime = updates.dateTime || undefined;
+    // Handle endDateTime: empty string clears the field
+    if (updates.endDateTime !== undefined) updateData.endDateTime = updates.endDateTime || undefined;
     if (updates.locationType !== undefined) updateData.locationType = updates.locationType;
     if (updates.notes !== undefined) updateData.notes = updates.notes;
     if (updates.address !== undefined) updateData.address = updates.address;

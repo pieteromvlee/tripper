@@ -18,7 +18,7 @@ async function checkTripAccess(
   return membership;
 }
 
-// Helper function to check if user has editor or owner role on a trip
+// Helper function to check if user has edit access (owner or member)
 async function checkEditorAccess(
   ctx: QueryCtx | MutationCtx,
   tripId: Id<"trips">,
@@ -26,7 +26,8 @@ async function checkEditorAccess(
 ): Promise<boolean> {
   const membership = await checkTripAccess(ctx, tripId, userId);
   if (!membership) return false;
-  return membership.role === "owner" || membership.role === "editor";
+  // Both owners and members can edit
+  return membership.role === "owner" || membership.role === "member";
 }
 
 // Helper to get location and verify access

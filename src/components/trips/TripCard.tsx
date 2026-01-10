@@ -1,5 +1,10 @@
+import { useQuery } from "convex/react";
+import { api } from "../../../convex/_generated/api";
+import type { Id } from "../../../convex/_generated/dataModel";
+import { TripMapPreview } from "./TripMapPreview";
+
 interface Trip {
-  _id: string;
+  _id: Id<"trips">;
   name: string;
   createdAt: number;
 }
@@ -19,17 +24,38 @@ function formatDate(timestamp: number): string {
 }
 
 export function TripCard({ trip, onClick }: TripCardProps) {
+  const locations = useQuery(api.locations.listByTrip, { tripId: trip._id });
+
   return (
     <div
       onClick={onClick}
-      className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-200 p-4 cursor-pointer border border-gray-100 hover:border-gray-200 active:scale-[0.98] touch-manipulation"
+      className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer border border-gray-100 hover:border-gray-200 active:scale-[0.98] touch-manipulation overflow-hidden"
     >
-      <h3 className="text-lg font-semibold text-gray-900 truncate">
-        {trip.name}
-      </h3>
-      <p className="text-sm text-gray-500 mt-1">
-        Created {formatDate(trip.createdAt)}
-      </p>
+      <div className="flex">
+        {/* Map Preview */}
+        <div className="flex-shrink-0">
+          <TripMapPreview
+            locations={locations ?? []}
+            width={280}
+            height={200}
+          />
+        </div>
+
+        {/* Trip Info */}
+        <div className="flex-1 p-6 min-w-0 flex flex-col justify-center">
+          <h3 className="text-xl font-semibold text-gray-900">
+            {trip.name}
+          </h3>
+          <p className="text-sm text-gray-500 mt-2">
+            Created {formatDate(trip.createdAt)}
+          </p>
+          {locations && locations.length > 0 && (
+            <p className="text-sm text-gray-400 mt-3">
+              {locations.length} {locations.length === 1 ? "location" : "locations"}
+            </p>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

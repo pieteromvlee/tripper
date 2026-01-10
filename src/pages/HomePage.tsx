@@ -1,8 +1,10 @@
 import { useState } from "react";
-import { Authenticated, Unauthenticated, AuthLoading } from "convex/react";
+import { Authenticated, Unauthenticated, AuthLoading, useQuery, useMutation } from "convex/react";
 import { useAuthActions } from "@convex-dev/auth/react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { TripList, CreateTripModal } from "../components/trips";
+import { api } from "../../convex/_generated/api";
+import type { Id } from "../../convex/_generated/dataModel";
 
 export default function HomePage() {
   return (
@@ -36,6 +38,28 @@ export default function HomePage() {
 function AuthenticatedHome() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const { signOut } = useAuthActions();
+  const navigate = useNavigate();
+
+  const pendingInvites = useQuery(api.tripMembers.getMyInvites);
+  const acceptInvite = useMutation(api.tripMembers.acceptInvite);
+  const declineInvite = useMutation(api.tripMembers.declineInvite);
+
+  const handleAcceptInvite = async (inviteId: Id<"tripInvites">, tripId: Id<"trips">) => {
+    try {
+      await acceptInvite({ inviteId });
+      navigate(`/trip/${tripId}`);
+    } catch (error) {
+      console.error("Failed to accept invite:", error);
+    }
+  };
+
+  const handleDeclineInvite = async (inviteId: Id<"tripInvites">) => {
+    try {
+      await declineInvite({ inviteId });
+    } catch (error) {
+      console.error("Failed to decline invite:", error);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -64,6 +88,42 @@ function AuthenticatedHome() {
       </header>
 
       <main className="max-w-4xl mx-auto p-4">
+        {/* Pending Invites */}
+        {pendingInvites && pendingInvites.length > 0 && (
+          <div className="mb-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-3">Pending Invitations</h2>
+            <div className="space-y-3">
+              {pendingInvites.map((invite) => (
+                <div
+                  key={invite._id}
+                  className="bg-white border border-yellow-200 rounded-lg p-4 flex items-center justify-between"
+                >
+                  <div>
+                    <p className="font-medium text-gray-900">{invite.tripName}</p>
+                    <p className="text-sm text-gray-500">
+                      Invited by {invite.inviterEmail}
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleDeclineInvite(invite._id)}
+                      className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition"
+                    >
+                      Decline
+                    </button>
+                    <button
+                      onClick={() => handleAcceptInvite(invite._id, invite.tripId)}
+                      className="px-3 py-1.5 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition"
+                    >
+                      Accept
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         <TripList />
       </main>
 

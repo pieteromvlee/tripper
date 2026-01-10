@@ -12,6 +12,7 @@ import type * as attachments from "../attachments.js";
 import type * as auth from "../auth.js";
 import type * as http from "../http.js";
 import type * as locations from "../locations.js";
+import type * as tripMembers from "../tripMembers.js";
 import type * as trips from "../trips.js";
 
 import type {
@@ -25,6 +26,7 @@ declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   http: typeof http;
   locations: typeof locations;
+  tripMembers: typeof tripMembers;
   trips: typeof trips;
 }>;
 

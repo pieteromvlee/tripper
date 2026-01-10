@@ -597,8 +597,8 @@ function LocationEditForm({
         address: address.trim() || undefined,
         latitude,
         longitude,
-        dateTime: dateTime || undefined,
-        endDateTime: locationType === "hotel" && endDateTime ? endDateTime : undefined,
+        dateTime: dateTime, // Pass empty string to clear
+        endDateTime: locationType === "hotel" ? endDateTime : "", // Pass empty string to clear
         locationType,
         notes: notes.trim() || undefined,
       });
@@ -692,23 +692,49 @@ function LocationEditForm({
 
       <div>
         <label className="block text-xs font-medium text-gray-700 mb-1">Date & Time</label>
-        <input
-          type="datetime-local"
-          value={dateTime}
-          onChange={(e) => setDateTime(e.target.value)}
-          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-        />
+        <div className="flex gap-2">
+          <input
+            type="datetime-local"
+            value={dateTime}
+            onChange={(e) => setDateTime(e.target.value)}
+            className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+          <button
+            type="button"
+            onClick={() => setDateTime("")}
+            className={`px-2 py-2 rounded-lg border border-gray-300 transition ${dateTime ? "text-gray-400 hover:text-gray-600 hover:bg-gray-100" : "text-gray-200 cursor-not-allowed"}`}
+            title="Clear date"
+            disabled={!dateTime}
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
       </div>
 
       {locationType === "hotel" && (
         <div>
           <label className="block text-xs font-medium text-gray-700 mb-1">Check-out</label>
-          <input
-            type="datetime-local"
-            value={endDateTime}
-            onChange={(e) => setEndDateTime(e.target.value)}
-            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          />
+          <div className="flex gap-2">
+            <input
+              type="datetime-local"
+              value={endDateTime}
+              onChange={(e) => setEndDateTime(e.target.value)}
+              className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+            <button
+              type="button"
+              onClick={() => setEndDateTime("")}
+              className={`px-2 py-2 rounded-lg border border-gray-300 transition ${endDateTime ? "text-gray-400 hover:text-gray-600 hover:bg-gray-100" : "text-gray-200 cursor-not-allowed"}`}
+              title="Clear date"
+              disabled={!endDateTime}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
         </div>
       )}
 

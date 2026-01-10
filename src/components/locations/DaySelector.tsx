@@ -57,13 +57,9 @@ export function DaySelector({
     );
   }
 
-  // No dates available
+  // No dates available - hide the bar entirely
   if (uniqueDates.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-12 bg-gray-50 px-4">
-        <p className="text-sm text-gray-500">No scheduled events yet</p>
-      </div>
-    );
+    return null;
   }
 
   return (
