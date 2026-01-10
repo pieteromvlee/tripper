@@ -1,34 +1,11 @@
 import { query, mutation } from "./_generated/server";
-import { v } from "convex/values";
-import { getAuthUserId } from "@convex-dev/auth/server";
-import type { Id, Doc } from "./_generated/dataModel";
-import type { QueryCtx, MutationCtx } from "./_generated/server";
-
-// Helper function to check if user has access to a trip
-async function checkTripAccess(
-  ctx: QueryCtx | MutationCtx,
-  tripId: Id<"trips">,
-  userId: Id<"users">
-): Promise<Doc<"tripMembers"> | null> {
-  const membership = await ctx.db
-    .query("tripMembers")
-    .withIndex("by_tripId", (q) => q.eq("tripId", tripId))
-    .filter((q) => q.eq(q.field("userId"), userId))
-    .first();
-  return membership;
-}
-
-// Helper function to check if user has edit access (owner or member)
-async function checkEditorAccess(
-  ctx: QueryCtx | MutationCtx,
-  tripId: Id<"trips">,
-  userId: Id<"users">
-): Promise<boolean> {
-  const membership = await checkTripAccess(ctx, tripId, userId);
-  if (!membership) return false;
-  // Both owners and members can edit
-  return membership.role === "owner" || membership.role === "member";
-}
+import { v, ConvexError } from "convex/values";
+import type { Doc } from "./_generated/dataModel";
+import {
+  requireAuth,
+  requireTripAccess,
+  requireEditorAccess,
+} from "./helpers";
 
 // QUERIES
 
@@ -38,23 +15,14 @@ export const listByTrip = query({
     tripId: v.id("trips"),
   },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      throw new Error("Not authenticated");
-    }
-
-    // Check trip access
-    const membership = await checkTripAccess(ctx, args.tripId, userId);
-    if (!membership) {
-      throw new Error("You don't have access to this trip");
-    }
+    const userId = await requireAuth(ctx);
+    await requireTripAccess(ctx, args.tripId, userId);
 
     const locations = await ctx.db
       .query("locations")
       .withIndex("by_tripId", (q) => q.eq("tripId", args.tripId))
       .collect();
 
-    // Sort by sortOrder
     return locations.sort((a, b) => a.sortOrder - b.sortOrder);
   },
 });
@@ -63,31 +31,19 @@ export const listByTrip = query({
 export const listByTripAndDate = query({
   args: {
     tripId: v.id("trips"),
-    date: v.string(), // ISO date string (YYYY-MM-DD)
+    date: v.string(),
   },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      throw new Error("Not authenticated");
-    }
-
-    // Check trip access
-    const membership = await checkTripAccess(ctx, args.tripId, userId);
-    if (!membership) {
-      throw new Error("You don't have access to this trip");
-    }
+    const userId = await requireAuth(ctx);
+    await requireTripAccess(ctx, args.tripId, userId);
 
     const locations = await ctx.db
       .query("locations")
       .withIndex("by_tripId", (q) => q.eq("tripId", args.tripId))
       .collect();
 
-    // Filter by date
     const filteredLocations = locations.filter((location) => {
-      // If no dateTime, include it (unscheduled locations)
-      if (!location.dateTime) {
-        return false;
-      }
+      if (!location.dateTime) return false;
 
       const locationDate = location.dateTime.substring(0, 10);
 
@@ -97,16 +53,12 @@ export const listByTripAndDate = query({
         return args.date >= locationDate && args.date <= endDate;
       }
 
-      // For regular locations, check exact date match
       return locationDate === args.date;
     });
 
-    // Sort chronologically by time (parse as Date for correct ordering)
     return filteredLocations.sort((a, b) => {
       if (a.dateTime && b.dateTime) {
-        const timeA = new Date(a.dateTime).getTime();
-        const timeB = new Date(b.dateTime).getTime();
-        return timeA - timeB;
+        return new Date(a.dateTime).getTime() - new Date(b.dateTime).getTime();
       }
       return a.sortOrder - b.sortOrder;
     });
@@ -119,22 +71,12 @@ export const get = query({
     id: v.id("locations"),
   },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      throw new Error("Not authenticated");
-    }
+    const userId = await requireAuth(ctx);
 
     const location = await ctx.db.get(args.id);
-    if (!location) {
-      return null;
-    }
+    if (!location) return null;
 
-    // Check trip access
-    const membership = await checkTripAccess(ctx, location.tripId, userId);
-    if (!membership) {
-      throw new Error("You don't have access to this location");
-    }
-
+    await requireTripAccess(ctx, location.tripId, userId);
     return location;
   },
 });
@@ -161,18 +103,9 @@ export const create = mutation({
     address: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      throw new Error("Not authenticated");
-    }
+    const userId = await requireAuth(ctx);
+    await requireEditorAccess(ctx, args.tripId, userId);
 
-    // Check editor access
-    const hasAccess = await checkEditorAccess(ctx, args.tripId, userId);
-    if (!hasAccess) {
-      throw new Error("You need editor or owner role to create locations");
-    }
-
-    // Get max sortOrder for this trip
     const existingLocations = await ctx.db
       .query("locations")
       .withIndex("by_tripId", (q) => q.eq("tripId", args.tripId))
@@ -185,7 +118,7 @@ export const create = mutation({
 
     const now = Date.now();
 
-    const locationId = await ctx.db.insert("locations", {
+    return await ctx.db.insert("locations", {
       tripId: args.tripId,
       name: args.name,
       latitude: args.latitude,
@@ -200,8 +133,6 @@ export const create = mutation({
       createdAt: now,
       updatedAt: now,
     });
-
-    return locationId;
   },
 });
 
@@ -229,25 +160,17 @@ export const update = mutation({
     attachmentName: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      throw new Error("Not authenticated");
-    }
+    const userId = await requireAuth(ctx);
 
     const location = await ctx.db.get(args.id);
     if (!location) {
-      throw new Error("Location not found");
+      throw new ConvexError("Location not found");
     }
 
-    // Check editor access
-    const hasAccess = await checkEditorAccess(ctx, location.tripId, userId);
-    if (!hasAccess) {
-      throw new Error("You need editor or owner role to update locations");
-    }
+    await requireEditorAccess(ctx, location.tripId, userId);
 
     const { id, ...updates } = args;
 
-    // Filter out undefined values and build update object
     const updateData: Partial<Doc<"locations">> = {
       updatedAt: Date.now(),
     };
@@ -255,9 +178,7 @@ export const update = mutation({
     if (updates.name !== undefined) updateData.name = updates.name;
     if (updates.latitude !== undefined) updateData.latitude = updates.latitude;
     if (updates.longitude !== undefined) updateData.longitude = updates.longitude;
-    // Handle dateTime: empty string clears the field
     if (updates.dateTime !== undefined) updateData.dateTime = updates.dateTime || undefined;
-    // Handle endDateTime: empty string clears the field
     if (updates.endDateTime !== undefined) updateData.endDateTime = updates.endDateTime || undefined;
     if (updates.locationType !== undefined) updateData.locationType = updates.locationType;
     if (updates.notes !== undefined) updateData.notes = updates.notes;
@@ -277,21 +198,14 @@ export const remove = mutation({
     id: v.id("locations"),
   },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      throw new Error("Not authenticated");
-    }
+    const userId = await requireAuth(ctx);
 
     const location = await ctx.db.get(args.id);
     if (!location) {
-      throw new Error("Location not found");
+      throw new ConvexError("Location not found");
     }
 
-    // Check editor access
-    const hasAccess = await checkEditorAccess(ctx, location.tripId, userId);
-    if (!hasAccess) {
-      throw new Error("You need editor or owner role to delete locations");
-    }
+    await requireEditorAccess(ctx, location.tripId, userId);
 
     // Delete legacy attachmentId from storage if exists
     if (location.attachmentId) {
@@ -327,29 +241,19 @@ export const reorder = mutation({
     ),
   },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      throw new Error("Not authenticated");
-    }
-
-    // Check editor access
-    const hasAccess = await checkEditorAccess(ctx, args.tripId, userId);
-    if (!hasAccess) {
-      throw new Error("You need editor or owner role to reorder locations");
-    }
+    const userId = await requireAuth(ctx);
+    await requireEditorAccess(ctx, args.tripId, userId);
 
     const now = Date.now();
 
-    // Update sortOrder for each location
     for (const item of args.locationOrders) {
       const location = await ctx.db.get(item.id);
       if (!location) {
-        throw new Error(`Location ${item.id} not found`);
+        throw new ConvexError(`Location ${item.id} not found`);
       }
 
-      // Verify location belongs to the specified trip
       if (location.tripId !== args.tripId) {
-        throw new Error(`Location ${item.id} does not belong to this trip`);
+        throw new ConvexError(`Location ${item.id} does not belong to this trip`);
       }
 
       await ctx.db.patch(item.id, {
@@ -366,16 +270,8 @@ export const reorder = mutation({
 export const getUniqueDates = query({
   args: { tripId: v.id("trips") },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      throw new Error("Not authenticated");
-    }
-
-    // Check trip access
-    const membership = await checkTripAccess(ctx, args.tripId, userId);
-    if (!membership) {
-      throw new Error("You don't have access to this trip");
-    }
+    const userId = await requireAuth(ctx);
+    await requireTripAccess(ctx, args.tripId, userId);
 
     const locations = await ctx.db
       .query("locations")
@@ -392,7 +288,7 @@ export const getUniqueDates = query({
         // For hotels, add all dates in range
         if (loc.locationType === "accommodation" && loc.endDateTime) {
           const endDate = loc.endDateTime.substring(0, 10);
-          let currentDate = new Date(date);
+          const currentDate = new Date(date);
           const end = new Date(endDate);
 
           while (currentDate <= end) {
