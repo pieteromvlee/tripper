@@ -300,7 +300,7 @@ export default function TripPage() {
                   selectedDate={selectedDate ?? undefined}
                   selectedLocationId={selectedLocationId ?? undefined}
                   onLocationSelect={handleLocationSelect}
-                  onOpenDetail={isMobile ? setDetailLocationId : undefined}
+                  onOpenDetail={setDetailLocationId}
                   scrollTrigger={scrollToCounter}
                 />
               )}

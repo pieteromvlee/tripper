@@ -61,33 +61,60 @@ export function LocationDetail({ location, onClose }: LocationDetailProps) {
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 bg-surface flex flex-col">
-      {/* Header */}
-      <header className="bg-surface-elevated border-b border-border px-4 py-3 flex-shrink-0">
-        <div className="flex items-center justify-between">
-          <button
-            onClick={onClose}
-            className="flex items-center gap-2 text-blue-600 font-medium"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            Back
-          </button>
-          {!isEditing && (
-            <button
-              onClick={() => setIsEditing(true)}
-              className="text-blue-600 font-medium"
-            >
-              Edit
-            </button>
-          )}
-        </div>
-      </header>
+  // Close on backdrop click (desktop only)
+  const handleBackdropClick = (e: React.MouseEvent) => {
+    const isDesktop = window.matchMedia("(min-width: 1024px)").matches;
+    if (isDesktop && e.target === e.currentTarget) {
+      onClose();
+    }
+  };
 
-      {/* Content */}
-      <div className="flex-1 overflow-y-auto">
+  return (
+    <div
+      className="fixed inset-0 z-50 bg-surface lg:bg-black/50 lg:flex lg:items-center lg:justify-center lg:p-4"
+      onClick={handleBackdropClick}
+    >
+      {/* Modal container - full screen on mobile, centered modal on desktop */}
+      <div className="h-full w-full lg:h-auto lg:w-full lg:max-w-lg lg:max-h-[90vh] lg:rounded-xl lg:shadow-xl lg:border lg:border-border-muted bg-surface lg:bg-surface-elevated flex flex-col">
+        {/* Header */}
+        <header className="bg-surface-elevated border-b border-border px-4 py-3 flex-shrink-0 lg:rounded-t-xl">
+          <div className="flex items-center justify-between">
+            {/* Mobile: Back button */}
+            <button
+              onClick={onClose}
+              className="flex items-center gap-2 text-blue-600 font-medium lg:hidden"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              Back
+            </button>
+            {/* Desktop: Title */}
+            <h2 className="hidden lg:block text-lg font-semibold text-text-primary truncate">{location.name}</h2>
+            <div className="flex items-center gap-2">
+              {!isEditing && (
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="text-blue-600 font-medium"
+                >
+                  Edit
+                </button>
+              )}
+              {/* Desktop: Close button */}
+              <button
+                onClick={onClose}
+                className="hidden lg:flex p-2 text-text-muted hover:text-text-primary rounded-lg hover:bg-surface-secondary transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </header>
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto lg:rounded-b-xl">
         {isEditing ? (
           <LocationEditForm
             location={location}
@@ -201,6 +228,7 @@ export function LocationDetail({ location, onClose }: LocationDetailProps) {
             </div>
           </div>
         )}
+      </div>
       </div>
     </div>
   );
