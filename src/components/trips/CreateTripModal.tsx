@@ -38,18 +38,20 @@ export function CreateTripModal({ isOpen, onClose }: CreateTripModalProps) {
 
   return (
     <div
-      className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
+      className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50"
       onClick={handleBackdropClick}
     >
-      <div className="bg-surface-elevated rounded-xl shadow-xl w-full max-w-md p-6 border border-border-muted">
-        <h2 className="text-xl font-semibold text-text-primary mb-4">
-          Create New Trip
-        </h2>
-        <form onSubmit={handleSubmit}>
-          <div className="mb-6">
+      <div className="bg-surface-elevated w-full max-w-md border border-border">
+        <div className="px-4 py-2 bg-surface-secondary border-b border-border">
+          <h2 className="text-sm font-bold text-text-primary uppercase tracking-wide">
+            Create New Trip
+          </h2>
+        </div>
+        <form onSubmit={handleSubmit} className="p-4">
+          <div className="mb-4">
             <label
               htmlFor="trip-name"
-              className="block text-sm font-medium text-text-secondary mb-2"
+              className="block text-xs font-medium text-text-secondary mb-1 uppercase tracking-wide"
             >
               Trip Name
             </label>
@@ -59,22 +61,22 @@ export function CreateTripModal({ isOpen, onClose }: CreateTripModalProps) {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g., Summer Vacation 2024"
-              className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors text-base"
+              className="w-full px-3 py-2 border border-border bg-surface-inset focus:outline-none focus:border-blue-400 text-sm"
               autoFocus
             />
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-2">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-3 text-text-primary bg-surface-secondary hover:bg-surface-inset rounded-lg font-medium transition-colors touch-manipulation"
+              className="flex-1 px-4 py-2 text-text-secondary border border-border hover:bg-surface-secondary hover:border-border-focus text-xs font-medium transition-colors touch-manipulation"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={!name.trim() || isSubmitting}
-              className="flex-1 px-4 py-3 text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 dark:disabled:bg-blue-800 disabled:cursor-not-allowed rounded-lg font-medium transition-colors touch-manipulation"
+              className="flex-1 px-4 py-2 text-white bg-blue-600 hover:bg-blue-500 border border-blue-400 disabled:opacity-50 disabled:cursor-not-allowed text-xs font-medium transition-colors touch-manipulation"
             >
               {isSubmitting ? "Creating..." : "Create Trip"}
             </button>

@@ -199,21 +199,21 @@ export default function TripPage() {
   return (
     <div className="h-screen flex flex-col bg-surface">
       {/* Header */}
-      <header className="bg-surface-elevated border-b border-border px-4 py-3 flex-shrink-0">
+      <header className="bg-surface-secondary border-b border-border px-4 py-2 flex-shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <button
               onClick={() => navigate("/")}
-              className="p-2 -ml-2 text-text-secondary hover:text-text-primary"
+              className="p-2 -ml-2 text-text-secondary hover:text-text-primary hover:bg-surface-elevated border border-transparent hover:border-border"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-            <h1 className="text-lg font-semibold text-text-primary truncate">{trip.name}</h1>
+            <h1 className="text-sm font-bold text-text-primary truncate uppercase tracking-wide">{trip.name}</h1>
             <button
               onClick={() => setShowSearch(true)}
-              className="p-1.5 text-blue-600 hover:bg-blue-500/10 rounded-lg transition"
+              className="p-1.5 text-blue-400 hover:bg-blue-500/10 border border-transparent hover:border-blue-500/50"
               title="Add location"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -222,14 +222,14 @@ export default function TripPage() {
             </button>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1">
             {/* Location tracking toggle */}
             <button
               onClick={() => setIsTrackingLocation(!isTrackingLocation)}
-              className={`p-2 rounded-lg transition ${
+              className={`p-2 border transition ${
                 isTrackingLocation
-                  ? "text-blue-600 bg-blue-500/10"
-                  : "text-text-secondary hover:text-text-primary hover:bg-surface-secondary"
+                  ? "text-blue-400 bg-blue-500/10 border-blue-500/50"
+                  : "text-text-secondary hover:text-text-primary hover:bg-surface-elevated border-transparent hover:border-border"
               }`}
               title={isTrackingLocation ? "Stop tracking location" : "Show my location"}
             >
@@ -243,7 +243,7 @@ export default function TripPage() {
             {accommodation && (
               <button
                 onClick={handleFlyToAccommodation}
-                className="p-2 text-purple-600 hover:bg-purple-500/10 rounded-lg transition"
+                className="p-2 text-purple-400 hover:bg-purple-500/10 border border-transparent hover:border-purple-500/50"
                 title="Go to accommodation"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -253,19 +253,19 @@ export default function TripPage() {
             )}
 
             {/* View toggle */}
-            <div className="flex items-center gap-1 bg-surface-secondary rounded-lg p-1">
+            <div className="flex items-center border border-border ml-2">
               <button
                 onClick={() => setViewMode("list")}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium transition ${
-                  viewMode === "list" ? "bg-surface-elevated text-text-primary shadow-sm" : "text-text-secondary"
+                className={`px-3 py-1.5 text-xs font-medium transition border-r border-border ${
+                  viewMode === "list" ? "bg-blue-600 text-white" : "text-text-secondary hover:bg-surface-elevated"
                 }`}
               >
                 List
               </button>
               <button
                 onClick={() => setViewMode("map")}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium transition ${
-                  viewMode === "map" ? "bg-surface-elevated text-text-primary shadow-sm" : "text-text-secondary"
+                className={`px-3 py-1.5 text-xs font-medium transition ${!isMobile ? "border-r border-border" : ""} ${
+                  viewMode === "map" ? "bg-blue-600 text-white" : "text-text-secondary hover:bg-surface-elevated"
                 }`}
               >
                 Map
@@ -273,8 +273,8 @@ export default function TripPage() {
               {!isMobile && (
                 <button
                   onClick={() => setViewMode("both")}
-                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition ${
-                    viewMode === "both" ? "bg-surface-elevated text-text-primary shadow-sm" : "text-text-secondary"
+                  className={`px-3 py-1.5 text-xs font-medium transition ${
+                    viewMode === "both" ? "bg-blue-600 text-white" : "text-text-secondary hover:bg-surface-elevated"
                   }`}
                 >
                   Both
@@ -284,7 +284,7 @@ export default function TripPage() {
             {/* Share button */}
             <button
               onClick={() => setShowShareModal(true)}
-              className="p-2 text-text-secondary hover:text-text-primary hover:bg-surface-secondary rounded-lg transition"
+              className="p-2 text-text-secondary hover:text-text-primary hover:bg-surface-elevated border border-transparent hover:border-border ml-2"
               title="Share trip"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -294,7 +294,7 @@ export default function TripPage() {
             {/* Sign Out */}
             <button
               onClick={() => signOut()}
-              className="text-text-secondary hover:text-text-primary p-2 transition"
+              className="text-text-secondary hover:text-text-primary p-2 hover:bg-surface-elevated border border-transparent hover:border-border"
               title="Sign Out"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -321,14 +321,14 @@ export default function TripPage() {
           <div className={`flex flex-col bg-surface-elevated ${viewMode === "both" ? "w-96 border-r border-border" : "flex-1"}`}>
             {/* Search (shown when triggered from header + button) */}
             {showSearch && (
-              <div className="p-3 border-b border-border">
+              <div className="p-3 border-b border-border bg-surface-secondary">
                 <div className="flex items-center gap-2">
                   <div className="flex-1">
                     <LocationSearch onSelect={handleSearchSelect} placeholder="Search for a place..." autoFocus proximity={mapCenter} />
                   </div>
                   <button
                     onClick={() => setShowSearch(false)}
-                    className="p-2 text-text-muted hover:text-text-secondary hover:bg-surface-secondary rounded-lg"
+                    className="p-2 text-text-muted hover:text-text-secondary hover:bg-surface-elevated border border-transparent hover:border-border"
                     title="Cancel"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -343,10 +343,10 @@ export default function TripPage() {
             <div className="flex-1 overflow-y-auto">
               {showAddForm && newLocationData ? (
                 <div>
-                  <div className="px-4 py-2 bg-blue-500/10 border-b border-blue-500/20 flex items-center justify-between">
-                    <span className="text-sm font-medium text-blue-700 dark:text-blue-400">Add New Location</span>
-                    <button onClick={handleFormCancel} className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="px-4 py-2 bg-blue-500/10 border-b border-blue-500/30 flex items-center justify-between">
+                    <span className="text-xs font-bold text-blue-400 uppercase tracking-wide">Add New Location</span>
+                    <button onClick={handleFormCancel} className="text-blue-400 hover:text-blue-300 p-1 hover:bg-blue-500/20 border border-transparent hover:border-blue-500/50">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                       </svg>
                     </button>
@@ -384,13 +384,13 @@ export default function TripPage() {
             {/* Floating Search for map-only view (triggered from header + button) */}
             {viewMode === "map" && showSearch && (
               <div className="absolute top-3 left-3 right-3 z-10">
-                <div className="flex items-center gap-2 bg-surface-elevated rounded-lg shadow-md p-2">
+                <div className="flex items-center gap-2 bg-surface-elevated border border-border p-2">
                   <div className="flex-1">
                     <LocationSearch onSelect={handleSearchSelect} placeholder="Search for a place..." autoFocus proximity={mapCenter} />
                   </div>
                   <button
                     onClick={() => setShowSearch(false)}
-                    className="p-2 text-text-muted hover:text-text-secondary hover:bg-surface-secondary rounded-lg"
+                    className="p-2 text-text-muted hover:text-text-secondary hover:bg-surface-secondary border border-transparent hover:border-border"
                     title="Cancel"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -417,7 +417,7 @@ export default function TripPage() {
             {selectedLocationId && (
               <button
                 onClick={handleClearSelection}
-                className="absolute left-4 z-10 bg-surface-elevated px-3 py-2 rounded-lg shadow-md text-sm font-medium text-text-secondary hover:bg-surface-secondary flex items-center gap-2"
+                className="absolute left-4 z-10 bg-surface-elevated px-3 py-2 border border-border text-xs font-medium text-text-secondary hover:bg-surface-secondary hover:border-border-focus flex items-center gap-2"
                 style={{ bottom: "calc(1rem + env(safe-area-inset-bottom, 0px))" }}
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -434,14 +434,14 @@ export default function TripPage() {
                 style={{ bottom: "calc(1rem + env(safe-area-inset-bottom, 0px))" }}
               >
                 {/* Location name label */}
-                <div className="bg-surface-elevated px-3 py-2 rounded-lg shadow-md text-sm font-medium text-text-primary max-w-[200px] truncate">
+                <div className="bg-surface-elevated px-3 py-2 border border-border text-xs font-medium text-text-primary max-w-[200px] truncate">
                   {selectedLocation.name}
                 </div>
                 <div className="flex gap-2">
                   {/* Info button */}
                   <button
                     onClick={() => setDetailLocationId(selectedLocation._id)}
-                    className="bg-surface-elevated p-3 rounded-full shadow-md text-blue-600 hover:bg-blue-500/10 transition"
+                    className="bg-surface-elevated p-3 border border-border text-blue-400 hover:bg-blue-500/10 hover:border-blue-500/50 transition"
                     title="View details"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -451,7 +451,7 @@ export default function TripPage() {
                   {/* Directions button */}
                   <button
                     onClick={() => window.open(getDirectionsUrl(selectedLocation.latitude, selectedLocation.longitude), "_blank")}
-                    className="bg-blue-600 p-3 rounded-full shadow-md text-white hover:bg-blue-700 transition"
+                    className="bg-blue-600 p-3 border border-blue-400 text-white hover:bg-blue-500 transition"
                     title="Get directions"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -470,14 +470,14 @@ export default function TripPage() {
                 style={{ bottom: "calc(1rem + env(safe-area-inset-bottom, 0px))" }}
               >
                 {/* Location name label */}
-                <div className="bg-green-500/10 border border-green-500/30 px-3 py-2 rounded-lg shadow-md text-sm font-medium text-green-700 dark:text-green-400 max-w-[200px] truncate">
+                <div className="bg-green-500/10 border border-green-500/50 px-3 py-2 text-xs font-medium text-green-400 max-w-[200px] truncate">
                   {newLocationData.name || "New Location"}
                 </div>
                 <div className="flex gap-2">
                   {/* Cancel button */}
                   <button
                     onClick={handleFormCancel}
-                    className="bg-surface-elevated p-3 rounded-full shadow-md text-text-secondary hover:bg-surface-secondary transition"
+                    className="bg-surface-elevated p-3 border border-border text-text-secondary hover:bg-surface-secondary hover:border-border-focus transition"
                     title="Cancel"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -487,7 +487,7 @@ export default function TripPage() {
                   {/* Add button */}
                   <button
                     onClick={() => setShowFullscreenAddForm(true)}
-                    className="bg-green-600 p-3 rounded-full shadow-md text-white hover:bg-green-700 transition"
+                    className="bg-green-600 p-3 border border-green-400 text-white hover:bg-green-500 transition"
                     title="Add location"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

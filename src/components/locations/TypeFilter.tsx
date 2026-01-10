@@ -34,43 +34,43 @@ export function TypeFilter({ visibleTypes, onToggleType }: TypeFilterProps) {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={`
-          flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium
-          transition-all duration-200 touch-manipulation min-h-[40px]
+          flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium
+          transition-colors touch-manipulation border
           ${hiddenCount > 0
-            ? "bg-blue-600 text-white shadow-md"
-            : "bg-surface-elevated text-text-secondary border border-border hover:border-border-focus"
+            ? "bg-blue-600 text-white border-blue-400"
+            : "bg-surface-elevated text-text-secondary border-border hover:border-border-focus hover:bg-surface-secondary"
           }
         `}
         title="Filter by type"
       >
-        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
         </svg>
         {hiddenCount > 0 && (
-          <span className="text-xs">{hiddenCount}</span>
+          <span>{hiddenCount}</span>
         )}
       </button>
 
       {/* Dropdown */}
       {isOpen && (
-        <div className="absolute right-0 top-full mt-2 w-48 bg-surface-elevated rounded-lg shadow-lg border border-border z-50 py-1">
-          {locationTypeOptions.map((option) => {
+        <div className="absolute right-0 top-full mt-1 w-48 bg-surface-elevated border border-border z-50">
+          {locationTypeOptions.map((option, index) => {
             const isActive = visibleTypes.has(option.value);
             return (
               <button
                 key={option.value}
                 onClick={() => onToggleType(option.value)}
-                className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-surface-secondary transition-colors"
+                className={`w-full flex items-center gap-3 px-3 py-2 hover:bg-surface-secondary transition-colors ${index < locationTypeOptions.length - 1 ? "border-b border-border-muted" : ""}`}
               >
                 {/* Checkbox */}
                 <div
                   className={`
-                    w-5 h-5 rounded flex items-center justify-center flex-shrink-0
-                    ${isActive ? option.color : "bg-surface-secondary border border-border"}
+                    w-4 h-4 flex items-center justify-center flex-shrink-0 border
+                    ${isActive ? `${option.color} border-transparent` : "bg-surface-secondary border-border"}
                   `}
                 >
                   {isActive && (
-                    <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                    <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
                   )}
@@ -81,7 +81,7 @@ export function TypeFilter({ visibleTypes, onToggleType }: TypeFilterProps) {
                   <span className={isActive ? "text-text-primary" : "text-text-muted"}>
                     <TypeIcon type={option.value} />
                   </span>
-                  <span className={`text-sm ${isActive ? "text-text-primary" : "text-text-muted"}`}>
+                  <span className={`text-xs ${isActive ? "text-text-primary" : "text-text-muted"}`}>
                     {option.label}s
                   </span>
                 </div>

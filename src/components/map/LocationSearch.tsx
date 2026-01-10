@@ -248,7 +248,7 @@ export function LocationSearch({
         {/* Search icon */}
         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
           <svg
-            className="h-5 w-5 text-text-muted"
+            className="h-4 w-4 text-text-muted"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -273,14 +273,14 @@ export function LocationSearch({
           }}
           placeholder={placeholder}
           autoFocus={autoFocus}
-          className="w-full pl-10 pr-10 py-3 rounded-lg border text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full pl-9 pr-9 py-2 border border-border bg-surface-inset text-sm focus:outline-none focus:border-blue-400"
         />
 
         {/* Loading spinner or clear button */}
         <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
           {isLoading ? (
             <svg
-              className="animate-spin h-5 w-5 text-text-muted"
+              className="animate-spin h-4 w-4 text-text-muted"
               fill="none"
               viewBox="0 0 24 24"
             >
@@ -305,7 +305,7 @@ export function LocationSearch({
               className="text-text-muted hover:text-text-secondary focus:outline-none"
             >
               <svg
-                className="h-5 w-5"
+                className="h-4 w-4"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -324,46 +324,46 @@ export function LocationSearch({
 
       {/* Results dropdown */}
       {isOpen && results.length > 0 && (
-        <div className="absolute z-50 w-full mt-1 bg-surface-elevated rounded-lg border border-border shadow-lg max-h-60 overflow-y-auto">
+        <div className="absolute z-50 w-full mt-1 bg-surface-elevated border border-border max-h-60 overflow-y-auto">
           {results.map((result) => (
             <button
               key={result.id}
               type="button"
               onClick={() => handleSelect(result)}
-              className="w-full px-4 py-3 text-left hover:bg-surface-secondary focus:bg-surface-secondary focus:outline-none border-b border-border-muted last:border-b-0"
+              className="w-full px-3 py-2 text-left hover:bg-surface-secondary focus:bg-surface-secondary focus:outline-none border-b border-border-muted last:border-b-0"
             >
               <div className="flex items-center gap-2">
-                <span className="font-medium text-text-primary text-base">
+                <span className="font-medium text-text-primary text-sm">
                   {result.name}
                 </span>
                 {result.suggestedType === "restaurant" && (
-                  <span className="text-xs px-1.5 py-0.5 bg-orange-500/20 text-orange-700 dark:text-orange-400 rounded">
+                  <span className="text-xs px-1.5 py-0.5 bg-orange-500/10 text-orange-400 border border-orange-500/50">
                     restaurant
                   </span>
                 )}
                 {result.suggestedType === "accommodation" && (
-                  <span className="text-xs px-1.5 py-0.5 bg-purple-500/20 text-purple-700 dark:text-purple-400 rounded">
+                  <span className="text-xs px-1.5 py-0.5 bg-purple-500/10 text-purple-400 border border-purple-500/50">
                     accommodation
                   </span>
                 )}
                 {result.suggestedType === "shop" && (
-                  <span className="text-xs px-1.5 py-0.5 bg-green-500/20 text-green-700 dark:text-green-400 rounded">
+                  <span className="text-xs px-1.5 py-0.5 bg-green-500/10 text-green-400 border border-green-500/50">
                     shop
                   </span>
                 )}
                 {result.suggestedType === "snack" && (
-                  <span className="text-xs px-1.5 py-0.5 bg-pink-500/20 text-pink-700 dark:text-pink-400 rounded">
+                  <span className="text-xs px-1.5 py-0.5 bg-pink-500/10 text-pink-400 border border-pink-500/50">
                     snack
                   </span>
                 )}
                 {result.suggestedType === "attraction" && (
-                  <span className="text-xs px-1.5 py-0.5 bg-blue-500/20 text-blue-700 dark:text-blue-400 rounded">
+                  <span className="text-xs px-1.5 py-0.5 bg-blue-500/10 text-blue-400 border border-blue-500/50">
                     attraction
                   </span>
                 )}
               </div>
               {result.address && (
-                <div className="text-sm text-text-muted truncate">
+                <div className="text-xs text-text-muted truncate">
                   {result.address}
                 </div>
               )}

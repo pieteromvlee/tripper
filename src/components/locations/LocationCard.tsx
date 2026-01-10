@@ -63,12 +63,12 @@ export function LocationCard({
     <div
       onClick={onClick}
       className={`
-        p-4 rounded-lg cursor-pointer transition-all duration-200
-        min-h-[72px] touch-manipulation
+        p-3 cursor-pointer transition-colors
+        min-h-[64px] touch-manipulation border
         ${
           isSelected
-            ? "bg-blue-500/10 border-2 border-blue-500 shadow-md"
-            : "bg-surface-elevated border border-border hover:border-border hover:shadow-sm"
+            ? "bg-blue-500/10 border-blue-400"
+            : "bg-surface-elevated border-border hover:bg-surface-secondary hover:border-border-focus"
         }
       `}
     >
@@ -77,8 +77,8 @@ export function LocationCard({
           {/* Name */}
           <h3
             className={`
-              font-medium text-base truncate
-              ${isSelected ? "text-blue-800 dark:text-blue-300" : "text-text-primary"}
+              font-medium text-sm truncate
+              ${isSelected ? "text-blue-300" : "text-text-primary"}
             `}
           >
             {location.name}
@@ -86,7 +86,7 @@ export function LocationCard({
 
           {/* Address */}
           {location.address && (
-            <p className="text-sm text-text-secondary truncate mt-0.5">
+            <p className="text-xs text-text-secondary truncate mt-0.5">
               {location.address}
             </p>
           )}
@@ -95,8 +95,8 @@ export function LocationCard({
           {location.dateTime && (
             <p
               className={`
-                text-sm mt-1
-                ${isSelected ? "text-blue-700 dark:text-blue-400" : "text-text-secondary"}
+                text-xs mt-1
+                ${isSelected ? "text-blue-400" : "text-text-secondary"}
               `}
             >
               {formatDateTime(location.dateTime)}
@@ -110,7 +110,7 @@ export function LocationCard({
           )}
         </div>
 
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="flex items-center gap-1 flex-shrink-0">
           {/* Info button */}
           <button
             onClick={(e) => {
@@ -118,11 +118,11 @@ export function LocationCard({
               onOpenDetail?.();
             }}
             className={`
-              p-1.5 rounded-md transition-colors
+              p-1.5 transition-colors border border-transparent
               ${
                 isSelected
-                  ? "text-blue-600 hover:bg-blue-500/20"
-                  : "text-text-muted hover:text-text-secondary hover:bg-surface-secondary"
+                  ? "text-blue-400 hover:bg-blue-500/20 hover:border-blue-500/50"
+                  : "text-text-muted hover:text-text-secondary hover:bg-surface-secondary hover:border-border"
               }
             `}
             title="View details"
@@ -154,11 +154,11 @@ export function LocationCard({
               );
             }}
             className={`
-              p-1.5 rounded-md transition-colors
+              p-1.5 transition-colors border border-transparent
               ${
                 isSelected
-                  ? "text-blue-600 hover:bg-blue-500/20"
-                  : "text-text-muted hover:text-text-secondary hover:bg-surface-secondary"
+                  ? "text-blue-400 hover:bg-blue-500/20 hover:border-blue-500/50"
+                  : "text-text-muted hover:text-text-secondary hover:bg-surface-secondary hover:border-border"
               }
             `}
             title="Get Directions"
@@ -182,8 +182,8 @@ export function LocationCard({
           {/* Type badge */}
           <span
             className={`
-              inline-flex items-center px-2 py-1 rounded-md text-xs font-medium
-              ${isSelected ? "bg-blue-500/20 text-blue-600 dark:text-blue-400" : getLocationTypeBadgeClasses(location.locationType || "attraction")}
+              inline-flex items-center px-2 py-0.5 text-xs font-medium border
+              ${isSelected ? "bg-blue-500/10 text-blue-400 border-blue-500/50" : getLocationTypeBadgeClasses(location.locationType || "attraction")}
             `}
           >
             {getLocationTypeLabel(location.locationType || "attraction")}
@@ -193,7 +193,7 @@ export function LocationCard({
 
       {/* Notes preview */}
       {location.notes && (
-        <p className="text-sm text-text-muted mt-2 line-clamp-2">
+        <p className="text-xs text-text-muted mt-2 line-clamp-2">
           {location.notes}
         </p>
       )}

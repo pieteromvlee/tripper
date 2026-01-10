@@ -29,28 +29,28 @@ export function TripCard({ trip, onClick }: TripCardProps) {
   return (
     <div
       onClick={onClick}
-      className="bg-surface-elevated rounded-xl shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer border border-border-muted hover:border-border active:scale-[0.98] touch-manipulation overflow-hidden"
+      className="bg-surface-elevated border border-border hover:border-border-focus hover:bg-surface-secondary cursor-pointer transition-colors overflow-hidden"
     >
       <div className="flex">
         {/* Map Preview */}
-        <div className="flex-shrink-0">
+        <div className="flex-shrink-0 border-r border-border">
           <TripMapPreview
             locations={locations ?? []}
             width={280}
-            height={200}
+            height={180}
           />
         </div>
 
         {/* Trip Info */}
-        <div className="flex-1 p-6 min-w-0 flex flex-col justify-center">
-          <h3 className="text-xl font-semibold text-text-primary">
+        <div className="flex-1 p-4 min-w-0 flex flex-col justify-center">
+          <h3 className="text-base font-bold text-text-primary">
             {trip.name}
           </h3>
-          <p className="text-sm text-text-secondary mt-2">
+          <p className="text-xs text-text-secondary mt-1">
             Created {formatDate(trip.createdAt)}
           </p>
           {locations && locations.length > 0 && (
-            <p className="text-sm text-text-muted mt-3">
+            <p className="text-xs text-text-muted mt-2">
               {locations.length} {locations.length === 1 ? "location" : "locations"}
             </p>
           )}

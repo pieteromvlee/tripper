@@ -1,11 +1,14 @@
 @import "tailwindcss";
 
 /*
- * Theme Configuration
- * All colors are defined here. To create a new theme, just change these values.
+ * TUI Theme Configuration
+ * Terminal-inspired dark theme with monospace typography
  */
 
 @theme {
+  /* Monospace font stack */
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace;
+
   /* Surface colors - backgrounds */
   --color-surface: var(--surface);
   --color-surface-secondary: var(--surface-secondary);
@@ -35,68 +38,60 @@
   --color-input-placeholder: var(--input-placeholder);
 }
 
-/* Light theme (default) */
+/* TUI Dark theme (forced as default) */
 :root {
-  /* Surfaces */
-  --surface: #f9fafb;           /* gray-50 */
-  --surface-secondary: #f3f4f6; /* gray-100 */
-  --surface-elevated: #ffffff;  /* white */
-  --surface-inset: #e5e7eb;     /* gray-200 */
+  /* Surfaces - deep terminal blacks */
+  --surface: #0a0a0a;
+  --surface-secondary: #121212;
+  --surface-elevated: #181818;
+  --surface-inset: #1e1e1e;
 
-  /* Borders */
-  --border: #e5e7eb;            /* gray-200 */
-  --border-muted: #f3f4f6;      /* gray-100 */
-  --border-focus: #3b82f6;      /* blue-500 */
+  /* Borders - visible for TUI panel divisions */
+  --border: #3a3a3a;
+  --border-muted: #2a2a2a;
+  --border-focus: #4a9eff;
 
-  /* Text */
-  --text-primary: #111827;      /* gray-900 */
-  --text-secondary: #6b7280;    /* gray-500 */
-  --text-muted: #9ca3af;        /* gray-400 */
-  --text-inverse: #ffffff;      /* white */
+  /* Text - high contrast */
+  --text-primary: #e8e8e8;
+  --text-secondary: #888888;
+  --text-muted: #5a5a5a;
+  --text-inverse: #0a0a0a;
 
   /* Interactive */
-  --interactive: #2563eb;       /* blue-600 */
-  --interactive-hover: #1d4ed8; /* blue-700 */
-  --interactive-muted: #dbeafe; /* blue-100 */
+  --interactive: #4a9eff;
+  --interactive-hover: #6bb3ff;
+  --interactive-muted: #1a2833;
 
   /* Inputs */
-  --input-bg: #ffffff;          /* white */
-  --input-border: #d1d5db;      /* gray-300 */
-  --input-text: #111827;        /* gray-900 */
-  --input-placeholder: #9ca3af; /* gray-400 */
+  --input-bg: #1e1e1e;
+  --input-border: #3a3a3a;
+  --input-text: #e8e8e8;
+  --input-placeholder: #5a5a5a;
+
+  /* Force dark color scheme */
+  color-scheme: dark;
 }
 
-/* Dark theme - pure black/gray to match map */
-@media (prefers-color-scheme: dark) {
-  :root {
-    /* Surfaces - pure blacks/grays (no blue tint) */
-    --surface: #0d0d0d;           /* near black */
-    --surface-secondary: #1a1a1a; /* dark gray */
-    --surface-elevated: #1a1a1a;  /* dark gray */
-    --surface-inset: #2a2a2a;     /* medium dark gray */
+/* Base styles */
+html {
+  background-color: var(--surface);
+}
 
-    /* Borders */
-    --border: #333333;            /* gray border */
-    --border-muted: #222222;      /* darker border */
-    --border-focus: #3b82f6;      /* blue-500 */
+body {
+  font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  letter-spacing: -0.01em;
+  background-color: var(--surface);
+  color: var(--text-primary);
+}
 
-    /* Text */
-    --text-primary: #fafafa;      /* near white */
-    --text-secondary: #a0a0a0;    /* medium gray */
-    --text-muted: #707070;        /* darker gray */
-    --text-inverse: #0d0d0d;      /* near black */
-
-    /* Interactive */
-    --interactive: #3b82f6;       /* blue-500 */
-    --interactive-hover: #2563eb; /* blue-600 */
-    --interactive-muted: #1a2533; /* dark blue-gray */
-
-    /* Inputs */
-    --input-bg: #2a2a2a;          /* medium dark gray */
-    --input-border: #404040;      /* gray border */
-    --input-text: #fafafa;        /* near white */
-    --input-placeholder: #808080; /* medium gray */
-  }
+/* Remove all shadows globally */
+*,
+*::before,
+*::after {
+  --tw-shadow: 0 0 #0000 !important;
+  --tw-shadow-colored: 0 0 #0000 !important;
 }
 
 /* Base input styles */
@@ -106,9 +101,25 @@ select {
   background-color: var(--input-bg);
   border-color: var(--input-border);
   color: var(--input-text);
+  font-family: inherit;
 }
 
 input::placeholder,
 textarea::placeholder {
   color: var(--input-placeholder);
+}
+
+/* Focus styles - TUI border highlight */
+input:focus,
+textarea:focus,
+select:focus,
+button:focus-visible {
+  outline: none;
+  border-color: var(--border-focus);
+}
+
+/* Selection highlight */
+::selection {
+  background-color: #4a9eff40;
+  color: inherit;
 }

@@ -17,11 +17,11 @@ export default function HomePage() {
 
       <Unauthenticated>
         <div className="min-h-screen flex flex-col items-center justify-center bg-surface px-4">
-          <h1 className="text-3xl font-bold text-text-primary mb-2">Tripper</h1>
-          <p className="text-text-secondary mb-8 text-center">Plan your city trips with interactive maps</p>
+          <h1 className="text-2xl font-bold text-text-primary mb-2 uppercase tracking-wider">Tripper</h1>
+          <p className="text-text-secondary mb-8 text-center text-sm">Plan your city trips with interactive maps</p>
           <Link
             to="/login"
-            className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition"
+            className="bg-blue-600 text-white px-6 py-2 border border-blue-400 font-medium hover:bg-blue-500 transition text-sm"
           >
             Sign In to Get Started
           </Link>
@@ -63,22 +63,22 @@ function AuthenticatedHome() {
 
   return (
     <div className="min-h-screen bg-surface">
-      <header className="bg-surface-elevated border-b border-border px-4 py-4">
+      <header className="bg-surface-secondary border-b border-border px-4 py-3">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <h1 className="text-xl font-bold text-text-primary">My Trips</h1>
-          <div className="flex items-center gap-3">
+          <h1 className="text-sm font-bold text-text-primary uppercase tracking-wide">My Trips</h1>
+          <div className="flex items-center gap-2">
             <button
               onClick={() => setShowCreateModal(true)}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition flex items-center gap-2"
+              className="bg-blue-600 text-white px-4 py-2 border border-blue-400 text-xs font-medium hover:bg-blue-500 transition flex items-center gap-2"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
               New Trip
             </button>
             <button
               onClick={() => signOut()}
-              className="text-text-secondary hover:text-text-primary px-3 py-2 text-sm font-medium transition"
+              className="text-text-secondary hover:text-text-primary px-3 py-2 text-xs font-medium hover:bg-surface-elevated border border-transparent hover:border-border transition"
               title="Sign Out"
             >
               Sign Out
@@ -91,29 +91,29 @@ function AuthenticatedHome() {
         {/* Pending Invites */}
         {pendingInvites && pendingInvites.length > 0 && (
           <div className="mb-6">
-            <h2 className="text-lg font-semibold text-text-primary mb-3">Pending Invitations</h2>
-            <div className="space-y-3">
+            <h2 className="text-xs font-bold text-text-primary mb-3 uppercase tracking-wide">Pending Invitations</h2>
+            <div className="space-y-2">
               {pendingInvites.map((invite) => (
                 <div
                   key={invite._id}
-                  className="bg-surface-elevated border border-yellow-500/30 rounded-lg p-4 flex items-center justify-between"
+                  className="bg-surface-elevated border border-yellow-500/50 p-3 flex items-center justify-between"
                 >
                   <div>
-                    <p className="font-medium text-text-primary">{invite.tripName}</p>
-                    <p className="text-sm text-text-secondary">
+                    <p className="text-sm font-medium text-text-primary">{invite.tripName}</p>
+                    <p className="text-xs text-text-secondary">
                       Invited by {invite.inviterEmail}
                     </p>
                   </div>
                   <div className="flex gap-2">
                     <button
                       onClick={() => handleDeclineInvite(invite._id)}
-                      className="px-3 py-1.5 text-sm font-medium text-text-secondary hover:text-text-primary hover:bg-surface-secondary rounded-lg transition"
+                      className="px-3 py-1.5 text-xs font-medium text-text-secondary hover:text-text-primary hover:bg-surface-secondary border border-transparent hover:border-border transition"
                     >
                       Decline
                     </button>
                     <button
                       onClick={() => handleAcceptInvite(invite._id, invite.tripId)}
-                      className="px-3 py-1.5 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition"
+                      className="px-3 py-1.5 text-xs font-medium text-white bg-green-600 hover:bg-green-500 border border-green-400 transition"
                     >
                       Accept
                     </button>

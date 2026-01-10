@@ -65,7 +65,7 @@ export function DaySelector({
   return (
     <div
       ref={containerRef}
-      className="flex items-center gap-2 overflow-x-auto px-3 py-2 scrollbar-hide"
+      className="flex items-center gap-1 overflow-x-auto px-3 py-2 scrollbar-hide"
       style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
     >
       {/* "All" option */}
@@ -73,13 +73,12 @@ export function DaySelector({
         ref={selectedDate === null ? selectedRef : undefined}
         onClick={() => onDateSelect(null)}
         className={`
-          flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium
-          transition-all duration-200 touch-manipulation
-          min-h-[40px] min-w-[60px]
+          flex-shrink-0 px-3 py-1.5 text-xs font-medium
+          transition-colors touch-manipulation border
           ${
             selectedDate === null
-              ? "bg-blue-600 text-white shadow-md"
-              : "bg-surface-elevated text-text-secondary border border-border hover:border-border-focus"
+              ? "bg-blue-600 text-white border-blue-400"
+              : "bg-surface-elevated text-text-secondary border-border hover:border-border-focus hover:bg-surface-secondary"
           }
         `}
       >
@@ -97,21 +96,20 @@ export function DaySelector({
             ref={isSelected ? selectedRef : undefined}
             onClick={() => onDateSelect(date)}
             className={`
-              flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium
-              transition-all duration-200 touch-manipulation
-              min-h-[40px] whitespace-nowrap
+              flex-shrink-0 px-3 py-1.5 text-xs font-medium
+              transition-colors touch-manipulation whitespace-nowrap border
               ${
                 isSelected
-                  ? "bg-blue-600 text-white shadow-md"
+                  ? "bg-blue-600 text-white border-blue-400"
                   : todayFlag
-                  ? "bg-amber-500/20 text-amber-700 dark:text-amber-400 border border-amber-500/30 hover:bg-amber-500/30"
-                  : "bg-surface-elevated text-text-secondary border border-border hover:border-border-focus"
+                  ? "bg-amber-500/10 text-amber-400 border-amber-500/50 hover:bg-amber-500/20"
+                  : "bg-surface-elevated text-text-secondary border-border hover:border-border-focus hover:bg-surface-secondary"
               }
             `}
           >
             {formatDate(date)}
             {todayFlag && !isSelected && (
-              <span className="ml-1 text-xs">(Today)</span>
+              <span className="ml-1 opacity-70">(Today)</span>
             )}
           </button>
         );
