@@ -24,16 +24,19 @@ export function LocationDetail({ location, onClose }: LocationDetailProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const deleteLocation = useMutation(api.locations.remove);
 
   const handleDelete = async () => {
     setIsDeleting(true);
+    setDeleteError(null);
     try {
       await deleteLocation({ id: location._id });
       onClose();
     } catch (error) {
       console.error("Failed to delete:", error);
+      setDeleteError(error instanceof Error ? error.message : "Failed to delete location");
       setIsDeleting(false);
     }
   };
@@ -183,9 +186,12 @@ export function LocationDetail({ location, onClose }: LocationDetailProps) {
               {showDeleteConfirm ? (
                 <div className="bg-red-500/10 border border-red-500/50 p-3 space-y-3 md:p-2 md:space-y-2">
                   <p className="text-red-400 text-sm">Delete this location? This cannot be undone.</p>
+                  {deleteError && (
+                    <p className="text-red-300 text-xs bg-red-500/20 px-2 py-1 border border-red-500/30">{deleteError}</p>
+                  )}
                   <div className="flex gap-2">
                     <button
-                      onClick={() => setShowDeleteConfirm(false)}
+                      onClick={() => { setShowDeleteConfirm(false); setDeleteError(null); }}
                       disabled={isDeleting}
                       className="flex-1 px-3 py-1.5 border border-border text-text-secondary bg-surface-elevated text-xs"
                     >

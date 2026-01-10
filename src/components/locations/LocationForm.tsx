@@ -36,6 +36,7 @@ export function LocationForm({
   const [locationType, setLocationType] = useState<LocationType>(initialLocationType || "attraction");
   const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const createLocation = useMutation(api.locations.create);
 
@@ -49,6 +50,7 @@ export function LocationForm({
     if (!name.trim() || isSubmitting) return;
 
     setIsSubmitting(true);
+    setError(null);
     try {
       await createLocation({
         tripId,
@@ -62,8 +64,9 @@ export function LocationForm({
         address: address.trim() || undefined,
       });
       onSuccess();
-    } catch (error) {
-      console.error("Failed to create location:", error);
+    } catch (err) {
+      console.error("Failed to create location:", err);
+      setError(err instanceof Error ? err.message : "Failed to create location");
     } finally {
       setIsSubmitting(false);
     }
@@ -180,6 +183,10 @@ export function LocationForm({
           placeholder={isFullscreen ? "Add any notes..." : undefined}
         />
       </div>
+
+      {error && (
+        <p className="text-red-400 text-xs bg-red-500/10 px-3 py-2 border border-red-500/30">{error}</p>
+      )}
 
       {!isFullscreen && (
         <div className="flex gap-2">

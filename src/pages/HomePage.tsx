@@ -37,6 +37,7 @@ export default function HomePage() {
 
 function AuthenticatedHome() {
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [inviteError, setInviteError] = useState<string | null>(null);
   const { signOut } = useAuthActions();
   const navigate = useNavigate();
 
@@ -45,19 +46,23 @@ function AuthenticatedHome() {
   const declineInvite = useMutation(api.tripMembers.declineInvite);
 
   const handleAcceptInvite = async (inviteId: Id<"tripInvites">, tripId: Id<"trips">) => {
+    setInviteError(null);
     try {
       await acceptInvite({ inviteId });
       navigate(`/trip/${tripId}`);
     } catch (error) {
       console.error("Failed to accept invite:", error);
+      setInviteError(error instanceof Error ? error.message : "Failed to accept invite");
     }
   };
 
   const handleDeclineInvite = async (inviteId: Id<"tripInvites">) => {
+    setInviteError(null);
     try {
       await declineInvite({ inviteId });
     } catch (error) {
       console.error("Failed to decline invite:", error);
+      setInviteError(error instanceof Error ? error.message : "Failed to decline invite");
     }
   };
 
@@ -92,6 +97,9 @@ function AuthenticatedHome() {
         {pendingInvites && pendingInvites.length > 0 && (
           <div className="mb-6">
             <h2 className="text-xs font-bold text-text-primary mb-3 uppercase tracking-wide">Pending Invitations</h2>
+            {inviteError && (
+              <p className="text-red-400 text-xs bg-red-500/10 px-3 py-2 border border-red-500/30 mb-2">{inviteError}</p>
+            )}
             <div className="space-y-2">
               {pendingInvites.map((invite) => (
                 <div
