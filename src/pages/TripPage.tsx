@@ -148,7 +148,7 @@ export default function TripPage() {
       {/* Header */}
       <header className="bg-white border-b border-gray-200 px-4 py-3 flex-shrink-0">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <button
               onClick={() => navigate("/")}
               className="p-2 -ml-2 text-gray-600 hover:text-gray-900"
@@ -158,6 +158,15 @@ export default function TripPage() {
               </svg>
             </button>
             <h1 className="text-lg font-semibold text-gray-900 truncate">{trip.name}</h1>
+            <button
+              onClick={() => setShowSearch(true)}
+              className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+              title="Add location"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+            </button>
           </div>
 
           <div className="flex items-center gap-3">
@@ -229,9 +238,9 @@ export default function TripPage() {
         {/* List Panel */}
         {(viewMode === "list" || viewMode === "both") && (
           <div className={`flex flex-col bg-white ${viewMode === "both" ? "w-96 border-r border-gray-200" : "flex-1"}`}>
-            {/* Add Location Button / Search */}
-            <div className="p-3 border-b border-gray-200">
-              {showSearch ? (
+            {/* Search (shown when triggered from header + button) */}
+            {showSearch && (
+              <div className="p-3 border-b border-gray-200">
                 <div className="flex items-center gap-2">
                   <div className="flex-1">
                     <LocationSearch onSelect={handleSearchSelect} placeholder="Search for a place..." autoFocus proximity={mapCenter} />
@@ -246,18 +255,8 @@ export default function TripPage() {
                     </svg>
                   </button>
                 </div>
-              ) : (
-                <button
-                  onClick={() => setShowSearch(true)}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                  </svg>
-                  Add Location
-                </button>
-              )}
-            </div>
+              </div>
+            )}
 
             {/* Location List or Add Form */}
             <div className="flex-1 overflow-y-auto">
@@ -298,39 +297,28 @@ export default function TripPage() {
 
         {/* Map Panel */}
         {(viewMode === "map" || viewMode === "both") && (
-          <div className="flex-1 relative">
-            {/* Floating Add Button / Search for map-only view */}
-            {viewMode === "map" && (
+          <div className="flex-1 w-full relative">
+            {/* Floating Search for map-only view (triggered from header + button) */}
+            {viewMode === "map" && showSearch && (
               <div className="absolute top-3 left-3 right-3 z-10">
-                {showSearch ? (
-                  <div className="flex items-center gap-2 bg-white rounded-lg shadow-md p-2">
-                    <div className="flex-1">
-                      <LocationSearch onSelect={handleSearchSelect} placeholder="Search for a place..." autoFocus proximity={mapCenter} />
-                    </div>
-                    <button
-                      onClick={() => setShowSearch(false)}
-                      className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
-                      title="Cancel"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
+                <div className="flex items-center gap-2 bg-white rounded-lg shadow-md p-2">
+                  <div className="flex-1">
+                    <LocationSearch onSelect={handleSearchSelect} placeholder="Search for a place..." autoFocus proximity={mapCenter} />
                   </div>
-                ) : (
                   <button
-                    onClick={() => setShowSearch(true)}
-                    className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition font-medium"
+                    onClick={() => setShowSearch(false)}
+                    className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
+                    title="Cancel"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
-                    Add Location
                   </button>
-                )}
+                </div>
               </div>
             )}
             <TripMap
+              key={viewMode}
               tripId={tripId as Id<"trips">}
               selectedLocationId={selectedLocationId}
               onLocationSelect={handleMarkerSelect}
