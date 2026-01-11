@@ -1,9 +1,7 @@
 import { useState, useRef, useEffect } from "react";
-import { useMutation } from "convex/react";
-import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { getDatePart, getTimePart, combineDateTime } from "../../lib/dateUtils";
-import { useClickOutside } from "../../hooks";
+import { useClickOutside, useInlineEditor } from "../../hooks";
 
 interface QuickDateEditorProps {
   locationId: Id<"locations">;
@@ -22,12 +20,15 @@ export function QuickDateEditor({
   isEndDate = false,
   displayText,
 }: QuickDateEditorProps) {
-  const [isOpen, setIsOpen] = useState(false);
   const [position, setPosition] = useState<"below" | "above">("below");
   const popoverRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLSpanElement>(null);
 
-  const updateLocation = useMutation(api.locations.update);
+  const { isEditing: isOpen, startEditing, cancelEditing, saveField } = useInlineEditor({
+    locationId,
+    isDesktop,
+    isEndField: isEndDate,
+  });
 
   // Position calculation
   useEffect(() => {
@@ -49,7 +50,7 @@ export function QuickDateEditor({
   }, [isOpen]);
 
   // Close on outside click
-  useClickOutside(popoverRef, () => setIsOpen(false), isOpen);
+  useClickOutside(popoverRef, cancelEditing, isOpen);
 
   // Close on Escape key
   useEffect(() => {
@@ -57,36 +58,35 @@ export function QuickDateEditor({
 
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        setIsOpen(false);
+        cancelEditing();
       }
     };
 
     document.addEventListener("keydown", handleEscape);
     return () => document.removeEventListener("keydown", handleEscape);
-  }, [isOpen]);
+  }, [isOpen, cancelEditing]);
 
   const handleClick = (e: React.MouseEvent) => {
     if (!isDesktop) return;
     e.stopPropagation();
-    setIsOpen(!isOpen);
+    if (isOpen) {
+      cancelEditing();
+    } else {
+      startEditing();
+    }
   };
 
   const handleDateChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const newDate = e.target.value;
     if (!newDate) return;
 
+    const timePart = getTimePart(dateTime);
+    const newDateTime = combineDateTime(newDate, timePart);
+
     try {
-      const timePart = getTimePart(dateTime);
-      const newDateTime = combineDateTime(newDate, timePart);
-
-      await updateLocation({
-        id: locationId,
-        ...(isEndDate ? { endDateTime: newDateTime } : { dateTime: newDateTime }),
-      });
-
-      setIsOpen(false);
+      await saveField(newDateTime);
     } catch (error) {
-      console.error("Failed to update date:", error);
+      // Error already handled by hook
       // Keep popover open on error
     }
   };

@@ -1,8 +1,7 @@
 import { useState, useRef, useEffect } from "react";
-import { useMutation } from "convex/react";
-import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { getTimePart, getDatePart, combineDateTime } from "../../lib/dateUtils";
+import { useInlineEditor } from "../../hooks";
 
 interface QuickTimeEditorProps {
   locationId: Id<"locations">;
@@ -21,12 +20,14 @@ export function QuickTimeEditor({
   isEndTime = false,
   displayText,
 }: QuickTimeEditorProps) {
-  const [isEditing, setIsEditing] = useState(false);
   const [inputValue, setInputValue] = useState("");
-  const [hasError, setHasError] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const updateLocation = useMutation(api.locations.update);
+  const { isEditing, hasError, startEditing, cancelEditing, saveField } = useInlineEditor({
+    locationId,
+    isDesktop,
+    isEndField: isEndTime,
+  });
 
   useEffect(() => {
     if (isEditing && inputRef.current) {
@@ -43,34 +44,24 @@ export function QuickTimeEditor({
     if (!isDesktop) return;
     e.stopPropagation();
     setInputValue(getTimePart(dateTime));
-    setIsEditing(true);
-    setHasError(false);
+    startEditing();
   };
 
   const saveTime = async () => {
     if (!validateTime(inputValue)) {
-      setHasError(true);
       setInputValue(getTimePart(dateTime));
-      setIsEditing(false);
+      cancelEditing();
       return;
     }
 
+    const datePart = getDatePart(dateTime);
+    const newDateTime = combineDateTime(datePart, inputValue);
+
     try {
-      const datePart = getDatePart(dateTime);
-      const newDateTime = combineDateTime(datePart, inputValue);
-
-      await updateLocation({
-        id: locationId,
-        ...(isEndTime ? { endDateTime: newDateTime } : { dateTime: newDateTime }),
-      });
-
-      setIsEditing(false);
-      setHasError(false);
+      await saveField(newDateTime);
     } catch (error) {
-      console.error("Failed to update time:", error);
-      setHasError(true);
+      // Error already handled by hook
       setInputValue(getTimePart(dateTime));
-      setIsEditing(false);
     }
   };
 
@@ -83,8 +74,7 @@ export function QuickTimeEditor({
       e.preventDefault();
       saveTime();
     } else if (e.key === "Escape") {
-      setIsEditing(false);
-      setHasError(false);
+      cancelEditing();
     }
   };
 
