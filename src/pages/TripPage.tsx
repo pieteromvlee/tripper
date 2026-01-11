@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery } from "convex/react";
 import { useAuthActions } from "@convex-dev/auth/react";
@@ -141,7 +141,7 @@ export default function TripPage() {
   const isKanbanView = isMobile ? viewMode === "kanban" : detailViewMode === "kanban";
   const isListView = isMobile ? viewMode === "list" : sidebarVisible;
 
-  function handleMapClick(result: { lat: number; lng: number; name?: string; address?: string }): void {
+  const handleMapClick = useCallback((result: { lat: number; lng: number; name?: string; address?: string }) => {
     setNewLocationData({
       lat: result.lat,
       lng: result.lng,
@@ -149,9 +149,9 @@ export default function TripPage() {
       address: result.address,
     });
     setShowAddForm(true);
-  }
+  }, []);
 
-  function handleSearchSelect(result: { name: string; address: string; latitude: number; longitude: number }): void {
+  const handleSearchSelect = useCallback((result: { name: string; address: string; latitude: number; longitude: number }) => {
     setNewLocationData({
       lat: result.latitude,
       lng: result.longitude,
@@ -161,22 +161,22 @@ export default function TripPage() {
     setShowAddForm(true);
     setShowSearch(false);
     triggerFlyTo();
-  }
+  }, [triggerFlyTo]);
 
-  function handleFormSuccess(): void {
+  const handleFormSuccess = useCallback(() => {
     setShowAddForm(false);
     setNewLocationData(null);
     setShowFullscreenAddForm(false);
-  }
+  }, []);
 
-  function handleFormCancel(): void {
+  const handleFormCancel = useCallback(() => {
     setShowAddForm(false);
     setNewLocationData(null);
     clearSelection();
     setShowFullscreenAddForm(false);
-  }
+  }, [clearSelection]);
 
-  function handleToggleCategory(categoryId: Id<"categories">): void {
+  const handleToggleCategory = useCallback((categoryId: Id<"categories">) => {
     setVisibleCategories((prev) => {
       const next = new Set(prev);
       if (next.has(categoryId)) {
@@ -186,18 +186,18 @@ export default function TripPage() {
       }
       return next;
     });
-  }
+  }, []);
 
-  function handleFlyToAccommodation(): void {
+  const handleFlyToAccommodation = useCallback(() => {
     if (accommodation) {
       selectAndFlyTo(accommodation._id);
     }
-  }
+  }, [accommodation, selectAndFlyTo]);
 
-  function handleLocationSelectAndShowDetail(locationId: Id<"locations">): void {
+  const handleLocationSelectAndShowDetail = useCallback((locationId: Id<"locations">) => {
     selectLocation(locationId);
     setDetailLocationId(locationId);
-  }
+  }, [selectLocation]);
 
   return (
     <div className="h-screen flex flex-col bg-surface">

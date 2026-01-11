@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useMemo } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Id, Doc } from "../../../convex/_generated/dataModel";
@@ -38,7 +38,8 @@ export function LocationList({
     isSpecificDate ? { tripId, date: selectedDate } : "skip"
   );
 
-  function getDateFilteredLocations(): typeof allLocations {
+  // Memoize date-filtered locations to avoid recalculation on every render
+  const dateFilteredLocations = useMemo(() => {
     if (selectedDate === "unscheduled") {
       return allLocations?.filter(loc => !loc.dateTime);
     }
@@ -46,18 +47,15 @@ export function LocationList({
       return dateLocations;
     }
     return allLocations;
-  }
+  }, [selectedDate, isSpecificDate, allLocations, dateLocations]);
 
-  function applyCategoryFilter(
-    locs: typeof allLocations
-  ): typeof allLocations {
-    if (!locs || !visibleCategories) return locs;
-    return locs.filter(
+  // Memoize category-filtered locations to avoid recalculation on every render
+  const locations = useMemo(() => {
+    if (!dateFilteredLocations || !visibleCategories) return dateFilteredLocations;
+    return dateFilteredLocations.filter(
       loc => !loc.categoryId || visibleCategories.has(loc.categoryId)
     );
-  }
-
-  const locations = applyCategoryFilter(getDateFilteredLocations());
+  }, [dateFilteredLocations, visibleCategories]);
 
   // Scroll selected location into view when it changes or when triggered from map marker click
   useEffect(() => {
