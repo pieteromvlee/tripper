@@ -14,12 +14,34 @@ interface LocationDetailProps {
   onClose: () => void;
 }
 
-// Mapbox types for address search
 interface MapboxFeature {
   id: string;
   place_name: string;
   text: string;
   center: [number, number];
+}
+
+function toDatePart(isoString: string): string {
+  try {
+    const date = new Date(isoString);
+    return date.toISOString().slice(0, 10);
+  } catch {
+    return "";
+  }
+}
+
+function toTimePart(isoString: string): string {
+  try {
+    const date = new Date(isoString);
+    return date.toISOString().slice(11, 16);
+  } catch {
+    return "";
+  }
+}
+
+function combineDateTime(date: string, time: string): string {
+  if (!date) return "";
+  return time ? `${date}T${time}` : `${date}T00:00`;
 }
 
 export function LocationDetail({ location, categories, onClose }: LocationDetailProps) {
@@ -266,37 +288,19 @@ export function LocationDetail({ location, categories, onClose }: LocationDetail
   );
 }
 
-// Edit form component
+interface LocationEditFormProps {
+  location: Doc<"locations">;
+  categories?: Doc<"categories">[];
+  onSave: () => void;
+  onCancel: () => void;
+}
+
 function LocationEditForm({
   location,
   categories,
   onSave,
   onCancel,
-}: {
-  location: Doc<"locations">;
-  categories?: Doc<"categories">[];
-  onSave: () => void;
-  onCancel: () => void;
-}) {
-  // Helper functions for date/time conversion
-  function toDatePart(isoString: string): string {
-    try {
-      const date = new Date(isoString);
-      return date.toISOString().slice(0, 10);
-    } catch {
-      return "";
-    }
-  }
-
-  function toTimePart(isoString: string): string {
-    try {
-      const date = new Date(isoString);
-      return date.toISOString().slice(11, 16);
-    } catch {
-      return "";
-    }
-  }
-
+}: LocationEditFormProps) {
   const [name, setName] = useState(location.name);
   const [address, setAddress] = useState(location.address || "");
   const [latitude, setLatitude] = useState(location.latitude);
@@ -321,12 +325,6 @@ function LocationEditForm({
   const addressContainerRef = useRef<HTMLDivElement>(null);
 
   const updateLocation = useMutation(api.locations.update);
-
-  // Combine date and time into datetime-local format
-  function combineDateTime(d: string, t: string): string {
-    if (!d) return "";
-    return t ? `${d}T${t}` : `${d}T00:00`;
-  }
 
   // Search for addresses when typing
   useEffect(() => {

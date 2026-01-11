@@ -137,7 +137,7 @@ export default function TripPage() {
   }
 
 
-  const handleMapClick = (result: { lat: number; lng: number; name?: string; address?: string }) => {
+  function handleMapClick(result: { lat: number; lng: number; name?: string; address?: string }): void {
     setNewLocationData({
       lat: result.lat,
       lng: result.lng,
@@ -145,9 +145,9 @@ export default function TripPage() {
       address: result.address,
     });
     setShowAddForm(true);
-  };
+  }
 
-  const handleSearchSelect = (result: { name: string; address: string; latitude: number; longitude: number }) => {
+  function handleSearchSelect(result: { name: string; address: string; latitude: number; longitude: number }): void {
     setNewLocationData({
       lat: result.latitude,
       lng: result.longitude,
@@ -155,34 +155,24 @@ export default function TripPage() {
       address: result.address,
     });
     setShowAddForm(true);
-    setShowSearch(false); // Hide search after selection
-    // Trigger map to fly to this location
+    setShowSearch(false);
     triggerFlyTo();
-  };
+  }
 
-  const handleLocationSelect = (locationId: Id<"locations">) => {
-    selectLocation(locationId);
-  };
-
-  // Called when a marker on the map is clicked - also triggers scroll in the list
-  const handleMarkerSelect = (locationId: Id<"locations">) => {
-    selectAndScrollTo(locationId);
-  };
-
-  const handleFormSuccess = () => {
+  function handleFormSuccess(): void {
     setShowAddForm(false);
     setNewLocationData(null);
     setShowFullscreenAddForm(false);
-  };
+  }
 
-  const handleFormCancel = () => {
+  function handleFormCancel(): void {
     setShowAddForm(false);
     setNewLocationData(null);
-    clearSelection(); // Clear selection to show all pins
+    clearSelection();
     setShowFullscreenAddForm(false);
-  };
+  }
 
-  const handleToggleCategory = (categoryId: Id<"categories">) => {
+  function handleToggleCategory(categoryId: Id<"categories">): void {
     setVisibleCategories((prev) => {
       const next = new Set(prev);
       if (next.has(categoryId)) {
@@ -192,13 +182,13 @@ export default function TripPage() {
       }
       return next;
     });
-  };
+  }
 
-  const handleFlyToAccommodation = () => {
+  function handleFlyToAccommodation(): void {
     if (accommodation) {
       selectAndFlyTo(accommodation._id);
     }
-  };
+  }
 
   return (
     <div className="h-screen flex flex-col bg-surface">
@@ -406,7 +396,7 @@ export default function TripPage() {
                   selectedLocationId={selectedLocationId ?? undefined}
                   categories={categories}
                   visibleCategories={visibleCategories}
-                  onLocationSelect={handleLocationSelect}
+                  onLocationSelect={selectLocation}
                   scrollTrigger={scrollToCounter}
                 />
               )}
@@ -446,7 +436,7 @@ export default function TripPage() {
                   selectedDate={selectedDate}
                   categories={categories}
                   visibleCategories={visibleCategories}
-                  onLocationSelect={handleMarkerSelect}
+                  onLocationSelect={selectAndScrollTo}
                   onMapClick={handleMapClick}
                   onCenterChange={(lat, lng) => setMapCenter({ lat, lng })}
                   flyToLocation={newLocationData ? { lat: newLocationData.lat, lng: newLocationData.lng, key: flyToCounter } : undefined}
@@ -524,7 +514,7 @@ export default function TripPage() {
                 locations={locations}
                 categories={categories}
                 selectedLocationId={selectedLocationId}
-                onLocationSelect={handleLocationSelect}
+                onLocationSelect={selectLocation}
                 visibleCategories={visibleCategories}
               />
             )}

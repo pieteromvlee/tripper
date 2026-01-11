@@ -11,6 +11,16 @@ interface LocationCardProps {
   selectedDate?: string;
 }
 
+function formatLocationTime(
+  dateTime: string,
+  selectedDate: string | undefined
+): string {
+  if (selectedDate) {
+    return formatTime(dateTime);
+  }
+  return formatDateTime(dateTime);
+}
+
 export function LocationCard({
   location,
   categories,
@@ -18,13 +28,12 @@ export function LocationCard({
   onClick,
   selectedDate,
 }: LocationCardProps) {
-  // Make the card draggable
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: location._id,
   });
 
-  // Find category for this location
   const category = categories?.find(c => c._id === location.categoryId);
+  const isAccommodation = category?.name.toLowerCase() === "accommodation";
 
   return (
     <div
@@ -53,46 +62,27 @@ export function LocationCard({
         )}
 
         <div className="flex-1 min-w-0">
-          {/* Name */}
-          <h3
-            className={`
-              font-medium text-sm truncate
-              ${isSelected ? "text-blue-300" : "text-text-primary"}
-            `}
-          >
+          <h3 className={`font-medium text-sm truncate ${isSelected ? "text-blue-300" : "text-text-primary"}`}>
             {location.name}
           </h3>
 
-          {/* Address */}
           {location.address && (
-            <p className="text-xs text-text-secondary truncate mt-0.5">
-              {location.address}
-            </p>
+            <p className="text-xs text-text-secondary truncate mt-0.5">{location.address}</p>
           )}
 
-          {/* Date/Time */}
           {location.dateTime && (
-            <p
-              className={`
-                text-xs mt-1
-                ${isSelected ? "text-blue-400" : "text-text-secondary"}
-              `}
-            >
-              {selectedDate ? formatTime(location.dateTime) : formatDateTime(location.dateTime)}
-              {category?.name.toLowerCase() === "accommodation" && location.endDateTime && (
+            <p className={`text-xs mt-1 ${isSelected ? "text-blue-400" : "text-text-secondary"}`}>
+              {formatLocationTime(location.dateTime, selectedDate)}
+              {isAccommodation && location.endDateTime && (
                 <span className="text-text-muted">
-                  {" "}
-                  - {selectedDate ? formatTime(location.endDateTime) : formatDateTime(location.endDateTime)}
+                  {" "}- {formatLocationTime(location.endDateTime, selectedDate)}
                 </span>
               )}
             </p>
           )}
 
-          {/* Notes preview */}
           {location.notes && (
-            <p className="text-xs text-text-muted mt-1 line-clamp-2">
-              {location.notes}
-            </p>
+            <p className="text-xs text-text-muted mt-1 line-clamp-2">{location.notes}</p>
           )}
         </div>
       </div>

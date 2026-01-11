@@ -9,6 +9,31 @@ interface DaySelectorProps {
   onDateSelect: (date: string | null | "unscheduled") => void;
 }
 
+const BASE_BUTTON_CLASSES =
+  "flex-shrink-0 px-3 py-1.5 text-xs font-medium transition-colors touch-manipulation border";
+
+type ButtonVariant = "selected" | "today" | "default";
+
+function getButtonClasses(variant: ButtonVariant): string {
+  switch (variant) {
+    case "selected":
+      return `${BASE_BUTTON_CLASSES} bg-blue-600 text-white border-blue-400`;
+    case "today":
+      return `${BASE_BUTTON_CLASSES} bg-amber-500/10 text-amber-400 border-amber-500/50 hover:bg-amber-500/20`;
+    case "default":
+      return `${BASE_BUTTON_CLASSES} bg-surface-elevated text-text-secondary border-border hover:border-border-focus hover:bg-surface-secondary`;
+  }
+}
+
+function formatDateForDisplay(dateStr: string): string {
+  const date = new Date(dateStr + "T00:00:00");
+  return date.toLocaleDateString(undefined, {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  });
+}
+
 export function DaySelector({
   tripId,
   selectedDate,
@@ -20,13 +45,9 @@ export function DaySelector({
   const uniqueDates = useQuery(api.locations.getUniqueDates, { tripId });
   const allLocations = useQuery(api.locations.listByTrip, { tripId });
 
-  // Check if there are any unscheduled locations
   const hasUnscheduledLocations = allLocations?.some(loc => !loc.dateTime);
-
-  // Get today's date in ISO format
   const today = new Date().toISOString().split("T")[0];
 
-  // Scroll selected date into view
   useEffect(() => {
     if (selectedRef.current && containerRef.current) {
       selectedRef.current.scrollIntoView({
@@ -36,21 +57,6 @@ export function DaySelector({
       });
     }
   }, [selectedDate]);
-
-  // Format date for display
-  const formatDate = (dateStr: string): string => {
-    const date = new Date(dateStr + "T00:00:00");
-    return date.toLocaleDateString(undefined, {
-      weekday: "short",
-      month: "short",
-      day: "numeric",
-    });
-  };
-
-  // Check if a date is today
-  const isToday = (dateStr: string): boolean => {
-    return dateStr === today;
-  };
 
   // Loading state
   if (uniqueDates === undefined) {
@@ -72,66 +78,43 @@ export function DaySelector({
       className="flex items-center gap-1 overflow-x-auto px-3 py-2 scrollbar-hide"
       style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
     >
-      {/* "All" option */}
       <button
         ref={selectedDate === null ? selectedRef : undefined}
         onClick={() => onDateSelect(null)}
-        className={`
-          flex-shrink-0 px-3 py-1.5 text-xs font-medium
-          transition-colors touch-manipulation border
-          ${
-            selectedDate === null
-              ? "bg-blue-600 text-white border-blue-400"
-              : "bg-surface-elevated text-text-secondary border-border hover:border-border-focus hover:bg-surface-secondary"
-          }
-        `}
+        className={getButtonClasses(selectedDate === null ? "selected" : "default")}
       >
         All
       </button>
 
-      {/* "Unscheduled" option - only show if there are unscheduled locations */}
       {hasUnscheduledLocations && (
         <button
           ref={selectedDate === "unscheduled" ? selectedRef : undefined}
           onClick={() => onDateSelect("unscheduled")}
-          className={`
-            flex-shrink-0 px-3 py-1.5 text-xs font-medium whitespace-nowrap
-            transition-colors touch-manipulation border
-            ${
-              selectedDate === "unscheduled"
-                ? "bg-blue-600 text-white border-blue-400"
-                : "bg-surface-elevated text-text-secondary border-border hover:border-border-focus hover:bg-surface-secondary"
-            }
-          `}
+          className={`${getButtonClasses(selectedDate === "unscheduled" ? "selected" : "default")} whitespace-nowrap`}
         >
           Unscheduled
         </button>
       )}
 
-      {/* Date pills */}
       {uniqueDates.map((date) => {
         const isSelected = selectedDate === date;
-        const todayFlag = isToday(date);
+        const isToday = date === today;
+
+        function getVariant(): ButtonVariant {
+          if (isSelected) return "selected";
+          if (isToday) return "today";
+          return "default";
+        }
 
         return (
           <button
             key={date}
             ref={isSelected ? selectedRef : undefined}
             onClick={() => onDateSelect(date)}
-            className={`
-              flex-shrink-0 px-3 py-1.5 text-xs font-medium
-              transition-colors touch-manipulation whitespace-nowrap border
-              ${
-                isSelected
-                  ? "bg-blue-600 text-white border-blue-400"
-                  : todayFlag
-                  ? "bg-amber-500/10 text-amber-400 border-amber-500/50 hover:bg-amber-500/20"
-                  : "bg-surface-elevated text-text-secondary border-border hover:border-border-focus hover:bg-surface-secondary"
-              }
-            `}
+            className={`${getButtonClasses(getVariant())} whitespace-nowrap`}
           >
-            {formatDate(date)}
-            {todayFlag && !isSelected && (
+            {formatDateForDisplay(date)}
+            {isToday && !isSelected && (
               <span className="ml-1 opacity-70">(Today)</span>
             )}
           </button>

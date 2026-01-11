@@ -26,34 +26,38 @@ export function LocationList({
   const containerRef = useRef<HTMLDivElement>(null);
   const selectedRef = useRef<HTMLDivElement>(null);
 
-  // Query locations based on whether a date filter is applied
-  // Only run one query at a time to avoid unnecessary database calls
+  const isSpecificDate = selectedDate && selectedDate !== "unscheduled";
+
   const allLocations = useQuery(
     api.locations.listByTrip,
-    !selectedDate || selectedDate === "unscheduled" ? { tripId } : "skip"
-  );
-  const filteredLocations = useQuery(
-    api.locations.listByTripAndDate,
-    selectedDate && selectedDate !== "unscheduled" ? { tripId, date: selectedDate } : "skip"
+    !isSpecificDate ? { tripId } : "skip"
   );
 
-  // Determine which list to use based on the filter
-  let dateFilteredLocations;
-  if (selectedDate === "unscheduled") {
-    // Show only unscheduled locations
-    dateFilteredLocations = allLocations?.filter(loc => !loc.dateTime);
-  } else if (selectedDate) {
-    // Show locations for specific date
-    dateFilteredLocations = filteredLocations;
-  } else {
-    // Show all locations (selectedDate === undefined)
-    dateFilteredLocations = allLocations;
+  const dateLocations = useQuery(
+    api.locations.listByTripAndDate,
+    isSpecificDate ? { tripId, date: selectedDate } : "skip"
+  );
+
+  function getDateFilteredLocations(): typeof allLocations {
+    if (selectedDate === "unscheduled") {
+      return allLocations?.filter(loc => !loc.dateTime);
+    }
+    if (isSpecificDate) {
+      return dateLocations;
+    }
+    return allLocations;
   }
 
-  // Apply category filter (backward compatible - show locations without categoryId)
-  const locations = dateFilteredLocations?.filter(
-    (loc) => !visibleCategories || !loc.categoryId || visibleCategories.has(loc.categoryId)
-  );
+  function applyCategoryFilter(
+    locs: typeof allLocations
+  ): typeof allLocations {
+    if (!locs || !visibleCategories) return locs;
+    return locs.filter(
+      loc => !loc.categoryId || visibleCategories.has(loc.categoryId)
+    );
+  }
+
+  const locations = applyCategoryFilter(getDateFilteredLocations());
 
   // Scroll selected location into view when it changes or when triggered from map marker click
   useEffect(() => {
@@ -77,8 +81,15 @@ export function LocationList({
     );
   }
 
-  // Empty state
   if (locations.length === 0) {
+    const hasActiveFilters =
+      selectedDate ||
+      (visibleCategories && categories && visibleCategories.size < categories.length);
+
+    const emptyMessage = hasActiveFilters
+      ? "No locations match the current filters"
+      : "Tap the map or search to add your first location";
+
     return (
       <div className="flex items-center justify-center h-48">
         <div className="text-center px-4">
@@ -104,11 +115,7 @@ export function LocationList({
             </svg>
           </div>
           <p className="text-text-secondary font-medium">No locations yet</p>
-          <p className="text-sm text-text-muted mt-1">
-            {selectedDate || (visibleCategories && categories && visibleCategories.size < categories.length)
-              ? "No locations match the current filters"
-              : "Tap the map or search to add your first location"}
-          </p>
+          <p className="text-sm text-text-muted mt-1">{emptyMessage}</p>
         </div>
       </div>
     );
