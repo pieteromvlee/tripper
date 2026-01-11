@@ -2,7 +2,6 @@ import { memo } from "react";
 import { useDraggable } from "@dnd-kit/core";
 import type { Doc } from "../../../convex/_generated/dataModel";
 import { formatDateTime, formatTime, formatDateForDisplay } from "../../lib/dateUtils";
-import { CategoryIcon } from "../../lib/typeIcons";
 import { isAccommodationCategory } from "../../lib/categoryUtils";
 import { CategoryPickerButton } from "./CategoryPickerButton";
 import { QuickTimeEditor } from "./QuickTimeEditor";
@@ -15,6 +14,7 @@ interface LocationCardProps {
   isSelected: boolean;
   onClick: () => void;
   selectedDate?: string;
+  isDndEnabled?: boolean;
 }
 
 function formatLocationTime(
@@ -33,9 +33,11 @@ const LocationCardComponent = ({
   isSelected,
   onClick,
   selectedDate,
+  isDndEnabled = false,
 }: LocationCardProps) => {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: location._id,
+    disabled: !isDndEnabled,
   });
 
   const category = categories?.find(c => c._id === location.categoryId);
@@ -45,12 +47,11 @@ const LocationCardComponent = ({
   return (
     <div
       ref={setNodeRef}
-      {...listeners}
-      {...attributes}
+      {...(isDndEnabled ? { ...listeners, ...attributes } : {})}
       onClick={onClick}
       className={`
-        p-3 cursor-pointer transition-colors
-        touch-manipulation border
+        p-3 transition-colors touch-manipulation border
+        ${isDndEnabled ? "cursor-grab active:cursor-grabbing" : "cursor-pointer"}
         ${
           isSelected
             ? "bg-blue-500/10 border-blue-400"

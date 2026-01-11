@@ -49,23 +49,59 @@ export function getTodayDateString(): string {
 /**
  * Parse ISO date string (YYYY-MM-DD) to Date object in local time
  * Use this when you need a Date object for display formatting
- * @param dateStr Date string like "2026-01-16"
+ * @param dateStr Date string like "2026-01-16" or malformed like "01/16/2026"
  * @returns Date object set to midnight local time
  */
 export function parseISODate(dateStr: string): Date {
-  const [year, month, day] = dateStr.split('-').map(Number);
+  let year: number, month: number, day: number;
+
+  if (dateStr.includes('-')) {
+    // ISO format: YYYY-MM-DD
+    [year, month, day] = dateStr.split('-').map(Number);
+  } else if (dateStr.includes('/')) {
+    // Corrupted format: MM/DD/YYYY
+    const parts = dateStr.split('/').map(Number);
+    if (parts.length === 3) {
+      // Assume MM/DD/YYYY
+      [month, day, year] = parts;
+    } else {
+      throw new Error(`Invalid date format: ${dateStr}`);
+    }
+  } else {
+    throw new Error(`Invalid date format: ${dateStr}`);
+  }
+
   return new Date(year, month - 1, day);
 }
 
 /**
  * Parse ISO datetime string (YYYY-MM-DDTHH:mm) to Date object in local time
  * Use this when you need a Date object for display formatting
- * @param dateTime ISO string like "2026-01-16T13:00"
+ * @param dateTime ISO string like "2026-01-16T13:00" or malformed like "01/16/2026T13:00"
  * @returns Date object in local time
  */
 export function parseISODateTime(dateTime: string): Date {
   const [datePart, timePart] = dateTime.split('T');
-  const [year, month, day] = datePart.split('-').map(Number);
+
+  // Handle both ISO format (YYYY-MM-DD) and corrupted format (MM/DD/YYYY)
+  let year: number, month: number, day: number;
+
+  if (datePart.includes('-')) {
+    // ISO format: YYYY-MM-DD
+    [year, month, day] = datePart.split('-').map(Number);
+  } else if (datePart.includes('/')) {
+    // Corrupted format: MM/DD/YYYY
+    const parts = datePart.split('/').map(Number);
+    if (parts.length === 3) {
+      // Assume MM/DD/YYYY
+      [month, day, year] = parts;
+    } else {
+      throw new Error(`Invalid date format: ${datePart}`);
+    }
+  } else {
+    throw new Error(`Invalid date format: ${datePart}`);
+  }
+
   const [hour, minute] = (timePart || '00:00').split(':').map(Number);
   return new Date(year, month - 1, day, hour, minute);
 }
@@ -91,7 +127,18 @@ export function formatDateTime(dateTime: string | undefined): string {
 
   try {
     const date = parseISODateTime(dateTime);
-    const [hour, minute] = (dateTime.split('T')[1] || '00:00').split(':').map(Number);
+
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      return "Invalid date (please edit)";
+    }
+
+    const timePart = dateTime.split('T')[1];
+    if (!timePart) {
+      return "Invalid date (please edit)";
+    }
+
+    const [hour, minute] = timePart.split(':').map(Number);
 
     // Format date part
     const dateStr = date.toLocaleDateString(undefined, {
@@ -100,12 +147,17 @@ export function formatDateTime(dateTime: string | undefined): string {
       day: "numeric",
     });
 
+    // Check if dateStr is valid
+    if (dateStr === "Invalid Date") {
+      return "Invalid date (please edit)";
+    }
+
     // Format time as 24-hour
     const timeStr = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
 
     return `${dateStr}, ${timeStr}`;
   } catch {
-    return dateTime;
+    return "Invalid date (please edit)";
   }
 }
 
@@ -130,12 +182,21 @@ export function formatTime(dateTime: string | undefined): string {
  * @returns Formatted string like "Fri, Jan 16"
  */
 export function formatDateForDisplay(dateStr: string): string {
-  const date = parseISODate(dateStr);
-  return date.toLocaleDateString(undefined, {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-  });
+  try {
+    const date = parseISODate(dateStr);
+    const result = date.toLocaleDateString(undefined, {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+    });
+    // Check if result is "Invalid Date"
+    if (result === "Invalid Date" || isNaN(date.getTime())) {
+      return "Invalid date";
+    }
+    return result;
+  } catch {
+    return "Invalid date";
+  }
 }
 
 /**

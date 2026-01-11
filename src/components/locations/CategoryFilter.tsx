@@ -87,7 +87,7 @@ export function CategoryFilter({
                 </div>
 
                 {/* Icon and label */}
-                <div className="flex items-center gap-2 flex-1">
+                <div className="flex items-center gap-2 flex-1 min-w-0">
                   <span className={isActive ? "text-text-primary" : "text-text-muted"}>
                     <CategoryIcon
                       iconName={category.iconName}
@@ -95,7 +95,7 @@ export function CategoryFilter({
                       color={isActive ? category.color : undefined}
                     />
                   </span>
-                  <span className={`text-xs ${isActive ? "text-text-primary" : "text-text-muted"}`}>
+                  <span className={`text-xs whitespace-nowrap overflow-hidden text-ellipsis ${isActive ? "text-text-primary" : "text-text-muted"}`}>
                     {category.name}s
                   </span>
                 </div>
