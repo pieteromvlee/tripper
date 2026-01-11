@@ -8,20 +8,24 @@ interface CategoryPickerButtonProps {
   location: Doc<"locations">;
   categories?: Doc<"categories">[];
   currentCategory?: Doc<"categories">;
+  isDesktop: boolean;
 }
 
 export function CategoryPickerButton({
   location,
   categories,
   currentCategory,
+  isDesktop,
 }: CategoryPickerButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const updateLocation = useMutation(api.locations.update);
 
-  // Close dropdown when clicking outside
+  // Close dropdown when clicking outside (must be called before any conditional returns)
   useEffect(() => {
+    if (!isDesktop) return; // Skip effect on mobile
+
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false);
@@ -32,7 +36,27 @@ export function CategoryPickerButton({
       document.addEventListener("mousedown", handleClickOutside);
       return () => document.removeEventListener("mousedown", handleClickOutside);
     }
-  }, [isOpen]);
+  }, [isOpen, isDesktop]);
+
+  // Mobile: Show static icon only
+  if (!isDesktop) {
+    return (
+      <div className="flex-shrink-0 mt-0.5">
+        {currentCategory ? (
+          <CategoryIcon
+            iconName={currentCategory.iconName}
+            color={currentCategory.color}
+            className="w-4 h-4"
+          />
+        ) : (
+          <CategoryIcon
+            iconName="MapPin"
+            className="w-4 h-4 text-text-muted"
+          />
+        )}
+      </div>
+    );
+  }
 
   const handleCategorySelect = async (categoryId: Id<"categories">) => {
     try {

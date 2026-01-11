@@ -1,10 +1,13 @@
 import { memo } from "react";
 import { useDraggable } from "@dnd-kit/core";
 import type { Doc } from "../../../convex/_generated/dataModel";
-import { formatDateTime, formatTime } from "../../lib/dateUtils";
+import { formatDateTime, formatTime, formatDateForDisplay } from "../../lib/dateUtils";
 import { CategoryIcon } from "../../lib/typeIcons";
 import { isAccommodationCategory } from "../../lib/categoryUtils";
 import { CategoryPickerButton } from "./CategoryPickerButton";
+import { QuickTimeEditor } from "./QuickTimeEditor";
+import { QuickDateEditor } from "./QuickDateEditor";
+import { useIsDesktop } from "../../hooks/useMediaQuery";
 
 interface LocationCardProps {
   location: Doc<"locations">;
@@ -37,6 +40,7 @@ const LocationCardComponent = ({
 
   const category = categories?.find(c => c._id === location.categoryId);
   const isAccommodation = isAccommodationCategory(category);
+  const isDesktop = useIsDesktop();
 
   return (
     <div
@@ -60,6 +64,7 @@ const LocationCardComponent = ({
           location={location}
           categories={categories}
           currentCategory={category}
+          isDesktop={isDesktop}
         />
 
         <div className="flex-1 min-w-0">
@@ -73,11 +78,85 @@ const LocationCardComponent = ({
 
           {location.dateTime && (
             <p className={`text-xs mt-1 ${isSelected ? "text-blue-400" : "text-text-secondary"}`}>
-              {formatLocationTime(location.dateTime, selectedDate)}
-              {isAccommodation && location.endDateTime && (
-                <span className="text-text-muted">
-                  {" "}- {formatLocationTime(location.endDateTime, selectedDate)}
-                </span>
+              {isDesktop ? (
+                <>
+                  {selectedDate ? (
+                    // When date selected: Show only time (editable on desktop)
+                    <QuickTimeEditor
+                      locationId={location._id}
+                      dateTime={location.dateTime}
+                      isDesktop={isDesktop}
+                      displayText={formatTime(location.dateTime)}
+                      className={isSelected ? "text-blue-400" : "text-text-secondary"}
+                    />
+                  ) : (
+                    // Full datetime: Show date (editable) + time (editable)
+                    <>
+                      <QuickDateEditor
+                        locationId={location._id}
+                        dateTime={location.dateTime}
+                        isDesktop={isDesktop}
+                        displayText={formatDateForDisplay(location.dateTime)}
+                        className={isSelected ? "text-blue-400" : "text-text-secondary"}
+                      />
+                      {", "}
+                      <QuickTimeEditor
+                        locationId={location._id}
+                        dateTime={location.dateTime}
+                        isDesktop={isDesktop}
+                        displayText={formatTime(location.dateTime)}
+                        className={isSelected ? "text-blue-400" : "text-text-secondary"}
+                      />
+                    </>
+                  )}
+
+                  {/* Accommodation checkout time */}
+                  {isAccommodation && location.endDateTime && (
+                    <>
+                      <span className="text-text-muted"> - </span>
+                      {selectedDate ? (
+                        <QuickTimeEditor
+                          locationId={location._id}
+                          dateTime={location.endDateTime}
+                          isEndTime={true}
+                          isDesktop={isDesktop}
+                          displayText={formatTime(location.endDateTime)}
+                          className="text-text-muted"
+                        />
+                      ) : (
+                        <>
+                          <QuickDateEditor
+                            locationId={location._id}
+                            dateTime={location.endDateTime}
+                            isEndDate={true}
+                            isDesktop={isDesktop}
+                            displayText={formatDateForDisplay(location.endDateTime)}
+                            className="text-text-muted"
+                          />
+                          {", "}
+                          <QuickTimeEditor
+                            locationId={location._id}
+                            dateTime={location.endDateTime}
+                            isEndTime={true}
+                            isDesktop={isDesktop}
+                            displayText={formatTime(location.endDateTime)}
+                            className="text-text-muted"
+                          />
+                        </>
+                      )}
+                    </>
+                  )}
+                </>
+              ) : (
+                // Mobile: Static text (existing behavior)
+                <>
+                  {formatLocationTime(location.dateTime, selectedDate)}
+                  {isAccommodation && location.endDateTime && (
+                    <span className="text-text-muted">
+                      {" "}- {formatLocationTime(location.endDateTime, selectedDate)}
+                    </span>
+                  )}
+                </>
               )}
             </p>
           )}
