@@ -38,7 +38,7 @@ export function CompactCalendarColumn({
   });
 
   return (
-    <div className="flex-shrink-0 w-48 flex flex-col">
+    <div className="flex-shrink-0 w-48 lg:flex-1 lg:min-w-48 flex flex-col" data-column>
       {/* Column header */}
       <div
         className={`

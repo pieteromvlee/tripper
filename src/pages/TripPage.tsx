@@ -6,8 +6,6 @@ import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 import { LocationList, FilterBar, LocationDetail, LocationForm, CalendarView, KanbanView } from "../components/locations";
 import { TripMap, LocationSearch, SelectionPopover } from "../components/map";
-import { TripShareModal } from "../components/trips/TripShareModal";
-import { CategoryManagementModal } from "../components/categories/CategoryManagementModal";
 import { useLocationSelection } from "../hooks";
 import { useTheme } from "../hooks/useDarkMode";
 import { parseTripId } from "../lib/routeParams";
@@ -40,8 +38,6 @@ export default function TripPage() {
   const [detailLocationId, setDetailLocationId] = useState<Id<"locations"> | null>(null); // Full-screen detail view
   const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number } | null>(null); // Current map center for search proximity
   const [showFullscreenAddForm, setShowFullscreenAddForm] = useState(false); // Full-screen add form for mobile
-  const [showShareModal, setShowShareModal] = useState(false); // Share trip modal
-  const [showCategoryManagement, setShowCategoryManagement] = useState(false); // Category management modal
   const [isTrackingLocation, setIsTrackingLocation] = useState(false); // Location tracking toggle
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null); // User's current location
 
@@ -310,26 +306,6 @@ export default function TripPage() {
                 </button>
               </div>
             )}
-            {/* Category management button */}
-            <button
-              onClick={() => setShowCategoryManagement(true)}
-              className="p-2 text-text-secondary hover:text-text-primary hover:bg-surface-elevated border border-transparent hover:border-border ml-2"
-              title="Manage categories"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-              </svg>
-            </button>
-            {/* Share button */}
-            <button
-              onClick={() => setShowShareModal(true)}
-              className="p-2 text-text-secondary hover:text-text-primary hover:bg-surface-elevated border border-transparent hover:border-border"
-              title="Share trip"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-              </svg>
-            </button>
             {/* Theme toggle (desktop only) */}
             <button
               onClick={toggleTheme}
@@ -587,23 +563,6 @@ export default function TripPage() {
           onSuccess={handleFormSuccess}
           onCancel={handleFormCancel}
           variant="fullscreen"
-        />
-      )}
-
-      {/* Share trip modal */}
-      {showShareModal && (
-        <TripShareModal
-          tripId={tripId}
-          isOwner={trip.role === "owner"}
-          onClose={() => setShowShareModal(false)}
-        />
-      )}
-
-      {/* Category management modal */}
-      {showCategoryManagement && (
-        <CategoryManagementModal
-          tripId={tripId}
-          onClose={() => setShowCategoryManagement(false)}
         />
       )}
     </div>

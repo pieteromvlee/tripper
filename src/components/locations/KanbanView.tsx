@@ -3,7 +3,7 @@ import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Doc, Id } from "../../../convex/_generated/dataModel";
 import { CompactCalendarColumn } from "./CompactCalendarColumn";
-import { formatDateString, isSameDay, getDatePart } from "../../lib/dateUtils";
+import { formatDateString, isSameDay, getDatePart, parseISODate } from "../../lib/dateUtils";
 
 interface KanbanViewProps {
   tripId: Id<"trips">;
@@ -53,8 +53,8 @@ export function KanbanView({
       return;
     }
 
-    // Parse scheduled dates
-    const scheduledDates = uniqueDates.map((dateStr) => new Date(dateStr));
+    // Parse scheduled dates (use parseISODate to avoid timezone conversion)
+    const scheduledDates = uniqueDates.map((dateStr) => parseISODate(dateStr));
     scheduledDates.sort((a, b) => a.getTime() - b.getTime());
 
     // Get earliest scheduled date
@@ -79,8 +79,8 @@ export function KanbanView({
       );
     }
 
-    // Parse scheduled dates
-    const scheduledDates = uniqueDates.map((dateStr) => new Date(dateStr));
+    // Parse scheduled dates (use parseISODate to avoid timezone conversion)
+    const scheduledDates = uniqueDates.map((dateStr) => parseISODate(dateStr));
     scheduledDates.sort((a, b) => a.getTime() - b.getTime());
 
     const latest = scheduledDates[scheduledDates.length - 1];
@@ -116,12 +116,29 @@ export function KanbanView({
       return;
     }
 
-    // Scroll to today's column (column width is 192px + gap)
-    const columnWidth = 192 + 8; // w-48 (192px) + gap-2 (8px)
-    scrollContainerRef.current.scrollTo({
-      left: todayIndex * columnWidth - scrollContainerRef.current.clientWidth / 2 + columnWidth / 2,
-      behavior: "smooth",
-    });
+    // Check if horizontal scrolling is needed
+    const container = scrollContainerRef.current;
+    if (container.scrollWidth <= container.clientWidth) {
+      // All columns fit in viewport, no need to scroll
+      return;
+    }
+
+    // On mobile (<1024px), use fixed column width
+    const isMobile = window.innerWidth < 1024;
+    if (isMobile) {
+      const columnWidth = 192 + 8; // w-48 (192px) + gap-2 (8px)
+      container.scrollTo({
+        left: todayIndex * columnWidth - container.clientWidth / 2 + columnWidth / 2,
+        behavior: "smooth",
+      });
+    } else {
+      // On desktop with flex columns, calculate actual width
+      const columns = container.querySelectorAll('[data-column]');
+      if (columns.length > todayIndex) {
+        const todayColumn = columns[todayIndex] as HTMLElement;
+        todayColumn.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+      }
+    }
   }
 
   function navigateWeek(delta: number): void {
@@ -191,7 +208,7 @@ export function KanbanView({
       {/* Horizontally scrollable columns */}
       <div
         ref={scrollContainerRef}
-        className="flex-1 overflow-x-auto overflow-y-hidden"
+        className="flex-1 overflow-x-auto overflow-y-hidden scroll-smooth"
       >
         <div className="flex gap-2 p-4 h-full">
           {visibleDates.map((date) => (
