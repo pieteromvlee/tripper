@@ -429,7 +429,7 @@ export function LocationList({
   }
 
   const listContent = (
-    <div ref={containerRef} className="flex flex-col overflow-y-auto">
+    <div ref={containerRef} className="flex flex-col h-full">
       {!groupedLocations.grouped ? (
         // Flat list for date-specific and unscheduled filters
         <div className="flex flex-col gap-2 p-3">
