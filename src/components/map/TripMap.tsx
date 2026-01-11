@@ -5,7 +5,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Id, Doc } from "../../../convex/_generated/dataModel";
-import { useDarkMode } from "../../hooks";
+import { useDarkMode, useFilteredLocations } from "../../hooks";
 import { CategoryIcon } from "../../lib/typeIcons";
 import { logger } from "../../lib/logger";
 
@@ -56,18 +56,12 @@ export function TripMap({
   const isDark = useDarkMode();
 
   const allLocations = useQuery(api.locations.listByTrip, { tripId });
-  const filteredLocations = useQuery(
-    api.locations.listByTripAndDate,
-    selectedDate ? { tripId, date: selectedDate } : "skip"
-  );
 
-  // Use filtered locations when date is selected, otherwise all
-  const baseLocations = selectedDate ? filteredLocations : allLocations;
-
-  // Apply category filter (backward compatible - show locations without categoryId)
-  const locations = baseLocations?.filter(
-    (loc) => !visibleCategories || !loc.categoryId || visibleCategories.has(loc.categoryId)
-  );
+  // Filter locations by date and category using shared hook
+  const locations = useFilteredLocations(allLocations, {
+    date: selectedDate,
+    visibleCategories,
+  });
 
   // Track if map has loaded
   const [mapLoaded, setMapLoaded] = useState(false);
