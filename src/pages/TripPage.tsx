@@ -366,7 +366,6 @@ export default function TripPage() {
                   selectedLocationId={selectedLocationId ?? undefined}
                   visibleTypes={visibleTypes}
                   onLocationSelect={handleLocationSelect}
-                  onOpenDetail={setDetailLocationId}
                   scrollTrigger={scrollToCounter}
                 />
               )}
