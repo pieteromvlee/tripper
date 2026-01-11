@@ -1,17 +1,19 @@
 import type { Doc } from "../../../convex/_generated/dataModel";
-import { formatDateTime } from "../../lib/locationUtils";
+import { formatDateTime, formatTime } from "../../lib/locationUtils";
 import { TypeIcon } from "../../lib/typeIcons";
 
 interface LocationCardProps {
   location: Doc<"locations">;
   isSelected: boolean;
   onClick: () => void;
+  selectedDate?: string;
 }
 
 export function LocationCard({
   location,
   isSelected,
   onClick,
+  selectedDate,
 }: LocationCardProps) {
   return (
     <div
@@ -58,11 +60,11 @@ export function LocationCard({
                 ${isSelected ? "text-blue-400" : "text-text-secondary"}
               `}
             >
-              {formatDateTime(location.dateTime)}
+              {selectedDate ? formatTime(location.dateTime) : formatDateTime(location.dateTime)}
               {location.locationType === "accommodation" && location.endDateTime && (
                 <span className="text-text-muted">
                   {" "}
-                  - {formatDateTime(location.endDateTime)}
+                  - {selectedDate ? formatTime(location.endDateTime) : formatDateTime(location.endDateTime)}
                 </span>
               )}
             </p>

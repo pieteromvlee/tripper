@@ -119,6 +119,7 @@ export function LocationList({
               location={location}
               isSelected={isSelected}
               onClick={() => onLocationSelect(location._id)}
+              selectedDate={selectedDate}
             />
           </div>
         );

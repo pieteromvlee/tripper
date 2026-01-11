@@ -46,3 +46,20 @@ export function formatDateTime(dateTime: string | undefined): string {
     return dateTime;
   }
 }
+
+/**
+ * Formats a datetime string to show only the time
+ */
+export function formatTime(dateTime: string | undefined): string {
+  if (!dateTime) return "";
+
+  try {
+    const date = new Date(dateTime);
+    return date.toLocaleTimeString(undefined, {
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  } catch {
+    return dateTime;
+  }
+}
