@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { logger } from "../../lib/logger";
 
 interface LocationSearchResult {
   name: string;
@@ -190,7 +191,7 @@ export function LocationSearch({
         setResults(combinedResults);
         setIsOpen(combinedResults.length > 0);
       } catch (error) {
-        console.error("Search error:", error);
+        logger.error("Search error:", error);
         setResults([]);
       } finally {
         setIsLoading(false);

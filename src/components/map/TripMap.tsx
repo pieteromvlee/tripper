@@ -7,6 +7,7 @@ import { api } from "../../../convex/_generated/api";
 import type { Id, Doc } from "../../../convex/_generated/dataModel";
 import { useDarkMode } from "../../hooks";
 import { CategoryIcon } from "../../lib/typeIcons";
+import { logger } from "../../lib/logger";
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
 
@@ -234,7 +235,7 @@ export function TripMap({
         }
       } catch (error) {
         // Silently fail - we already have coordinates
-        console.error("Reverse geocoding failed:", error);
+        logger.error("Reverse geocoding failed:", error);
       }
 
       // Call once with complete data (including address if found)

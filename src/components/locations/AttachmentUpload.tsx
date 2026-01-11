@@ -2,6 +2,7 @@ import { useState, useRef, type ChangeEvent } from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
+import { logger } from "../../lib/logger";
 
 interface AttachmentUploadProps {
   locationId: Id<"locations">;
@@ -126,7 +127,7 @@ export function AttachmentUpload({
       setUploadProgress(0);
       onUploadComplete?.();
     } catch (err) {
-      console.error("Upload failed:", err);
+      logger.error("Upload failed:", err);
       setError("Failed to upload file. Please try again.");
     } finally {
       setIsUploading(false);

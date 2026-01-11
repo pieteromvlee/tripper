@@ -12,6 +12,7 @@ import { useLocationSelection } from "../hooks";
 import { useTheme } from "../hooks/useDarkMode";
 import { parseTripId } from "../lib/routeParams";
 import { isAccommodationCategory } from "../lib/categoryUtils";
+import { logger } from "../lib/logger";
 
 type ViewMode = "list" | "map" | "calendar" | "kanban";
 type DetailViewMode = "map" | "calendar" | "kanban";
@@ -73,7 +74,7 @@ export default function TripPage() {
         });
       },
       (error) => {
-        console.error("Geolocation error:", error);
+        logger.error("Geolocation error:", error);
         if (error.code === error.PERMISSION_DENIED) {
           alert("Location permission denied");
         }

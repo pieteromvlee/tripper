@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { Authenticated } from "convex/react";
 import { Navigate } from "react-router-dom";
+import { logger } from "../lib/logger";
 
 export default function LoginPage() {
   const { signIn } = useAuthActions();
@@ -25,7 +26,7 @@ export default function LoginPage() {
       });
       // The Authenticated component will handle redirect
     } catch (err) {
-      console.error("Sign in error:", err);
+      logger.error("Sign in error:", err);
       setError(isSignUp ? "Could not create account. Try a different email." : "Invalid email or password.");
       setLoading(false);
     }

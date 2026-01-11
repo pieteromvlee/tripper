@@ -2,6 +2,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Id, Doc } from "../../../convex/_generated/dataModel";
 import { useState } from "react";
+import { logger } from "../../lib/logger";
 
 interface AttachmentListProps {
   locationId: Id<"locations">;
@@ -185,7 +186,7 @@ export function AttachmentList({ locationId }: AttachmentListProps) {
     try {
       await deleteAttachment({ attachmentId });
     } catch (error) {
-      console.error("Failed to delete attachment:", error);
+      logger.error("Failed to delete attachment:", error);
       alert("Failed to delete attachment. Please try again.");
     } finally {
       setDeletingId(null);

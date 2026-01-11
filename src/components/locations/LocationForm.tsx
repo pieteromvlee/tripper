@@ -5,6 +5,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { CategoryIcon } from "../../lib/typeIcons";
 import { combineDateTime } from "../../lib/dateUtils";
 import { isAccommodationCategory } from "../../lib/categoryUtils";
+import { logger } from "../../lib/logger";
 
 interface LocationFormProps {
   tripId: Id<"trips">;
@@ -74,7 +75,7 @@ export function LocationForm({
       });
       onSuccess();
     } catch (err) {
-      console.error("Failed to create location:", err);
+      logger.error("Failed to create location:", err);
       setError(err instanceof Error ? err.message : "Failed to create location");
     } finally {
       setIsSubmitting(false);

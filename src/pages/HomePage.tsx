@@ -6,6 +6,7 @@ import { TripList, CreateTripModal } from "../components/trips";
 import { useTheme } from "../hooks/useDarkMode";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
+import { logger } from "../lib/logger";
 
 export default function HomePage() {
   return (
@@ -53,7 +54,7 @@ function AuthenticatedHome() {
       await acceptInvite({ inviteId });
       navigate(`/trip/${tripId}`);
     } catch (error) {
-      console.error("Failed to accept invite:", error);
+      logger.error("Failed to accept invite:", error);
       setInviteError(error instanceof Error ? error.message : "Failed to accept invite");
     }
   };
@@ -63,7 +64,7 @@ function AuthenticatedHome() {
     try {
       await declineInvite({ inviteId });
     } catch (error) {
-      console.error("Failed to decline invite:", error);
+      logger.error("Failed to decline invite:", error);
       setInviteError(error instanceof Error ? error.message : "Failed to decline invite");
     }
   };

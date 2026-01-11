@@ -8,6 +8,7 @@ import { getDirectionsUrl } from "../../lib/locationUtils";
 import { CategoryIcon } from "../../lib/typeIcons";
 import { getDatePart, getTimePart, combineDateTime, formatDateTime } from "../../lib/dateUtils";
 import { isAccommodationCategory } from "../../lib/categoryUtils";
+import { logger } from "../../lib/logger";
 
 interface LocationDetailProps {
   location: Doc<"locations">;
@@ -41,7 +42,7 @@ export function LocationDetail({ location, categories, onClose }: LocationDetail
       await deleteLocation({ id: location._id });
       onClose();
     } catch (error) {
-      console.error("Failed to delete:", error);
+      logger.error("Failed to delete:", error);
       setDeleteError(error instanceof Error ? error.message : "Failed to delete location");
       setIsDeleting(false);
     }
@@ -318,7 +319,7 @@ function LocationEditForm({
           setShowAddressResults((data.features || []).length > 0);
         }
       } catch (error) {
-        console.error("Address search error:", error);
+        logger.error("Address search error:", error);
       } finally {
         setIsSearching(false);
       }
@@ -383,7 +384,7 @@ function LocationEditForm({
         }
       }
     } catch (error) {
-      console.error("Address prefill failed:", error);
+      logger.error("Address prefill failed:", error);
     } finally {
       setIsPrefilling(false);
     }
@@ -408,7 +409,7 @@ function LocationEditForm({
       });
       onSave();
     } catch (error) {
-      console.error("Failed to update location:", error);
+      logger.error("Failed to update location:", error);
     } finally {
       setIsSubmitting(false);
     }

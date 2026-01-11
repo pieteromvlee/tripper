@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
+import { logger } from "../../lib/logger";
 
 interface CreateTripModalProps {
   isOpen: boolean;
@@ -34,7 +35,7 @@ export function CreateTripModal({ isOpen, onClose }: CreateTripModalProps) {
       setName("");
       onClose();
     } catch (error) {
-      console.error("Failed to create trip:", error);
+      logger.error("Failed to create trip:", error);
     } finally {
       setIsSubmitting(false);
     }
