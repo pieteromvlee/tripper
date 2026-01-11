@@ -1,20 +1,22 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { useQuery, useMutation } from "convex/react";
+import { useQuery } from "convex/react";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 import { LocationList, FilterBar, LocationDetail, LocationForm, CalendarView } from "../components/locations";
 import { TripMap, LocationSearch, SelectionPopover } from "../components/map";
 import { ErrorBoundary, MapErrorFallback } from "../components/ErrorBoundary";
-import { useLocationSelection } from "../hooks";
+import {
+  useLocationSelection,
+  useViewMode,
+  useLocationForm,
+  useGeolocation,
+  useDateMigration,
+} from "../hooks";
 import { useTheme } from "../hooks/useDarkMode";
 import { parseTripId } from "../lib/routeParams";
 import { isAccommodationCategory } from "../lib/categoryUtils";
-import { logger } from "../lib/logger";
-
-type ViewMode = "list" | "map" | "calendar";
-type DetailViewMode = "map" | "calendar";
 
 export default function TripPage() {
   const params = useParams<{ tripId: string }>();
@@ -22,83 +24,24 @@ export default function TripPage() {
   const navigate = useNavigate();
   const { signOut } = useAuthActions();
   const { isDark, toggleTheme } = useTheme();
+
+  // Filter state
   const [selectedDate, setSelectedDate] = useState<string | null | "unscheduled">(null);
   const [visibleCategories, setVisibleCategories] = useState<Set<Id<"categories">>>(new Set());
-  const [viewMode, setViewMode] = useState<ViewMode>("list"); // Mobile: list/map/calendar
-  const [detailViewMode, setDetailViewMode] = useState<DetailViewMode>("map"); // Desktop: map/calendar toggle
-  const [sidebarVisible, setSidebarVisible] = useState(true); // Desktop only
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [newLocationData, setNewLocationData] = useState<{
-    lat: number;
-    lng: number;
-    name?: string;
-    address?: string;
-  } | null>(null);
-  const [isMobile, setIsMobile] = useState(false);
-  const [showSearch, setShowSearch] = useState(false); // Toggle search visibility
-  const [detailLocationId, setDetailLocationId] = useState<Id<"locations"> | null>(null); // Full-screen detail view
-  const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number } | null>(null); // Current map center for search proximity
-  const [showFullscreenAddForm, setShowFullscreenAddForm] = useState(false); // Full-screen add form for mobile
-  const [isTrackingLocation, setIsTrackingLocation] = useState(false); // Location tracking toggle
-  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null); // User's current location
-  const [migrationStatus, setMigrationStatus] = useState<string | null>(null); // Date migration status
 
-  // Update mutation for fixing dates
-  const updateLocation = useMutation(api.locations.update);
+  // UI state
+  const [showSearch, setShowSearch] = useState(false);
+  const [detailLocationId, setDetailLocationId] = useState<Id<"locations"> | null>(null);
+  const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number } | null>(null);
 
-  // Detect mobile viewport
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 1024);
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
-
-  // Geolocation tracking
-  useEffect(() => {
-    if (!isTrackingLocation) {
-      setUserLocation(null);
-      return;
-    }
-
-    if (!navigator.geolocation) {
-      alert("Geolocation is not supported by your browser");
-      setIsTrackingLocation(false);
-      return;
-    }
-
-    const watchId = navigator.geolocation.watchPosition(
-      (position) => {
-        setUserLocation({
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-        });
-      },
-      (error) => {
-        logger.error("Geolocation error:", error);
-        if (error.code === error.PERMISSION_DENIED) {
-          alert("Location permission denied");
-        }
-        setIsTrackingLocation(false);
-      },
-      { enableHighAccuracy: true, maximumAge: 10000 }
-    );
-
-    return () => navigator.geolocation.clearWatch(watchId);
-  }, [isTrackingLocation]);
-
+  // Data fetching
   const trip = useQuery(api.trips.get, { tripId });
   const locations = useQuery(api.locations.listByTrip, { tripId });
   const categories = useQuery(api.categories.list, { tripId });
 
-  // Initialize visibleCategories when categories load
-  useEffect(() => {
-    if (categories && visibleCategories.size === 0) {
-      setVisibleCategories(new Set(categories.map(c => c._id)));
-    }
-  }, [categories]);
+  // Custom hooks
+  const viewMode = useViewMode();
 
-  // IMPORTANT: Call all hooks before any conditional returns
   const {
     selectedLocationId,
     selectedLocation,
@@ -111,42 +54,22 @@ export default function TripPage() {
     scrollToCounter,
   } = useLocationSelection(locations);
 
-  // All useCallback hooks MUST be called before any early returns
-  const handleMapClick = useCallback((result: { lat: number; lng: number; name?: string; address?: string }) => {
-    setNewLocationData({
-      lat: result.lat,
-      lng: result.lng,
-      name: result.name,
-      address: result.address,
-    });
-    setShowAddForm(true);
-  }, []);
+  const locationForm = useLocationForm({
+    onTriggerFlyTo: triggerFlyTo,
+    onClearSelection: clearSelection,
+  });
 
-  const handleSearchSelect = useCallback((result: { name: string; address: string; latitude: number; longitude: number }) => {
-    setNewLocationData({
-      lat: result.latitude,
-      lng: result.longitude,
-      name: result.name,
-      address: result.address,
-    });
-    setShowAddForm(true);
-    setShowSearch(false);
-    triggerFlyTo();
-  }, [triggerFlyTo]);
+  const { userLocation, isTracking: isTrackingLocation, toggleTracking: toggleLocationTracking } = useGeolocation();
+  const { migrationStatus, migrateDates } = useDateMigration(locations);
 
-  const handleFormSuccess = useCallback(() => {
-    setShowAddForm(false);
-    setNewLocationData(null);
-    setShowFullscreenAddForm(false);
-  }, []);
+  // Initialize visibleCategories when categories load
+  useEffect(() => {
+    if (categories && visibleCategories.size === 0) {
+      setVisibleCategories(new Set(categories.map(c => c._id)));
+    }
+  }, [categories, visibleCategories.size]);
 
-  const handleFormCancel = useCallback(() => {
-    setShowAddForm(false);
-    setNewLocationData(null);
-    clearSelection();
-    setShowFullscreenAddForm(false);
-  }, [clearSelection]);
-
+  // Callback for category filtering
   const handleToggleCategory = useCallback((categoryId: Id<"categories">) => {
     setVisibleCategories((prev) => {
       const next = new Set(prev);
@@ -158,6 +81,17 @@ export default function TripPage() {
       return next;
     });
   }, []);
+
+  // Search handling (closes search and triggers fly-to animation)
+  const handleSearchSelect = useCallback(
+    (result: { name: string; address: string; latitude: number; longitude: number }) => {
+      locationForm.handleSearchSelect(result);
+      setShowSearch(false);
+    },
+    [locationForm]
+  );
+
+  // Other callbacks
 
   // Find accommodation for use in handleFlyToAccommodation callback
   const accommodation = locations?.find((loc) => {
@@ -175,99 +109,6 @@ export default function TripPage() {
     selectLocation(locationId);
     setDetailLocationId(locationId);
   }, [selectLocation]);
-
-  const handleMigrateDates = useCallback(async () => {
-    if (!locations) return;
-
-    try {
-      setMigrationStatus("Scanning for corrupted dates...");
-
-      // First, log ALL locations to see what we have
-      console.log('=== ALL LOCATIONS ===');
-      locations.forEach(loc => {
-        console.log(`${loc.name}: dateTime="${loc.dateTime}" endDateTime="${loc.endDateTime || 'none'}"`);
-      });
-
-      // Pattern for valid YYYY-MM-DD format
-      const validPattern = /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2})?$/;
-
-      // Find locations with ANY invalid date format (not matching YYYY-MM-DD)
-      // OR dates that parse to invalid Date objects
-      const locationsToFix = locations.filter(loc => {
-        const hasInvalidDateTime = loc.dateTime && !validPattern.test(loc.dateTime);
-        const hasInvalidEndDateTime = loc.endDateTime && !validPattern.test(loc.endDateTime);
-
-        // Also check if dates parse to valid Date objects
-        let hasUnparsableDateTime = false;
-        let hasUnparsableEndDateTime = false;
-
-        if (loc.dateTime && validPattern.test(loc.dateTime)) {
-          try {
-            const [datePart] = loc.dateTime.split('T');
-            const [year, month, day] = datePart.split('-').map(Number);
-            const testDate = new Date(year, month - 1, day);
-            if (isNaN(testDate.getTime())) {
-              console.log('Found unparsable dateTime:', loc.name, loc.dateTime);
-              hasUnparsableDateTime = true;
-            }
-          } catch (e) {
-            console.log('Error parsing dateTime:', loc.name, loc.dateTime, e);
-            hasUnparsableDateTime = true;
-          }
-        }
-
-        if (loc.endDateTime && validPattern.test(loc.endDateTime)) {
-          try {
-            const [datePart] = loc.endDateTime.split('T');
-            const [year, month, day] = datePart.split('-').map(Number);
-            const testDate = new Date(year, month - 1, day);
-            if (isNaN(testDate.getTime())) {
-              console.log('Found unparsable endDateTime:', loc.name, loc.endDateTime);
-              hasUnparsableEndDateTime = true;
-            }
-          } catch (e) {
-            console.log('Error parsing endDateTime:', loc.name, loc.endDateTime, e);
-            hasUnparsableEndDateTime = true;
-          }
-        }
-
-        // Log what we found for debugging
-        if (hasInvalidDateTime) {
-          console.log('Found invalid format dateTime:', loc.name, loc.dateTime);
-        }
-        if (hasInvalidEndDateTime) {
-          console.log('Found invalid format endDateTime:', loc.name, loc.endDateTime);
-        }
-
-        return hasInvalidDateTime || hasInvalidEndDateTime || hasUnparsableDateTime || hasUnparsableEndDateTime;
-      });
-
-      if (locationsToFix.length === 0) {
-        setMigrationStatus("No corrupted dates found!");
-        setTimeout(() => setMigrationStatus(null), 3000);
-        return;
-      }
-
-      setMigrationStatus(`Fixing ${locationsToFix.length} location(s)...`);
-
-      // Update each location - backend validation will auto-fix the format
-      for (const location of locationsToFix) {
-        console.log('Fixing location:', location.name, 'dateTime:', location.dateTime, 'endDateTime:', location.endDateTime);
-        await updateLocation({
-          id: location._id,
-          dateTime: location.dateTime,
-          endDateTime: location.endDateTime,
-        });
-      }
-
-      setMigrationStatus(`Fixed ${locationsToFix.length} location(s) with corrupted dates!`);
-      setTimeout(() => setMigrationStatus(null), 5000);
-    } catch (error) {
-      console.error('Migration error:', error);
-      setMigrationStatus(`Error: ${error instanceof Error ? error.message : String(error)}`);
-      setTimeout(() => setMigrationStatus(null), 5000);
-    }
-  }, [locations, updateLocation]);
 
   // Early returns AFTER all hooks
   if (!tripId) {
@@ -294,11 +135,6 @@ export default function TripPage() {
 
   // Find detail location (after early returns since it's only used in JSX)
   const detailLocation = locations?.find((loc) => loc._id === detailLocationId);
-
-  // View mode computed values for cleaner conditionals
-  const isMapView = isMobile ? viewMode === "map" : detailViewMode === "map";
-  const isCalendarView = isMobile ? viewMode === "calendar" : detailViewMode === "calendar";
-  const isListView = isMobile ? viewMode === "list" : sidebarVisible;
 
   return (
     <div className="h-screen flex flex-col bg-surface">
@@ -328,9 +164,9 @@ export default function TripPage() {
 
           <div className="flex items-center gap-1">
             {/* Location tracking toggle (only visible when map view is active) */}
-            {isMapView && (
+            {viewMode.isMapView && (
               <button
-                onClick={() => setIsTrackingLocation(!isTrackingLocation)}
+                onClick={toggleLocationTracking}
                 className={`p-2 border transition ${
                   isTrackingLocation
                     ? "text-blue-400 bg-blue-500/10 border-blue-500/50"
@@ -360,7 +196,7 @@ export default function TripPage() {
 
             {/* Date migration button */}
             <button
-              onClick={handleMigrateDates}
+              onClick={migrateDates}
               className="hidden md:block px-3 py-1 text-xs border border-border bg-surface hover:bg-surface-secondary text-text-secondary hover:text-text-primary"
               title="Fix date format issues (MM/DD/YYYY → YYYY-MM-DD)"
             >
@@ -375,10 +211,10 @@ export default function TripPage() {
             )}
 
             {/* View toggle (mobile: three-way list/map/calendar) */}
-            {isMobile && (
+            {viewMode.isMobile && (
               <div className="flex items-center border border-border ml-2">
                 <button
-                  onClick={() => setViewMode("list")}
+                  onClick={() => viewMode.setViewMode("list")}
                   className={`p-2 transition border-r border-border ${
                     viewMode === "list" ? "bg-blue-600 text-white" : "text-text-secondary hover:bg-surface-elevated"
                   }`}
@@ -389,7 +225,7 @@ export default function TripPage() {
                   </svg>
                 </button>
                 <button
-                  onClick={() => setViewMode("map")}
+                  onClick={() => viewMode.setViewMode("map")}
                   className={`p-2 transition border-r border-border ${
                     viewMode === "map" ? "bg-blue-600 text-white" : "text-text-secondary hover:bg-surface-elevated"
                   }`}
@@ -401,7 +237,7 @@ export default function TripPage() {
                   </svg>
                 </button>
                 <button
-                  onClick={() => setViewMode("calendar")}
+                  onClick={() => viewMode.setViewMode("calendar")}
                   className={`p-2 transition ${
                     viewMode === "calendar" ? "bg-blue-600 text-white" : "text-text-secondary hover:bg-surface-elevated"
                   }`}
@@ -451,17 +287,17 @@ export default function TripPage() {
         categories={categories}
         visibleCategories={visibleCategories}
         onToggleCategory={handleToggleCategory}
-        sidebarVisible={!isMobile ? sidebarVisible : undefined}
-        onToggleSidebar={!isMobile ? () => setSidebarVisible((prev) => !prev) : undefined}
-        detailViewMode={!isMobile ? detailViewMode : undefined}
-        onDetailViewModeChange={!isMobile ? setDetailViewMode : undefined}
+        sidebarVisible={!viewMode.isMobile ? viewMode.sidebarVisible : undefined}
+        onToggleSidebar={!viewMode.isMobile ? () => viewMode.setSidebarVisible((prev) => !prev) : undefined}
+        detailViewMode={!viewMode.isMobile ? viewMode.detailViewMode : undefined}
+        onDetailViewModeChange={!viewMode.isMobile ? viewMode.setDetailViewMode : undefined}
       />
 
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
         {/* List Panel (Sidebar) */}
-        {isListView && (
-          <div className={`flex flex-col bg-surface-elevated ${!isMobile ? "w-96 border-r border-border" : "flex-1"}`}>
+        {viewMode.isListView && (
+          <div className={`flex flex-col bg-surface-elevated ${!viewMode.isMobile ? "w-96 border-r border-border" : "flex-1"}`}>
             {/* Search (shown when triggered from header + button) */}
             {showSearch && (
               <div className="p-3 border-b border-border bg-surface-secondary">
@@ -484,11 +320,11 @@ export default function TripPage() {
 
             {/* Location List or Add Form */}
             <div className="flex-1 overflow-y-auto">
-              {showAddForm && newLocationData ? (
+              {locationForm.showAddForm && locationForm.newLocationData ? (
                 <div>
                   <div className="px-4 py-2 bg-blue-500/10 border-b border-blue-500/30 flex items-center justify-between">
                     <span className="text-xs font-bold text-blue-400 uppercase tracking-wide">Add New Location</span>
-                    <button onClick={handleFormCancel} className="text-blue-400 hover:text-blue-300 p-1 hover:bg-blue-500/20 border border-transparent hover:border-blue-500/50">
+                    <button onClick={locationForm.handleFormCancel} className="text-blue-400 hover:text-blue-300 p-1 hover:bg-blue-500/20 border border-transparent hover:border-blue-500/50">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                       </svg>
@@ -496,12 +332,12 @@ export default function TripPage() {
                   </div>
                   <LocationForm
                     tripId={tripId}
-                    latitude={newLocationData.lat}
-                    longitude={newLocationData.lng}
-                    initialName={newLocationData.name}
-                    initialAddress={newLocationData.address}
-                    onSuccess={handleFormSuccess}
-                    onCancel={handleFormCancel}
+                    latitude={locationForm.newLocationData.lat}
+                    longitude={locationForm.newLocationData.lng}
+                    initialName={locationForm.newLocationData.name}
+                    initialAddress={locationForm.newLocationData.address}
+                    onSuccess={locationForm.handleFormSuccess}
+                    onCancel={locationForm.handleFormCancel}
                     variant="inline"
                   />
                 </div>
@@ -523,13 +359,13 @@ export default function TripPage() {
         )}
 
         {/* Detail Panel (Map or Calendar) */}
-        {(isMobile ? viewMode !== "list" : true) && (
+        {(viewMode.isMobile ? viewMode !== "list" : true) && (
           <div className="flex-1 w-full relative">
             {/* Show Map */}
-            {isMapView && (
+            {viewMode.isMapView && (
               <>
                 {/* Floating Search for map-only view (triggered from header + button) */}
-                {(isMobile ? viewMode === "map" : !sidebarVisible) && showSearch && (
+                {(viewMode.isMobile ? viewMode === "map" : !viewMode.sidebarVisible) && showSearch && (
                   <div className="absolute top-3 left-3 right-3 z-10">
                     <div className="flex items-center gap-2 bg-surface-elevated border border-border p-2">
                       <div className="flex-1">
@@ -549,17 +385,17 @@ export default function TripPage() {
                 )}
                 <ErrorBoundary fallback={(error, resetError) => <MapErrorFallback error={error} resetError={resetError} />}>
                   <TripMap
-                    key={isMobile ? viewMode : `desktop-${sidebarVisible}`}
+                    key={viewMode.isMobile ? viewMode : `desktop-${viewMode.sidebarVisible}`}
                     tripId={tripId}
                     selectedLocationId={selectedLocationId}
                     selectedDate={selectedDate}
                     categories={categories}
                     visibleCategories={visibleCategories}
                     onLocationSelect={selectAndScrollTo}
-                    onMapClick={handleMapClick}
+                    onMapClick={locationForm.handleMapClick}
                     onCenterChange={(lat, lng) => setMapCenter({ lat, lng })}
-                    flyToLocation={newLocationData ? { lat: newLocationData.lat, lng: newLocationData.lng, key: flyToCounter } : undefined}
-                    pendingLocation={showAddForm && newLocationData ? { lat: newLocationData.lat, lng: newLocationData.lng } : null}
+                    flyToLocation={locationForm.newLocationData ? { lat: locationForm.newLocationData.lat, lng: locationForm.newLocationData.lng, key: flyToCounter } : undefined}
+                    pendingLocation={locationForm.showAddForm && locationForm.newLocationData ? { lat: locationForm.newLocationData.lat, lng: locationForm.newLocationData.lng } : null}
                     userLocation={userLocation}
                   />
                 </ErrorBoundary>
@@ -578,7 +414,7 @@ export default function TripPage() {
                 )}
 
                 {/* Selection popover - top-left of map pane */}
-                {selectedLocation && (!isMobile || viewMode === "map") && !showAddForm && (
+                {selectedLocation && (!viewMode.isMobile || viewMode === "map") && !locationForm.showAddForm && (
                   <div className={`absolute left-3 z-10 ${showSearch ? "top-16" : "top-3"}`}>
                     <SelectionPopover
                       location={selectedLocation}
@@ -591,19 +427,19 @@ export default function TripPage() {
                 )}
 
                 {/* Floating action buttons for pending location (map-only or sidebar hidden) */}
-                {showAddForm && newLocationData && (isMobile ? viewMode === "map" : !sidebarVisible) && (
+                {locationForm.showAddForm && locationForm.newLocationData && (viewMode.isMobile ? viewMode === "map" : !viewMode.sidebarVisible) && (
                   <div
                     className="absolute right-4 z-10 flex flex-col gap-2"
                     style={{ bottom: "calc(1rem + env(safe-area-inset-bottom, 0px))" }}
                   >
                     {/* Location name label */}
                     <div className="bg-green-500/10 border border-green-500/50 px-3 py-2 text-xs font-medium text-green-400 max-w-[200px] truncate">
-                      {newLocationData.name || "New Location"}
+                      {locationForm.newLocationData.name || "New Location"}
                     </div>
                     <div className="flex gap-2">
                       {/* Cancel button */}
                       <button
-                        onClick={handleFormCancel}
+                        onClick={locationForm.handleFormCancel}
                         className="bg-surface-elevated p-3 border border-border text-text-secondary hover:bg-surface-secondary hover:border-border-focus transition"
                         title="Cancel"
                       >
@@ -613,7 +449,7 @@ export default function TripPage() {
                       </button>
                       {/* Add button */}
                       <button
-                        onClick={() => setShowFullscreenAddForm(true)}
+                        onClick={() => locationForm.setShowFullscreenAddForm(true)}
                         className="bg-green-600 p-3 border border-green-400 text-white hover:bg-green-500 transition"
                         title="Add location"
                       >
@@ -628,7 +464,7 @@ export default function TripPage() {
             )}
 
             {/* Show Calendar */}
-            {isCalendarView && (
+            {viewMode.isCalendarView && (
               <ErrorBoundary>
                 <CalendarView
                   tripId={tripId}
@@ -656,15 +492,15 @@ export default function TripPage() {
       )}
 
       {/* Full-screen add location form */}
-      {showFullscreenAddForm && newLocationData && (
+      {locationForm.showFullscreenAddForm && locationForm.newLocationData && (
         <LocationForm
           tripId={tripId}
-          latitude={newLocationData.lat}
-          longitude={newLocationData.lng}
-          initialName={newLocationData.name}
-          initialAddress={newLocationData.address}
-          onSuccess={handleFormSuccess}
-          onCancel={handleFormCancel}
+          latitude={locationForm.newLocationData.lat}
+          longitude={locationForm.newLocationData.lng}
+          initialName={locationForm.newLocationData.name}
+          initialAddress={locationForm.newLocationData.address}
+          onSuccess={locationForm.handleFormSuccess}
+          onCancel={locationForm.handleFormCancel}
           variant="fullscreen"
         />
       )}
