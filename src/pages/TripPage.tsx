@@ -205,7 +205,7 @@ export default function TripPage() {
   return (
     <div className="h-screen flex flex-col bg-surface">
       {/* Header */}
-      <header className="bg-surface-secondary border-b border-border px-4 py-2 flex-shrink-0">
+      <header className="bg-surface border-b border-border px-4 py-2 flex-shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <button
@@ -265,35 +265,48 @@ export default function TripPage() {
               <div className="flex items-center border border-border ml-2">
                 <button
                   onClick={() => setViewMode("list")}
-                  className={`px-3 py-1.5 text-xs font-medium transition border-r border-border ${
+                  className={`p-2 transition border-r border-border ${
                     viewMode === "list" ? "bg-blue-600 text-white" : "text-text-secondary hover:bg-surface-elevated"
                   }`}
+                  title="List view"
                 >
-                  List
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
                 </button>
                 <button
                   onClick={() => setViewMode("map")}
-                  className={`px-3 py-1.5 text-xs font-medium transition border-r border-border ${
+                  className={`p-2 transition border-r border-border ${
                     viewMode === "map" ? "bg-blue-600 text-white" : "text-text-secondary hover:bg-surface-elevated"
                   }`}
+                  title="Map view"
                 >
-                  Map
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
                 </button>
                 <button
                   onClick={() => setViewMode("calendar")}
-                  className={`px-3 py-1.5 text-xs font-medium transition border-r border-border ${
+                  className={`p-2 transition border-r border-border ${
                     viewMode === "calendar" ? "bg-blue-600 text-white" : "text-text-secondary hover:bg-surface-elevated"
                   }`}
+                  title="Calendar view"
                 >
-                  Calendar
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
                 </button>
                 <button
                   onClick={() => setViewMode("kanban")}
-                  className={`px-3 py-1.5 text-xs font-medium transition ${
+                  className={`p-2 transition ${
                     viewMode === "kanban" ? "bg-blue-600 text-white" : "text-text-secondary hover:bg-surface-elevated"
                   }`}
+                  title="Kanban view"
                 >
-                  Kanban
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v12a2 2 0 01-2 2" />
+                  </svg>
                 </button>
               </div>
             )}
@@ -336,7 +349,7 @@ export default function TripPage() {
             {/* Sign Out */}
             <button
               onClick={() => signOut()}
-              className="text-text-secondary hover:text-text-primary p-2 hover:bg-surface-elevated border border-transparent hover:border-border"
+              className="hidden md:block text-text-secondary hover:text-text-primary p-2 hover:bg-surface-elevated border border-transparent hover:border-border"
               title="Sign Out"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
