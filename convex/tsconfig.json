@@ -19,7 +19,11 @@
     "forceConsistentCasingInFileNames": true,
     "module": "ESNext",
     "isolatedModules": true,
-    "noEmit": true
+    "noEmit": true,
+
+    /* Project reference configuration */
+    "composite": true,
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.convex.tsbuildinfo"
   },
   "include": ["./**/*"],
   "exclude": ["./_generated"]

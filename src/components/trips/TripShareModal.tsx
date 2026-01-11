@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
+import { getErrorMessage } from "../../lib/errorHandling";
 
 interface TripShareModalProps {
   tripId: Id<"trips">;
@@ -50,8 +51,8 @@ export function TripShareModal({ tripId, isOwner, onClose }: TripShareModalProps
       } else {
         setSuccessMessage(`Invitation sent to ${result.email}. They'll see it when they log in.`);
       }
-    } catch (err: any) {
-      setError(err.data || err.message || "Failed to send invitation");
+    } catch (error: unknown) {
+      setError(getErrorMessage(error));
     } finally {
       setIsInviting(false);
     }
@@ -60,16 +61,16 @@ export function TripShareModal({ tripId, isOwner, onClose }: TripShareModalProps
   const handleRemoveMember = async (memberId: Id<"tripMembers">) => {
     try {
       await removeMember({ memberId });
-    } catch (err: any) {
-      setError(err.data || err.message || "Failed to remove member");
+    } catch (error: unknown) {
+      setError(getErrorMessage(error));
     }
   };
 
   const handleCancelInvite = async (inviteId: Id<"tripInvites">) => {
     try {
       await cancelInvite({ inviteId });
-    } catch (err: any) {
-      setError(err.data || err.message || "Failed to cancel invitation");
+    } catch (error: unknown) {
+      setError(getErrorMessage(error));
     }
   };
 

@@ -9,11 +9,13 @@ import { TripMap, LocationSearch, SelectionPopover } from "../components/map";
 import type { LocationType } from "../lib/locationStyles";
 import { TripShareModal } from "../components/trips/TripShareModal";
 import { useLocationSelection } from "../hooks";
+import { parseTripId } from "../lib/routeParams";
 
 type ViewMode = "list" | "map";
 
 export default function TripPage() {
-  const { tripId } = useParams<{ tripId: string }>();
+  const params = useParams<{ tripId: string }>();
+  const tripId = parseTripId(params.tripId);
   const navigate = useNavigate();
   const { signOut } = useAuthActions();
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -81,8 +83,8 @@ export default function TripPage() {
     return () => navigator.geolocation.clearWatch(watchId);
   }, [isTrackingLocation]);
 
-  const trip = useQuery(api.trips.get, tripId ? { tripId: tripId as Id<"trips"> } : "skip");
-  const locations = useQuery(api.locations.listByTrip, tripId ? { tripId: tripId as Id<"trips"> } : "skip");
+  const trip = useQuery(api.trips.get, { tripId });
+  const locations = useQuery(api.locations.listByTrip, { tripId });
 
   const {
     selectedLocationId,
@@ -289,7 +291,7 @@ export default function TripPage() {
 
       {/* Filter Bar (Date + Type filters) */}
       <FilterBar
-        tripId={tripId as Id<"trips">}
+        tripId={tripId}
         selectedDate={selectedDate}
         onDateSelect={setSelectedDate}
         visibleTypes={visibleTypes}
@@ -336,7 +338,7 @@ export default function TripPage() {
                     </button>
                   </div>
                   <LocationForm
-                    tripId={tripId as Id<"trips">}
+                    tripId={tripId}
                     latitude={newLocationData.lat}
                     longitude={newLocationData.lng}
                     initialName={newLocationData.name}
@@ -349,7 +351,7 @@ export default function TripPage() {
                 </div>
               ) : (
                 <LocationList
-                  tripId={tripId as Id<"trips">}
+                  tripId={tripId}
                   selectedDate={selectedDate ?? undefined}
                   selectedLocationId={selectedLocationId ?? undefined}
                   visibleTypes={visibleTypes}
@@ -385,7 +387,7 @@ export default function TripPage() {
             )}
             <TripMap
               key={isMobile ? viewMode : `desktop-${sidebarVisible}`}
-              tripId={tripId as Id<"trips">}
+              tripId={tripId}
               selectedLocationId={selectedLocationId}
               selectedDate={selectedDate}
               visibleTypes={visibleTypes}
@@ -471,7 +473,7 @@ export default function TripPage() {
       {/* Full-screen add location form */}
       {showFullscreenAddForm && newLocationData && (
         <LocationForm
-          tripId={tripId as Id<"trips">}
+          tripId={tripId}
           latitude={newLocationData.lat}
           longitude={newLocationData.lng}
           initialName={newLocationData.name}
@@ -486,7 +488,7 @@ export default function TripPage() {
       {/* Share trip modal */}
       {showShareModal && (
         <TripShareModal
-          tripId={tripId as Id<"trips">}
+          tripId={tripId}
           isOwner={trip.role === "owner"}
           onClose={() => setShowShareModal(false)}
         />
