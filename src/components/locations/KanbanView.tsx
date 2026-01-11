@@ -3,7 +3,7 @@ import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Doc, Id } from "../../../convex/_generated/dataModel";
 import { CompactCalendarColumn } from "./CompactCalendarColumn";
-import { formatDateString, isSameDay } from "../../lib/dateUtils";
+import { formatDateString, isSameDay, getDatePart } from "../../lib/dateUtils";
 
 interface KanbanViewProps {
   tripId: Id<"trips">;
@@ -100,7 +100,7 @@ export function KanbanView({
     return locations.filter((loc) => {
       if (!loc.dateTime) return false;
       if (loc.categoryId && !visibleCategories.has(loc.categoryId)) return false;
-      return loc.dateTime.substring(0, 10) === dateStr;
+      return getDatePart(loc.dateTime) === dateStr;
     });
   }
 

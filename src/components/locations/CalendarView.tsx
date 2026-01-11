@@ -5,7 +5,7 @@ import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Doc, Id } from "../../../convex/_generated/dataModel";
 import { CalendarCell } from "./CalendarCell";
-import { formatDateString, getTimePart, isSameDay } from "../../lib/dateUtils";
+import { formatDateString, getTimePart, isSameDay, getDatePart } from "../../lib/dateUtils";
 
 interface CalendarViewProps {
   tripId: Id<"trips">;
@@ -88,7 +88,7 @@ export function CalendarView({
     return locations.filter((loc) => {
       if (!loc.dateTime) return false;
       if (loc.categoryId && !visibleCategories.has(loc.categoryId)) return false;
-      return loc.dateTime.substring(0, 10) === dateStr;
+      return getDatePart(loc.dateTime) === dateStr;
     });
   }
 

@@ -1,6 +1,7 @@
 import { useDroppable } from "@dnd-kit/core";
 import type { Doc, Id } from "../../../convex/_generated/dataModel";
 import { CalendarLocationChip } from "./CalendarLocationChip";
+import { formatDateString } from "../../lib/dateUtils";
 
 interface CompactCalendarColumnProps {
   date: Date;
@@ -20,7 +21,7 @@ export function CompactCalendarColumn({
   onLocationSelect,
 }: CompactCalendarColumnProps) {
   // Create droppable ID in format: day-YYYY-MM-DD
-  const dateStr = date.toISOString().split("T")[0];
+  const dateStr = formatDateString(date);
   const { setNodeRef, isOver } = useDroppable({
     id: `day-${dateStr}`,
   });
