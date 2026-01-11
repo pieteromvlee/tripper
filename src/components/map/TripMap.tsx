@@ -210,8 +210,10 @@ export function TripMap({
           const data = await response.json();
           if (data.features && data.features.length > 0) {
             const feature = data.features[0];
-            // Only update if it's a POI (has a specific name)
-            if (feature.properties?.category || feature.place_type?.includes('poi')) {
+            const isPOI = feature.properties?.category || feature.place_type?.includes('poi');
+
+            if (isPOI) {
+              // POI: Extract name and address separately
               let address = feature.place_name;
               if (address.startsWith(feature.text)) {
                 address = address.slice(feature.text.length).replace(/^,\s*/, "");
@@ -221,6 +223,13 @@ export function TripMap({
                 lng,
                 name: feature.text,
                 address: address || undefined,
+              });
+            } else {
+              // Generic address: Use full place_name as address, no name
+              onMapClick({
+                lat,
+                lng,
+                address: feature.place_name || undefined,
               });
             }
           }
