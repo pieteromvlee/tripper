@@ -94,6 +94,7 @@ export default function TripPage() {
     }
   }, [categories]);
 
+  // IMPORTANT: Call all hooks before any conditional returns
   const {
     selectedLocationId,
     selectedLocation,
@@ -106,41 +107,7 @@ export default function TripPage() {
     scrollToCounter,
   } = useLocationSelection(locations);
 
-  // Find accommodation and detail location
-  const accommodation = locations?.find((loc) => {
-    const category = categories?.find(c => c._id === loc.categoryId);
-    return isAccommodationCategory(category);
-  });
-  const detailLocation = locations?.find((loc) => loc._id === detailLocationId);
-
-  if (!tripId) {
-    return <div className="p-4">Invalid trip ID</div>;
-  }
-
-  if (trip === undefined) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-surface">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
-      </div>
-    );
-  }
-
-  if (trip === null) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-surface px-4">
-        <h1 className="text-xl font-bold text-text-primary mb-2">Trip not found</h1>
-        <p className="text-text-secondary mb-4">This trip doesn't exist or you don't have access.</p>
-        <Link to="/" className="text-blue-600 hover:underline">Back to My Trips</Link>
-      </div>
-    );
-  }
-
-  // View mode computed values for cleaner conditionals
-  const isMapView = isMobile ? viewMode === "map" : detailViewMode === "map";
-  const isCalendarView = isMobile ? viewMode === "calendar" : detailViewMode === "calendar";
-  const isKanbanView = isMobile ? viewMode === "kanban" : detailViewMode === "kanban";
-  const isListView = isMobile ? viewMode === "list" : sidebarVisible;
-
+  // All useCallback hooks MUST be called before any early returns
   const handleMapClick = useCallback((result: { lat: number; lng: number; name?: string; address?: string }) => {
     setNewLocationData({
       lat: result.lat,
@@ -188,6 +155,12 @@ export default function TripPage() {
     });
   }, []);
 
+  // Find accommodation for use in handleFlyToAccommodation callback
+  const accommodation = locations?.find((loc) => {
+    const category = categories?.find(c => c._id === loc.categoryId);
+    return isAccommodationCategory(category);
+  });
+
   const handleFlyToAccommodation = useCallback(() => {
     if (accommodation) {
       selectAndFlyTo(accommodation._id);
@@ -198,6 +171,38 @@ export default function TripPage() {
     selectLocation(locationId);
     setDetailLocationId(locationId);
   }, [selectLocation]);
+
+  // Early returns AFTER all hooks
+  if (!tripId) {
+    return <div className="p-4">Invalid trip ID</div>;
+  }
+
+  if (trip === undefined) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-surface">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+      </div>
+    );
+  }
+
+  if (trip === null) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-surface px-4">
+        <h1 className="text-xl font-bold text-text-primary mb-2">Trip not found</h1>
+        <p className="text-text-secondary mb-4">This trip doesn't exist or you don't have access.</p>
+        <Link to="/" className="text-blue-600 hover:underline">Back to My Trips</Link>
+      </div>
+    );
+  }
+
+  // Find detail location (after early returns since it's only used in JSX)
+  const detailLocation = locations?.find((loc) => loc._id === detailLocationId);
+
+  // View mode computed values for cleaner conditionals
+  const isMapView = isMobile ? viewMode === "map" : detailViewMode === "map";
+  const isCalendarView = isMobile ? viewMode === "calendar" : detailViewMode === "calendar";
+  const isKanbanView = isMobile ? viewMode === "kanban" : detailViewMode === "kanban";
+  const isListView = isMobile ? viewMode === "list" : sidebarVisible;
 
   return (
     <div className="h-screen flex flex-col bg-surface">
