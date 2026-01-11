@@ -190,6 +190,11 @@ export default function TripPage() {
     }
   }
 
+  function handleLocationSelectAndShowDetail(locationId: Id<"locations">): void {
+    selectLocation(locationId);
+    setDetailLocationId(locationId);
+  }
+
   return (
     <div className="h-screen flex flex-col bg-surface">
       {/* Header */}
@@ -522,7 +527,7 @@ export default function TripPage() {
                 locations={locations}
                 categories={categories}
                 selectedLocationId={selectedLocationId}
-                onLocationSelect={selectLocation}
+                onLocationSelect={handleLocationSelectAndShowDetail}
                 visibleCategories={visibleCategories}
               />
             )}
@@ -534,7 +539,7 @@ export default function TripPage() {
                 locations={locations}
                 categories={categories}
                 selectedLocationId={selectedLocationId}
-                onLocationSelect={selectLocation}
+                onLocationSelect={handleLocationSelectAndShowDetail}
                 visibleCategories={visibleCategories}
               />
             )}

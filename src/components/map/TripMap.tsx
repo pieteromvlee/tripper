@@ -80,7 +80,7 @@ export function TripMap({
   // Map style based on dark mode
   const mapStyle = isDark
     ? "mapbox://styles/mapbox/dark-v11"
-    : "mapbox://styles/mapbox/streets-v12";
+    : "mapbox://styles/mapbox/outdoors-v12";
 
   // Handle map load - position map appropriately
   const handleMapLoad = useCallback(() => {
