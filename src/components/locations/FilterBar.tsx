@@ -2,6 +2,8 @@ import type { Id, Doc } from "../../../convex/_generated/dataModel";
 import { DaySelector } from "./DaySelector";
 import { CategoryFilter } from "./CategoryFilter";
 
+type DetailViewMode = "map" | "calendar";
+
 interface FilterBarProps {
   tripId: Id<"trips">;
   selectedDate: string | null;
@@ -11,6 +13,8 @@ interface FilterBarProps {
   onToggleCategory: (categoryId: Id<"categories">) => void;
   sidebarVisible?: boolean;
   onToggleSidebar?: () => void;
+  detailViewMode?: DetailViewMode;
+  onDetailViewModeChange?: (mode: DetailViewMode) => void;
 }
 
 export function FilterBar({
@@ -22,6 +26,8 @@ export function FilterBar({
   onToggleCategory,
   sidebarVisible,
   onToggleSidebar,
+  detailViewMode,
+  onDetailViewModeChange,
 }: FilterBarProps) {
   return (
     <div className="flex items-center bg-surface-secondary">
@@ -58,6 +64,30 @@ export function FilterBar({
           onDateSelect={onDateSelect}
         />
       </div>
+
+      {/* Detail view mode toggle (desktop only) */}
+      {onDetailViewModeChange && detailViewMode && (
+        <div className="flex-shrink-0 flex items-center px-3 py-2 border-l border-border">
+          <div className="flex items-center border border-border">
+            <button
+              onClick={() => onDetailViewModeChange("map")}
+              className={`px-3 py-1.5 text-xs font-medium transition border-r border-border ${
+                detailViewMode === "map" ? "bg-blue-600 text-white" : "text-text-secondary hover:bg-surface-elevated"
+              }`}
+            >
+              Map
+            </button>
+            <button
+              onClick={() => onDetailViewModeChange("calendar")}
+              className={`px-3 py-1.5 text-xs font-medium transition ${
+                detailViewMode === "calendar" ? "bg-blue-600 text-white" : "text-text-secondary hover:bg-surface-elevated"
+              }`}
+            >
+              Calendar
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Separator and category filter on the right */}
       <div className="flex-shrink-0 flex items-center pl-3 pr-3 py-2 border-l border-border ml-0">

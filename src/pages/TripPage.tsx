@@ -5,12 +5,15 @@ import { useAuthActions } from "@convex-dev/auth/react";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 import { LocationList, FilterBar, LocationDetail, LocationForm, CalendarView } from "../components/locations";
-import { LocationSearch } from "../components/map";
+import { TripMap, LocationSearch, SelectionPopover } from "../components/map";
 import { TripShareModal } from "../components/trips/TripShareModal";
 import { CategoryManagementModal } from "../components/categories/CategoryManagementModal";
 import { useLocationSelection } from "../hooks";
 import { useTheme } from "../hooks/useDarkMode";
 import { parseTripId } from "../lib/routeParams";
+
+type ViewMode = "list" | "map" | "calendar";
+type DetailViewMode = "map" | "calendar";
 
 export default function TripPage() {
   const params = useParams<{ tripId: string }>();
@@ -20,6 +23,8 @@ export default function TripPage() {
   const { isDark, toggleTheme } = useTheme();
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [visibleCategories, setVisibleCategories] = useState<Set<Id<"categories">>>(new Set());
+  const [viewMode, setViewMode] = useState<ViewMode>("list"); // Mobile: list/map/calendar
+  const [detailViewMode, setDetailViewMode] = useState<DetailViewMode>("map"); // Desktop: map/calendar toggle
   const [sidebarVisible, setSidebarVisible] = useState(true); // Desktop only
   const [showAddForm, setShowAddForm] = useState(false);
   const [newLocationData, setNewLocationData] = useState<{
@@ -31,9 +36,12 @@ export default function TripPage() {
   const [isMobile, setIsMobile] = useState(false);
   const [showSearch, setShowSearch] = useState(false); // Toggle search visibility
   const [detailLocationId, setDetailLocationId] = useState<Id<"locations"> | null>(null); // Full-screen detail view
+  const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number } | null>(null); // Current map center for search proximity
   const [showFullscreenAddForm, setShowFullscreenAddForm] = useState(false); // Full-screen add form for mobile
   const [showShareModal, setShowShareModal] = useState(false); // Share trip modal
   const [showCategoryManagement, setShowCategoryManagement] = useState(false); // Category management modal
+  const [isTrackingLocation, setIsTrackingLocation] = useState(false); // Location tracking toggle
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null); // User's current location
 
   // Detect mobile viewport
   useEffect(() => {
@@ -42,6 +50,39 @@ export default function TripPage() {
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
+
+  // Geolocation tracking
+  useEffect(() => {
+    if (!isTrackingLocation) {
+      setUserLocation(null);
+      return;
+    }
+
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser");
+      setIsTrackingLocation(false);
+      return;
+    }
+
+    const watchId = navigator.geolocation.watchPosition(
+      (position) => {
+        setUserLocation({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        });
+      },
+      (error) => {
+        console.error("Geolocation error:", error);
+        if (error.code === error.PERMISSION_DENIED) {
+          alert("Location permission denied");
+        }
+        setIsTrackingLocation(false);
+      },
+      { enableHighAccuracy: true, maximumAge: 10000 }
+    );
+
+    return () => navigator.geolocation.clearWatch(watchId);
+  }, [isTrackingLocation]);
 
   const trip = useQuery(api.trips.get, { tripId });
   const locations = useQuery(api.locations.listByTrip, { tripId });
@@ -56,8 +97,13 @@ export default function TripPage() {
 
   const {
     selectedLocationId,
+    selectedLocation,
     selectLocation,
+    selectAndFlyTo,
+    selectAndScrollTo,
     clearSelection,
+    triggerFlyTo,
+    flyToCounter,
     scrollToCounter,
   } = useLocationSelection(locations);
 
@@ -88,6 +134,16 @@ export default function TripPage() {
   }
 
 
+  const handleMapClick = (result: { lat: number; lng: number; name?: string; address?: string }) => {
+    setNewLocationData({
+      lat: result.lat,
+      lng: result.lng,
+      name: result.name,
+      address: result.address,
+    });
+    setShowAddForm(true);
+  };
+
   const handleSearchSelect = (result: { name: string; address: string; latitude: number; longitude: number }) => {
     setNewLocationData({
       lat: result.latitude,
@@ -97,10 +153,17 @@ export default function TripPage() {
     });
     setShowAddForm(true);
     setShowSearch(false); // Hide search after selection
+    // Trigger map to fly to this location
+    triggerFlyTo();
   };
 
   const handleLocationSelect = (locationId: Id<"locations">) => {
     selectLocation(locationId);
+  };
+
+  // Called when a marker on the map is clicked - also triggers scroll in the list
+  const handleMarkerSelect = (locationId: Id<"locations">) => {
+    selectAndScrollTo(locationId);
   };
 
   const handleFormSuccess = () => {
@@ -128,9 +191,9 @@ export default function TripPage() {
     });
   };
 
-  const handleSelectAccommodation = () => {
+  const handleFlyToAccommodation = () => {
     if (accommodation) {
-      selectLocation(accommodation._id);
+      selectAndFlyTo(accommodation._id);
     }
   };
 
@@ -161,12 +224,30 @@ export default function TripPage() {
           </div>
 
           <div className="flex items-center gap-1">
+            {/* Location tracking toggle (only visible when map view is active) */}
+            {(isMobile ? viewMode === "map" : detailViewMode === "map") && (
+              <button
+                onClick={() => setIsTrackingLocation(!isTrackingLocation)}
+                className={`p-2 border transition ${
+                  isTrackingLocation
+                    ? "text-blue-400 bg-blue-500/10 border-blue-500/50"
+                    : "text-text-secondary hover:text-text-primary hover:bg-surface-elevated border-transparent hover:border-border"
+                }`}
+                title={isTrackingLocation ? "Stop tracking location" : "Show my location"}
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 2v2m0 16v2m10-10h-2M4 12H2" />
+                </svg>
+              </button>
+            )}
+
             {/* Accommodation button */}
             {accommodation && (
               <button
-                onClick={handleSelectAccommodation}
+                onClick={handleFlyToAccommodation}
                 className="p-2 text-purple-400 hover:bg-purple-500/10 border border-transparent hover:border-purple-500/50"
-                title="Select accommodation"
+                title="Go to accommodation"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
@@ -174,6 +255,35 @@ export default function TripPage() {
               </button>
             )}
 
+            {/* View toggle (mobile: three-way list/map/calendar) */}
+            {isMobile && (
+              <div className="flex items-center border border-border ml-2">
+                <button
+                  onClick={() => setViewMode("list")}
+                  className={`px-3 py-1.5 text-xs font-medium transition border-r border-border ${
+                    viewMode === "list" ? "bg-blue-600 text-white" : "text-text-secondary hover:bg-surface-elevated"
+                  }`}
+                >
+                  List
+                </button>
+                <button
+                  onClick={() => setViewMode("map")}
+                  className={`px-3 py-1.5 text-xs font-medium transition border-r border-border ${
+                    viewMode === "map" ? "bg-blue-600 text-white" : "text-text-secondary hover:bg-surface-elevated"
+                  }`}
+                >
+                  Map
+                </button>
+                <button
+                  onClick={() => setViewMode("calendar")}
+                  className={`px-3 py-1.5 text-xs font-medium transition ${
+                    viewMode === "calendar" ? "bg-blue-600 text-white" : "text-text-secondary hover:bg-surface-elevated"
+                  }`}
+                >
+                  Calendar
+                </button>
+              </div>
+            )}
             {/* Category management button */}
             <button
               onClick={() => setShowCategoryManagement(true)}
@@ -224,7 +334,7 @@ export default function TripPage() {
         </div>
       </header>
 
-      {/* Filter Bar (Date + Category filters) */}
+      {/* Filter Bar (Date + Category filters + Detail View Mode toggle) */}
       <FilterBar
         tripId={tripId}
         selectedDate={selectedDate}
@@ -234,12 +344,14 @@ export default function TripPage() {
         onToggleCategory={handleToggleCategory}
         sidebarVisible={!isMobile ? sidebarVisible : undefined}
         onToggleSidebar={!isMobile ? () => setSidebarVisible((prev) => !prev) : undefined}
+        detailViewMode={!isMobile ? detailViewMode : undefined}
+        onDetailViewModeChange={!isMobile ? setDetailViewMode : undefined}
       />
 
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
-        {/* List Panel (Sidebar) - always shown on mobile, toggleable on desktop */}
-        {(isMobile || sidebarVisible) && (
+        {/* List Panel (Sidebar) */}
+        {(isMobile ? viewMode === "list" : sidebarVisible) && (
           <div className={`flex flex-col bg-surface-elevated ${!isMobile ? "w-96 border-r border-border" : "flex-1"}`}>
             {/* Search (shown when triggered from header + button) */}
             {showSearch && (
@@ -299,17 +411,120 @@ export default function TripPage() {
           </div>
         )}
 
-        {/* Calendar Panel (Desktop only) */}
-        {!isMobile && (
+        {/* Detail Panel (Map or Calendar) */}
+        {(isMobile ? viewMode !== "list" : true) && (
           <div className="flex-1 w-full relative">
-            <CalendarView
-              tripId={tripId}
-              locations={locations}
-              categories={categories}
-              selectedLocationId={selectedLocationId}
-              onLocationSelect={handleLocationSelect}
-              visibleCategories={visibleCategories}
-            />
+            {/* Show Map */}
+            {(isMobile ? viewMode === "map" : detailViewMode === "map") && (
+              <>
+                {/* Floating Search for map-only view (triggered from header + button) */}
+                {(isMobile ? viewMode === "map" : !sidebarVisible) && showSearch && (
+                  <div className="absolute top-3 left-3 right-3 z-10">
+                    <div className="flex items-center gap-2 bg-surface-elevated border border-border p-2">
+                      <div className="flex-1">
+                        <LocationSearch onSelect={handleSearchSelect} placeholder="Search for a place..." autoFocus proximity={mapCenter} />
+                      </div>
+                      <button
+                        onClick={() => setShowSearch(false)}
+                        className="p-2 text-text-muted hover:text-text-secondary hover:bg-surface-secondary border border-transparent hover:border-border"
+                        title="Cancel"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                )}
+                <TripMap
+                  key={isMobile ? viewMode : `desktop-${sidebarVisible}`}
+                  tripId={tripId}
+                  selectedLocationId={selectedLocationId}
+                  selectedDate={selectedDate}
+                  categories={categories}
+                  visibleCategories={visibleCategories}
+                  onLocationSelect={handleMarkerSelect}
+                  onMapClick={handleMapClick}
+                  onCenterChange={(lat, lng) => setMapCenter({ lat, lng })}
+                  flyToLocation={newLocationData ? { lat: newLocationData.lat, lng: newLocationData.lng, key: flyToCounter } : undefined}
+                  pendingLocation={showAddForm && newLocationData ? { lat: newLocationData.lat, lng: newLocationData.lng } : null}
+                  userLocation={userLocation}
+                />
+                {/* Show All button - appears when a location is selected */}
+                {selectedLocationId && (
+                  <button
+                    onClick={clearSelection}
+                    className="absolute left-4 z-10 bg-surface-elevated px-3 py-2 border border-border text-xs font-medium text-text-secondary hover:bg-surface-secondary hover:border-border-focus flex items-center gap-2"
+                    style={{ bottom: "calc(1rem + env(safe-area-inset-bottom, 0px))" }}
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                    </svg>
+                    Show All
+                  </button>
+                )}
+
+                {/* Selection popover - top-left of map pane */}
+                {selectedLocation && (!isMobile || viewMode === "map") && !showAddForm && (
+                  <div className={`absolute left-3 z-10 ${showSearch ? "top-16" : "top-3"}`}>
+                    <SelectionPopover
+                      location={selectedLocation}
+                      category={categories?.find(c => c._id === selectedLocation.categoryId)}
+                      onInfo={() => setDetailLocationId(selectedLocation._id)}
+                      onFlyTo={triggerFlyTo}
+                      onClose={clearSelection}
+                    />
+                  </div>
+                )}
+
+                {/* Floating action buttons for pending location (map-only or sidebar hidden) */}
+                {showAddForm && newLocationData && (isMobile ? viewMode === "map" : !sidebarVisible) && (
+                  <div
+                    className="absolute right-4 z-10 flex flex-col gap-2"
+                    style={{ bottom: "calc(1rem + env(safe-area-inset-bottom, 0px))" }}
+                  >
+                    {/* Location name label */}
+                    <div className="bg-green-500/10 border border-green-500/50 px-3 py-2 text-xs font-medium text-green-400 max-w-[200px] truncate">
+                      {newLocationData.name || "New Location"}
+                    </div>
+                    <div className="flex gap-2">
+                      {/* Cancel button */}
+                      <button
+                        onClick={handleFormCancel}
+                        className="bg-surface-elevated p-3 border border-border text-text-secondary hover:bg-surface-secondary hover:border-border-focus transition"
+                        title="Cancel"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                      {/* Add button */}
+                      <button
+                        onClick={() => setShowFullscreenAddForm(true)}
+                        className="bg-green-600 p-3 border border-green-400 text-white hover:bg-green-500 transition"
+                        title="Add location"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* Show Calendar */}
+            {(isMobile ? viewMode === "calendar" : detailViewMode === "calendar") && (
+              <CalendarView
+                tripId={tripId}
+                locations={locations}
+                categories={categories}
+                selectedLocationId={selectedLocationId}
+                onLocationSelect={handleLocationSelect}
+                visibleCategories={visibleCategories}
+              />
+            )}
           </div>
         )}
       </div>
