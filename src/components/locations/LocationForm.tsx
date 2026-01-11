@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
@@ -44,9 +44,11 @@ export function LocationForm({
   const createLocation = useMutation(api.locations.create);
 
   // Set default category when categories load
-  if (categories && categories.length > 0 && !categoryId) {
-    setCategoryId(categories[0]._id);
-  }
+  useEffect(() => {
+    if (categories && categories.length > 0 && !categoryId) {
+      setCategoryId(categories[0]._id);
+    }
+  }, [categories, categoryId]);
 
   const selectedCategory = categories?.find(c => c._id === categoryId);
   const isAccommodation = selectedCategory?.name.toLowerCase() === "accommodation";
