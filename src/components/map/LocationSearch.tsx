@@ -1,12 +1,11 @@
 import { useState, useEffect, useRef } from "react";
-import type { LocationType } from "../../lib/locationStyles";
 
 interface LocationSearchResult {
   name: string;
   address: string;
   latitude: number;
   longitude: number;
-  suggestedType?: LocationType;
+  suggestedCategoryName?: string;
 }
 
 interface LocationSearchProps {
@@ -24,35 +23,35 @@ interface SearchResult {
   latitude: number;
   longitude: number;
   source: "foursquare" | "mapbox";
-  suggestedType?: LocationType;
+  suggestedCategoryName?: string;
 }
 
-// Map Foursquare category to location type
-function inferLocationType(categories: Array<{ name: string }>): LocationType {
+// Map Foursquare category to category name
+function inferCategoryName(categories: Array<{ name: string }>): string | undefined {
   const categoryNames = categories.map((c) => c.name.toLowerCase()).join(" ");
 
   // Check for accommodation/lodging
   if (/hotel|motel|hostel|lodging|inn|resort|bed & breakfast|airbnb|vacation rental|guest house|apartment|villa/i.test(categoryNames)) {
-    return "accommodation";
+    return "Accommodation";
   }
 
   // Check for shop/retail
   if (/shop|store|market|boutique|mall|retail|supermarket|grocery|pharmacy|bookstore|clothing|fashion|gift|souvenir/i.test(categoryNames)) {
-    return "shop";
+    return "Shop";
   }
 
   // Check for snack/café (coffee, bakery, ice cream, dessert, tea)
   if (/café|cafe|coffee|bakery|ice cream|dessert|pastry|patisserie|snack|tea house|gelato|frozen yogurt|donut|cupcake|juice|smoothie/i.test(categoryNames)) {
-    return "snack";
+    return "Snack";
   }
 
   // Check for restaurant/food (full meals)
   if (/restaurant|food|bar|pub|bistro|diner|eatery|pizza|burger|sushi|steakhouse|seafood|breakfast|brunch|lunch|dinner|grill|kitchen|tavern|cantina|trattoria|osteria|brasserie/i.test(categoryNames)) {
-    return "restaurant";
+    return "Restaurant";
   }
 
   // Default to attraction
-  return "attraction";
+  return "Attraction";
 }
 
 // Foursquare API types (new Places API format)
@@ -158,7 +157,7 @@ export function LocationSearch({
                 latitude: place.latitude,
                 longitude: place.longitude,
                 source: "foursquare",
-                suggestedType: place.categories ? inferLocationType(place.categories) : undefined,
+                suggestedCategoryName: place.categories ? inferCategoryName(place.categories) : undefined,
               });
             }
           }
@@ -228,7 +227,7 @@ export function LocationSearch({
       address: result.address,
       latitude: result.latitude,
       longitude: result.longitude,
-      suggestedType: result.suggestedType,
+      suggestedCategoryName: result.suggestedCategoryName,
     });
 
     setQuery(result.name);
@@ -336,29 +335,9 @@ export function LocationSearch({
                 <span className="font-medium text-text-primary text-sm">
                   {result.name}
                 </span>
-                {result.suggestedType === "restaurant" && (
-                  <span className="text-xs px-1.5 py-0.5 bg-orange-500/10 text-orange-400 border border-orange-500/50">
-                    restaurant
-                  </span>
-                )}
-                {result.suggestedType === "accommodation" && (
-                  <span className="text-xs px-1.5 py-0.5 bg-purple-500/10 text-purple-400 border border-purple-500/50">
-                    accommodation
-                  </span>
-                )}
-                {result.suggestedType === "shop" && (
-                  <span className="text-xs px-1.5 py-0.5 bg-green-500/10 text-green-400 border border-green-500/50">
-                    shop
-                  </span>
-                )}
-                {result.suggestedType === "snack" && (
-                  <span className="text-xs px-1.5 py-0.5 bg-pink-500/10 text-pink-400 border border-pink-500/50">
-                    snack
-                  </span>
-                )}
-                {result.suggestedType === "attraction" && (
+                {result.suggestedCategoryName && (
                   <span className="text-xs px-1.5 py-0.5 bg-blue-500/10 text-blue-400 border border-blue-500/50">
-                    attraction
+                    {result.suggestedCategoryName.toLowerCase()}
                   </span>
                 )}
               </div>

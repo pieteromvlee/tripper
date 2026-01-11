@@ -147,7 +147,6 @@ export const create = mutation({
       iconName: args.iconName,
       color: args.color,
       sortOrder,
-      isDefault: false,
       createdBy: userId,
       createdAt: now,
       updatedAt: now,

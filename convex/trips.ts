@@ -122,7 +122,6 @@ export const create = mutation({
         iconName: category.iconName,
         color: category.color,
         sortOrder: category.sortOrder,
-        isDefault: true,
         createdBy: userId,
         createdAt: now,
         updatedAt: now,

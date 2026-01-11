@@ -20,7 +20,6 @@ export default defineSchema({
     iconName: v.string(),
     color: v.string(),
     sortOrder: v.number(),
-    isDefault: v.boolean(),
     createdBy: v.id("users"),
     createdAt: v.number(),
     updatedAt: v.number(),
@@ -53,15 +52,6 @@ export default defineSchema({
     longitude: v.number(),
     dateTime: v.optional(v.string()),
     endDateTime: v.optional(v.string()),
-    locationType: v.optional(
-      v.union(
-        v.literal("attraction"),
-        v.literal("restaurant"),
-        v.literal("accommodation"),
-        v.literal("shop"),
-        v.literal("snack")
-      )
-    ),
     categoryId: v.optional(v.id("categories")),
     attachmentId: v.optional(v.id("_storage")),
     attachmentName: v.optional(v.string()),

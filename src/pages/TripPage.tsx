@@ -108,7 +108,10 @@ export default function TripPage() {
   } = useLocationSelection(locations);
 
   // Find accommodation and detail location
-  const accommodation = locations?.find((loc) => loc.locationType === "accommodation");
+  const accommodation = locations?.find((loc) => {
+    const category = categories?.find(c => c._id === loc.categoryId);
+    return category?.name.toLowerCase().includes("accommodation");
+  });
   const detailLocation = locations?.find((loc) => loc._id === detailLocationId);
 
   if (!tripId) {

@@ -14,7 +14,6 @@ import type * as categories from "../categories.js";
 import type * as helpers from "../helpers.js";
 import type * as http from "../http.js";
 import type * as locations from "../locations.js";
-import type * as migrations_addCategories from "../migrations/addCategories.js";
 import type * as tripMembers from "../tripMembers.js";
 import type * as trips from "../trips.js";
 
@@ -31,7 +30,6 @@ declare const fullApi: ApiFromModules<{
   helpers: typeof helpers;
   http: typeof http;
   locations: typeof locations;
-  "migrations/addCategories": typeof migrations_addCategories;
   tripMembers: typeof tripMembers;
   trips: typeof trips;
 }>;

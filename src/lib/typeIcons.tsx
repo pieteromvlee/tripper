@@ -46,28 +46,6 @@ export function CategoryIcon({
 }
 
 /**
- * Legacy TypeIcon component for backward compatibility during migration
- * This can be removed once all components are updated to use CategoryIcon
- */
-interface TypeIconProps {
-  type: "attraction" | "restaurant" | "accommodation" | "shop" | "snack";
-  className?: string;
-}
-
-export function TypeIcon({ type, className = "w-4 h-4" }: TypeIconProps) {
-  const iconMap: Record<typeof type, { iconName: string; color: string }> = {
-    attraction: { iconName: "Camera", color: "#3B82F6" },
-    restaurant: { iconName: "UtensilsCrossed", color: "#F97316" },
-    accommodation: { iconName: "Hotel", color: "#A855F7" },
-    shop: { iconName: "ShoppingBag", color: "#10B981" },
-    snack: { iconName: "Coffee", color: "#EC4899" },
-  };
-
-  const { iconName, color } = iconMap[type];
-  return <CategoryIcon iconName={iconName} className={className} color={color} />;
-}
-
-/**
  * List of curated Lucide icons for the icon picker
  * This is a subset of commonly used icons for categories
  */

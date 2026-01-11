@@ -170,11 +170,6 @@ export function CategoryManagementModal({
                       <div className="font-medium text-text-primary text-xs truncate">
                         {category.name}
                       </div>
-                      {category.isDefault && (
-                        <div className="text-[9px] text-text-muted uppercase tracking-wider px-1 py-0.5 border border-border bg-surface-secondary">
-                          DEF
-                        </div>
-                      )}
                     </div>
                   </div>
 
