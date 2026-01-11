@@ -69,18 +69,6 @@ export function LocationDetail({ location, categories, onClose }: LocationDetail
     }
   };
 
-  const handleRemoveFromCalendar = async () => {
-    try {
-      await updateLocation({
-        id: location._id,
-        dateTime: "",
-      });
-      onClose();
-    } catch (error) {
-      console.error("Failed to remove from calendar:", error);
-    }
-  };
-
   // Close on backdrop click (desktop only)
   const handleBackdropClick = (e: React.MouseEvent) => {
     const isDesktop = window.matchMedia("(min-width: 768px)").matches;
@@ -109,21 +97,44 @@ export function LocationDetail({ location, categories, onClose }: LocationDetail
               </svg>
               Back
             </button>
-            {/* Desktop: Title */}
-            <h2 className="hidden md:block text-sm font-bold text-text-primary truncate uppercase tracking-wide">{location.name}</h2>
+            {/* Desktop: Title with category icon */}
+            <div className="hidden md:flex items-center gap-2 min-w-0">
+              {category && (
+                <CategoryIcon
+                  iconName={category.iconName}
+                  className="w-4 h-4 flex-shrink-0"
+                  style={{ color: category.color }}
+                />
+              )}
+              <h2 className="text-sm font-bold text-text-primary truncate">{location.name}</h2>
+            </div>
             <div className="flex items-center gap-1">
               {!isEditing && (
-                <button
-                  onClick={() => setIsEditing(true)}
-                  className="text-blue-400 text-xs px-2 py-1 hover:bg-blue-500/10 border border-transparent hover:border-blue-500/50"
-                >
-                  Edit
-                </button>
+                <>
+                  {/* Directions button */}
+                  <button
+                    onClick={() => window.open(getDirectionsUrl(location.latitude, location.longitude), "_blank")}
+                    className="text-blue-400 text-sm px-2 py-1 hover:bg-blue-500/10 border border-transparent hover:border-blue-500/50 flex items-center gap-1"
+                  >
+                    <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <span className="hidden md:inline">Directions</span>
+                  </button>
+                  {/* Edit button */}
+                  <button
+                    onClick={() => setIsEditing(true)}
+                    className="text-blue-400 text-sm px-2 py-1 hover:bg-blue-500/10 border border-transparent hover:border-blue-500/50"
+                  >
+                    Edit
+                  </button>
+                </>
               )}
               {/* Desktop: Close button */}
               <button
                 onClick={onClose}
-                className="hidden md:flex p-1 text-text-muted hover:text-text-primary hover:bg-surface-elevated border border-transparent hover:border-border transition-colors"
+                className="hidden md:flex p-1 text-text-muted hover:text-text-primary hover:bg-surface-elevated border border-transparent hover:border-border transition-colors items-center"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -144,49 +155,36 @@ export function LocationDetail({ location, categories, onClose }: LocationDetail
           />
         ) : (
           <div className="p-4 space-y-4 md:p-3 md:space-y-2">
-            {/* Title & Type - hidden on desktop (shown in header) */}
+            {/* Mobile: Title with icon and address */}
             <div className="md:hidden">
               <div className="flex items-center gap-2">
-                <h1 className="text-lg font-bold text-text-primary">{location.name}</h1>
                 {category && (
-                  <span
-                    className="px-2 py-0.5 text-xs font-medium border flex items-center gap-1"
-                    style={getCategoryBadgeStyle(category.color)}
-                  >
-                    <CategoryIcon iconName={category.iconName} className="w-3 h-3" />
-                    {category.name}
-                  </span>
+                  <CategoryIcon
+                    iconName={category.iconName}
+                    className="w-5 h-5"
+                    style={{ color: category.color }}
+                  />
                 )}
+                <h1 className="text-lg font-bold text-text-primary">{location.name}</h1>
               </div>
               {location.address && (
                 <p className="text-sm text-text-secondary mt-1">{location.address}</p>
               )}
             </div>
 
-            {/* Desktop: Compact header with type badge and address */}
-            <div className="hidden md:block">
-              <div className="flex items-center gap-2 mb-1">
-                {category && (
-                  <span
-                    className="px-2 py-0.5 text-xs font-medium border flex items-center gap-1"
-                    style={getCategoryBadgeStyle(category.color)}
-                  >
-                    <CategoryIcon iconName={category.iconName} className="w-3 h-3" />
-                    {category.name}
-                  </span>
-                )}
-              </div>
-              {location.address && (
+            {/* Desktop: Address only (title shown in header) */}
+            {location.address && (
+              <div className="hidden md:block">
                 <p className="text-xs text-text-secondary">{location.address}</p>
-              )}
-            </div>
+              </div>
+            )}
 
-            {/* Get Directions Button */}
+            {/* Mobile: Get Directions Button */}
             <button
               onClick={() => window.open(getDirectionsUrl(location.latitude, location.longitude), "_blank")}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white border border-blue-400 text-sm font-medium md:w-auto md:px-3 md:py-1.5 md:text-xs md:gap-1"
+              className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white border border-blue-400 text-sm font-medium md:hidden"
             >
-              <svg className="w-4 h-4 md:w-3.5 md:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
@@ -196,19 +194,19 @@ export function LocationDetail({ location, categories, onClose }: LocationDetail
             {/* Details */}
             <div className="bg-surface-elevated border border-border divide-y divide-border md:bg-transparent md:border-0 md:divide-y-0 md:space-y-1">
               {location.dateTime && (
-                <div className="px-3 py-2 md:px-0 md:py-1 md:flex md:items-center md:gap-2">
-                  <div className="text-xs text-text-secondary uppercase tracking-wide md:min-w-[80px]">Date & Time</div>
+                <div className="px-3 py-2 md:px-0 md:py-1 md:flex md:items-baseline md:gap-2">
+                  <div className="text-xs text-text-secondary uppercase tracking-wide md:text-sm md:normal-case md:tracking-normal md:min-w-[100px]">Date & Time</div>
                   <div className="text-sm text-text-primary">{formatDateTime(location.dateTime)}</div>
                 </div>
               )}
               {category?.name.toLowerCase() === "accommodation" && location.endDateTime && (
-                <div className="px-3 py-2 md:px-0 md:py-1 md:flex md:items-center md:gap-2">
-                  <div className="text-xs text-text-secondary uppercase tracking-wide md:min-w-[80px]">Check-out</div>
+                <div className="px-3 py-2 md:px-0 md:py-1 md:flex md:items-baseline md:gap-2">
+                  <div className="text-xs text-text-secondary uppercase tracking-wide md:text-sm md:normal-case md:tracking-normal md:min-w-[100px]">Check-out</div>
                   <div className="text-sm text-text-primary">{formatDateTime(location.endDateTime)}</div>
                 </div>
               )}
-              <div className="px-3 py-2 md:px-0 md:py-1 md:flex md:items-center md:gap-2">
-                <div className="text-xs text-text-secondary uppercase tracking-wide md:min-w-[80px]">Coordinates</div>
+              <div className="px-3 py-2 md:px-0 md:py-1 md:flex md:items-baseline md:gap-2">
+                <div className="text-xs text-text-secondary uppercase tracking-wide md:text-sm md:normal-case md:tracking-normal md:min-w-[100px]">Coordinates</div>
                 <div className="text-sm text-text-primary">
                   {location.latitude.toFixed(5)}, {location.longitude.toFixed(5)}
                 </div>
@@ -233,18 +231,6 @@ export function LocationDetail({ location, categories, onClose }: LocationDetail
                 <AttachmentUpload locationId={location._id} />
               </div>
             </div>
-
-            {/* Remove from Calendar */}
-            {location.dateTime && (
-              <div className="pt-3 md:pt-2 border-t border-border">
-                <button
-                  onClick={handleRemoveFromCalendar}
-                  className="px-3 py-1.5 text-amber-400 text-xs border border-transparent hover:border-amber-500/50 hover:bg-amber-500/10"
-                >
-                  Remove from Calendar
-                </button>
-              </div>
-            )}
 
             {/* Delete */}
             <div className="pt-3 md:pt-2 border-t border-border">
