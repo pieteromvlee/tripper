@@ -17,16 +17,13 @@ export function CategoryPickerButton({
   categories,
   currentCategory,
   isDesktop,
-}: CategoryPickerButtonProps) {
+}: CategoryPickerButtonProps): React.ReactElement {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-
   const updateLocation = useMutation(api.locations.update);
 
-  // Close dropdown when clicking outside (desktop only)
   useClickOutside(dropdownRef, () => setIsOpen(false), isDesktop && isOpen);
 
-  // Mobile: Show static icon only
   if (!isDesktop) {
     return (
       <div className="flex-shrink-0 mt-0.5">
@@ -46,7 +43,7 @@ export function CategoryPickerButton({
     );
   }
 
-  const handleCategorySelect = async (categoryId: Id<"categories">) => {
+  async function handleCategorySelect(categoryId: Id<"categories">): Promise<void> {
     try {
       await updateLocation({
         id: location._id,
@@ -55,9 +52,8 @@ export function CategoryPickerButton({
       setIsOpen(false);
     } catch (error) {
       console.error("Failed to update category:", error);
-      // Keep dropdown open on error so user can retry
     }
-  };
+  }
 
   return (
     <div ref={dropdownRef} className="relative">

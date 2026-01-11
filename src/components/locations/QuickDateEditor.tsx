@@ -19,7 +19,7 @@ export function QuickDateEditor({
   className = "",
   isEndDate = false,
   displayText,
-}: QuickDateEditorProps) {
+}: QuickDateEditorProps): React.ReactElement {
   const [position, setPosition] = useState<"below" | "above">("below");
   const popoverRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLSpanElement>(null);
@@ -30,43 +30,37 @@ export function QuickDateEditor({
     isEndField: isEndDate,
   });
 
-  // Position calculation
+  // Calculate popover position based on available space
   useEffect(() => {
     if (!isOpen) return;
 
     const trigger = triggerRef.current;
-    const popover = popoverRef.current;
-    if (!trigger || !popover) return;
+    if (!trigger) return;
 
     const rect = trigger.getBoundingClientRect();
     const spaceBelow = window.innerHeight - rect.bottom;
     const spaceAbove = rect.top;
 
-    if (spaceBelow < 200 && spaceAbove > spaceBelow) {
-      setPosition("above");
-    } else {
-      setPosition("below");
-    }
+    setPosition(spaceBelow < 200 && spaceAbove > spaceBelow ? "above" : "below");
   }, [isOpen]);
 
-  // Close on outside click
   useClickOutside(popoverRef, cancelEditing, isOpen);
 
   // Close on Escape key
   useEffect(() => {
     if (!isOpen) return;
 
-    const handleEscape = (event: KeyboardEvent) => {
+    function handleEscape(event: KeyboardEvent): void {
       if (event.key === "Escape") {
         cancelEditing();
       }
-    };
+    }
 
     document.addEventListener("keydown", handleEscape);
     return () => document.removeEventListener("keydown", handleEscape);
   }, [isOpen, cancelEditing]);
 
-  const handleClick = (e: React.MouseEvent) => {
+  function handleClick(e: React.MouseEvent): void {
     if (!isDesktop) return;
     e.stopPropagation();
     if (isOpen) {
@@ -74,9 +68,9 @@ export function QuickDateEditor({
     } else {
       startEditing();
     }
-  };
+  }
 
-  const handleDateChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  async function handleDateChange(e: React.ChangeEvent<HTMLInputElement>): Promise<void> {
     const newDate = e.target.value;
     if (!newDate) return;
 
@@ -85,11 +79,10 @@ export function QuickDateEditor({
 
     try {
       await saveField(newDateTime);
-    } catch (error) {
+    } catch {
       // Error already handled by hook
-      // Keep popover open on error
     }
-  };
+  }
 
   return (
     <span ref={triggerRef} className="relative">

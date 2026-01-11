@@ -12,6 +12,8 @@ interface QuickTimeEditorProps {
   displayText: string;
 }
 
+const TIME_PATTERN = /^([0-1][0-9]|2[0-3]):[0-5][0-9]$/;
+
 export function QuickTimeEditor({
   locationId,
   dateTime,
@@ -19,7 +21,7 @@ export function QuickTimeEditor({
   className = "",
   isEndTime = false,
   displayText,
-}: QuickTimeEditorProps) {
+}: QuickTimeEditorProps): React.ReactElement {
   const [inputValue, setInputValue] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -36,19 +38,15 @@ export function QuickTimeEditor({
     }
   }, [isEditing]);
 
-  const validateTime = (value: string): boolean => {
-    return /^([0-1][0-9]|2[0-3]):[0-5][0-9]$/.test(value);
-  };
-
-  const handleClick = (e: React.MouseEvent) => {
+  function handleClick(e: React.MouseEvent): void {
     if (!isDesktop) return;
     e.stopPropagation();
     setInputValue(getTimePart(dateTime));
     startEditing();
-  };
+  }
 
-  const saveTime = async () => {
-    if (!validateTime(inputValue)) {
+  async function saveTime(): Promise<void> {
+    if (!TIME_PATTERN.test(inputValue)) {
       setInputValue(getTimePart(dateTime));
       cancelEditing();
       return;
@@ -59,26 +57,21 @@ export function QuickTimeEditor({
 
     try {
       await saveField(newDateTime);
-    } catch (error) {
-      // Error already handled by hook
+    } catch {
       setInputValue(getTimePart(dateTime));
     }
-  };
+  }
 
-  const handleBlur = () => {
-    saveTime();
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  function handleKeyDown(e: React.KeyboardEvent): void {
     if (e.key === "Enter") {
       e.preventDefault();
       saveTime();
     } else if (e.key === "Escape") {
       cancelEditing();
     }
-  };
+  }
 
-  if (!isDesktop || !isEditing) {
+  if (!isEditing) {
     return (
       <span
         onClick={handleClick}
@@ -96,7 +89,7 @@ export function QuickTimeEditor({
       type="text"
       value={inputValue}
       onChange={(e) => setInputValue(e.target.value)}
-      onBlur={handleBlur}
+      onBlur={saveTime}
       onKeyDown={handleKeyDown}
       onClick={(e) => e.stopPropagation()}
       placeholder="HH:mm"

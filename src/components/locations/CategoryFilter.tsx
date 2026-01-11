@@ -13,14 +13,12 @@ export function CategoryFilter({
   categories,
   visibleCategories,
   onToggleCategory
-}: CategoryFilterProps) {
+}: CategoryFilterProps): React.ReactElement | null {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Count how many categories are hidden
   const hiddenCount = categories ? categories.length - visibleCategories.size : 0;
 
-  // Close dropdown when clicking outside
   useClickOutside(dropdownRef, () => setIsOpen(false), isOpen);
 
   if (!categories) {

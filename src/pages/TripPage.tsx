@@ -216,7 +216,7 @@ export default function TripPage() {
                 <button
                   onClick={() => viewMode.setViewMode("list")}
                   className={`p-2 transition border-r border-border ${
-                    viewMode === "list" ? "bg-blue-600 text-white" : "text-text-secondary hover:bg-surface-elevated"
+                    viewMode.viewMode === "list" ? "bg-blue-600 text-white" : "text-text-secondary hover:bg-surface-elevated"
                   }`}
                   title="List view"
                 >
@@ -227,7 +227,7 @@ export default function TripPage() {
                 <button
                   onClick={() => viewMode.setViewMode("map")}
                   className={`p-2 transition border-r border-border ${
-                    viewMode === "map" ? "bg-blue-600 text-white" : "text-text-secondary hover:bg-surface-elevated"
+                    viewMode.viewMode === "map" ? "bg-blue-600 text-white" : "text-text-secondary hover:bg-surface-elevated"
                   }`}
                   title="Map view"
                 >
@@ -239,7 +239,7 @@ export default function TripPage() {
                 <button
                   onClick={() => viewMode.setViewMode("calendar")}
                   className={`p-2 transition ${
-                    viewMode === "calendar" ? "bg-blue-600 text-white" : "text-text-secondary hover:bg-surface-elevated"
+                    viewMode.viewMode === "calendar" ? "bg-blue-600 text-white" : "text-text-secondary hover:bg-surface-elevated"
                   }`}
                   title="Calendar view"
                 >
@@ -359,13 +359,13 @@ export default function TripPage() {
         )}
 
         {/* Detail Panel (Map or Calendar) */}
-        {(viewMode.isMobile ? viewMode !== "list" : true) && (
+        {(viewMode.isMobile ? viewMode.viewMode !== "list" : true) && (
           <div className="flex-1 w-full relative">
             {/* Show Map */}
             {viewMode.isMapView && (
               <>
                 {/* Floating Search for map-only view (triggered from header + button) */}
-                {(viewMode.isMobile ? viewMode === "map" : !viewMode.sidebarVisible) && showSearch && (
+                {(viewMode.isMobile ? viewMode.viewMode === "map" : !viewMode.sidebarVisible) && showSearch && (
                   <div className="absolute top-3 left-3 right-3 z-10">
                     <div className="flex items-center gap-2 bg-surface-elevated border border-border p-2">
                       <div className="flex-1">
@@ -414,7 +414,7 @@ export default function TripPage() {
                 )}
 
                 {/* Selection popover - top-left of map pane */}
-                {selectedLocation && (!viewMode.isMobile || viewMode === "map") && !locationForm.showAddForm && (
+                {selectedLocation && (!viewMode.isMobile || viewMode.viewMode === "map") && !locationForm.showAddForm && (
                   <div className={`absolute left-3 z-10 ${showSearch ? "top-16" : "top-3"}`}>
                     <SelectionPopover
                       location={selectedLocation}
@@ -427,7 +427,7 @@ export default function TripPage() {
                 )}
 
                 {/* Floating action buttons for pending location (map-only or sidebar hidden) */}
-                {locationForm.showAddForm && locationForm.newLocationData && (viewMode.isMobile ? viewMode === "map" : !viewMode.sidebarVisible) && (
+                {locationForm.showAddForm && locationForm.newLocationData && (viewMode.isMobile ? viewMode.viewMode === "map" : !viewMode.sidebarVisible) && (
                   <div
                     className="absolute right-4 z-10 flex flex-col gap-2"
                     style={{ bottom: "calc(1rem + env(safe-area-inset-bottom, 0px))" }}

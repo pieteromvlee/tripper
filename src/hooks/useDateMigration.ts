@@ -8,6 +8,32 @@ interface UseDateMigrationReturn {
   migrateDates: () => Promise<void>;
 }
 
+// Pattern for valid YYYY-MM-DD or YYYY-MM-DDTHH:mm format
+const VALID_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2})?$/;
+
+/**
+ * Check if a date string is valid (correct format and parseable)
+ */
+function isValidDateString(dateStr: string | undefined, locationName: string, fieldName: string): boolean {
+  if (!dateStr) return true;
+
+  if (!VALID_DATE_PATTERN.test(dateStr)) {
+    console.log(`Found invalid format ${fieldName}:`, locationName, dateStr);
+    return false;
+  }
+
+  const [datePart] = dateStr.split('T');
+  const [year, month, day] = datePart.split('-').map(Number);
+  const testDate = new Date(year, month - 1, day);
+
+  if (isNaN(testDate.getTime())) {
+    console.log(`Found unparsable ${fieldName}:`, locationName, dateStr);
+    return false;
+  }
+
+  return true;
+}
+
 /**
  * Custom hook for migrating date formats from MM/DD/YYYY to YYYY-MM-DD
  *
@@ -30,61 +56,15 @@ export function useDateMigration(locations: Doc<"locations">[] | undefined): Use
 
       // Log all locations for debugging
       console.log('=== ALL LOCATIONS ===');
-      locations.forEach(loc => {
+      for (const loc of locations) {
         console.log(`${loc.name}: dateTime="${loc.dateTime}" endDateTime="${loc.endDateTime || 'none'}"`);
-      });
-
-      // Pattern for valid YYYY-MM-DD format
-      const validPattern = /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2})?$/;
+      }
 
       // Find locations with invalid date formats
       const locationsToFix = locations.filter(loc => {
-        const hasInvalidDateTime = loc.dateTime && !validPattern.test(loc.dateTime);
-        const hasInvalidEndDateTime = loc.endDateTime && !validPattern.test(loc.endDateTime);
-
-        // Also check if dates parse to valid Date objects
-        let hasUnparsableDateTime = false;
-        let hasUnparsableEndDateTime = false;
-
-        if (loc.dateTime && validPattern.test(loc.dateTime)) {
-          try {
-            const [datePart] = loc.dateTime.split('T');
-            const [year, month, day] = datePart.split('-').map(Number);
-            const testDate = new Date(year, month - 1, day);
-            if (isNaN(testDate.getTime())) {
-              console.log('Found unparsable dateTime:', loc.name, loc.dateTime);
-              hasUnparsableDateTime = true;
-            }
-          } catch (e) {
-            console.log('Error parsing dateTime:', loc.name, loc.dateTime, e);
-            hasUnparsableDateTime = true;
-          }
-        }
-
-        if (loc.endDateTime && validPattern.test(loc.endDateTime)) {
-          try {
-            const [datePart] = loc.endDateTime.split('T');
-            const [year, month, day] = datePart.split('-').map(Number);
-            const testDate = new Date(year, month - 1, day);
-            if (isNaN(testDate.getTime())) {
-              console.log('Found unparsable endDateTime:', loc.name, loc.endDateTime);
-              hasUnparsableEndDateTime = true;
-            }
-          } catch (e) {
-            console.log('Error parsing endDateTime:', loc.name, loc.endDateTime, e);
-            hasUnparsableEndDateTime = true;
-          }
-        }
-
-        // Log invalid dates
-        if (hasInvalidDateTime) {
-          console.log('Found invalid format dateTime:', loc.name, loc.dateTime);
-        }
-        if (hasInvalidEndDateTime) {
-          console.log('Found invalid format endDateTime:', loc.name, loc.endDateTime);
-        }
-
-        return hasInvalidDateTime || hasInvalidEndDateTime || hasUnparsableDateTime || hasUnparsableEndDateTime;
+        const hasValidDateTime = isValidDateString(loc.dateTime, loc.name, 'dateTime');
+        const hasValidEndDateTime = isValidDateString(loc.endDateTime, loc.name, 'endDateTime');
+        return !hasValidDateTime || !hasValidEndDateTime;
       });
 
       if (locationsToFix.length === 0) {
@@ -95,7 +75,6 @@ export function useDateMigration(locations: Doc<"locations">[] | undefined): Use
 
       setMigrationStatus(`Fixing ${locationsToFix.length} location(s)...`);
 
-      // Update each location - backend validation will auto-fix the format
       for (const location of locationsToFix) {
         console.log('Fixing location:', location.name, 'dateTime:', location.dateTime, 'endDateTime:', location.endDateTime);
         await updateLocation({

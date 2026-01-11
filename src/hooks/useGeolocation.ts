@@ -58,9 +58,17 @@ export function useGeolocation(): UseGeolocationReturn {
     return () => navigator.geolocation.clearWatch(watchId);
   }, [isTracking]);
 
-  const startTracking = () => setIsTracking(true);
-  const stopTracking = () => setIsTracking(false);
-  const toggleTracking = () => setIsTracking((prev) => !prev);
+  function startTracking(): void {
+    setIsTracking(true);
+  }
+
+  function stopTracking(): void {
+    setIsTracking(false);
+  }
+
+  function toggleTracking(): void {
+    setIsTracking((prev) => !prev);
+  }
 
   return {
     isTracking,
