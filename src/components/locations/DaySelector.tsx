@@ -5,8 +5,8 @@ import type { Id } from "../../../convex/_generated/dataModel";
 
 interface DaySelectorProps {
   tripId: Id<"trips">;
-  selectedDate: string | null; // null means "All" is selected
-  onDateSelect: (date: string | null) => void;
+  selectedDate: string | null | "unscheduled"; // null = "All", "unscheduled" = unscheduled filter
+  onDateSelect: (date: string | null | "unscheduled") => void;
 }
 
 export function DaySelector({
@@ -18,6 +18,10 @@ export function DaySelector({
   const selectedRef = useRef<HTMLButtonElement>(null);
 
   const uniqueDates = useQuery(api.locations.getUniqueDates, { tripId });
+  const allLocations = useQuery(api.locations.listByTrip, { tripId });
+
+  // Check if there are any unscheduled locations
+  const hasUnscheduledLocations = allLocations?.some(loc => !loc.dateTime);
 
   // Get today's date in ISO format
   const today = new Date().toISOString().split("T")[0];
@@ -84,6 +88,25 @@ export function DaySelector({
       >
         All
       </button>
+
+      {/* "Unscheduled" option - only show if there are unscheduled locations */}
+      {hasUnscheduledLocations && (
+        <button
+          ref={selectedDate === "unscheduled" ? selectedRef : undefined}
+          onClick={() => onDateSelect("unscheduled")}
+          className={`
+            flex-shrink-0 px-3 py-1.5 text-xs font-medium whitespace-nowrap
+            transition-colors touch-manipulation border
+            ${
+              selectedDate === "unscheduled"
+                ? "bg-blue-600 text-white border-blue-400"
+                : "bg-surface-elevated text-text-secondary border-border hover:border-border-focus hover:bg-surface-secondary"
+            }
+          `}
+        >
+          Unscheduled
+        </button>
+      )}
 
       {/* Date pills */}
       {uniqueDates.map((date) => {

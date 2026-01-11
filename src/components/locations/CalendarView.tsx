@@ -5,7 +5,6 @@ import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Doc, Id } from "../../../convex/_generated/dataModel";
 import { CalendarCell } from "./CalendarCell";
-import { UnscheduledColumn } from "./UnscheduledColumn";
 
 interface CalendarViewProps {
   tripId: Id<"trips">;
@@ -113,11 +112,6 @@ export function CalendarView({
     });
   }
 
-  // Filter locations into unscheduled
-  const unscheduledLocations = locations?.filter((loc) =>
-    !loc.dateTime &&
-    (!loc.categoryId || visibleCategories.has(loc.categoryId))
-  ) || [];
 
   // Handle drag end
   async function handleDragEnd(event: DragEndEvent) {
@@ -128,15 +122,10 @@ export function CalendarView({
     const location = locations?.find((loc) => loc._id === locationId);
     if (!location) return;
 
-    // Dropped on calendar day
+    // Only handle drops on calendar days
     if (over.id.toString().startsWith("day-")) {
       const newDate = over.id.toString().replace("day-", ""); // YYYY-MM-DD
       await updateLocationDate(locationId, newDate, location.dateTime);
-    }
-
-    // Dropped on unscheduled
-    if (over.id === "unscheduled") {
-      await clearLocationDate(locationId);
     }
   }
 
@@ -161,14 +150,6 @@ export function CalendarView({
     await updateLocation({
       id: locationId,
       dateTime: newDateTime,
-    });
-  }
-
-  // Clear location date
-  async function clearLocationDate(locationId: Id<"locations">) {
-    await updateLocation({
-      id: locationId,
-      dateTime: "",
     });
   }
 
@@ -256,17 +237,7 @@ export function CalendarView({
         </div>
 
         {/* Main calendar area */}
-        <div className="flex-1 flex overflow-hidden">
-          {/* Unscheduled column */}
-          <UnscheduledColumn
-            locations={unscheduledLocations}
-            categories={categories}
-            selectedLocationId={selectedLocationId}
-            onLocationSelect={onLocationSelect}
-          />
-
-          {/* Calendar grid */}
-          <div className="flex-1 overflow-auto">
+        <div className="flex-1 overflow-auto">
             <div className="min-w-[700px]">
               {/* Weekday headers */}
               <div className="grid grid-cols-7 gap-px bg-border border-b border-border sticky top-0 z-10">
@@ -298,7 +269,6 @@ export function CalendarView({
             </div>
           </div>
         </div>
-      </div>
     </DndContext>
   );
 }

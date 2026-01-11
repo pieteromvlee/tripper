@@ -1,3 +1,4 @@
+import { useDraggable } from "@dnd-kit/core";
 import type { Doc } from "../../../convex/_generated/dataModel";
 import { formatDateTime, formatTime } from "../../lib/locationUtils";
 import { CategoryIcon } from "../../lib/typeIcons";
@@ -17,11 +18,19 @@ export function LocationCard({
   onClick,
   selectedDate,
 }: LocationCardProps) {
+  // Make the card draggable
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: location._id,
+  });
+
   // Find category for this location
   const category = categories?.find(c => c._id === location.categoryId);
 
   return (
     <div
+      ref={setNodeRef}
+      {...listeners}
+      {...attributes}
       onClick={onClick}
       className={`
         p-3 cursor-pointer transition-colors
@@ -31,6 +40,7 @@ export function LocationCard({
             ? "bg-blue-500/10 border-blue-400"
             : "bg-surface-elevated border-border hover:bg-surface-secondary hover:border-border-focus"
         }
+        ${isDragging ? "opacity-50" : ""}
       `}
     >
       <div className="flex items-start gap-2">

@@ -6,7 +6,7 @@ import { LocationCard } from "./LocationCard";
 
 interface LocationListProps {
   tripId: Id<"trips">;
-  selectedDate?: string; // ISO date string (YYYY-MM-DD) for filtering
+  selectedDate?: string | "unscheduled"; // ISO date string (YYYY-MM-DD), "unscheduled", or undefined for "All"
   selectedLocationId?: Id<"locations">;
   categories?: Doc<"categories">[];
   visibleCategories?: Set<Id<"categories">>; // Filter by category
@@ -30,15 +30,25 @@ export function LocationList({
   // Only run one query at a time to avoid unnecessary database calls
   const allLocations = useQuery(
     api.locations.listByTrip,
-    selectedDate ? "skip" : { tripId }
+    !selectedDate || selectedDate === "unscheduled" ? { tripId } : "skip"
   );
   const filteredLocations = useQuery(
     api.locations.listByTripAndDate,
-    selectedDate ? { tripId, date: selectedDate } : "skip"
+    selectedDate && selectedDate !== "unscheduled" ? { tripId, date: selectedDate } : "skip"
   );
 
-  // Use filtered locations if date is selected, otherwise all locations
-  const dateFilteredLocations = selectedDate ? filteredLocations : allLocations;
+  // Determine which list to use based on the filter
+  let dateFilteredLocations;
+  if (selectedDate === "unscheduled") {
+    // Show only unscheduled locations
+    dateFilteredLocations = allLocations?.filter(loc => !loc.dateTime);
+  } else if (selectedDate) {
+    // Show locations for specific date
+    dateFilteredLocations = filteredLocations;
+  } else {
+    // Show all locations (selectedDate === undefined)
+    dateFilteredLocations = allLocations;
+  }
 
   // Apply category filter (backward compatible - show locations without categoryId)
   const locations = dateFilteredLocations?.filter(

@@ -29,6 +29,7 @@ export function LocationDetail({ location, categories, onClose }: LocationDetail
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const deleteLocation = useMutation(api.locations.remove);
+  const updateLocation = useMutation(api.locations.update);
 
   // Find category for this location
   const category = categories?.find(c => c._id === location.categoryId);
@@ -43,6 +44,18 @@ export function LocationDetail({ location, categories, onClose }: LocationDetail
       console.error("Failed to delete:", error);
       setDeleteError(error instanceof Error ? error.message : "Failed to delete location");
       setIsDeleting(false);
+    }
+  };
+
+  const handleRemoveFromCalendar = async () => {
+    try {
+      await updateLocation({
+        id: location._id,
+        dateTime: "",
+      });
+      onClose();
+    } catch (error) {
+      console.error("Failed to remove from calendar:", error);
     }
   };
 
@@ -198,6 +211,18 @@ export function LocationDetail({ location, categories, onClose }: LocationDetail
                 <AttachmentUpload locationId={location._id} />
               </div>
             </div>
+
+            {/* Remove from Calendar */}
+            {location.dateTime && (
+              <div className="pt-3 md:pt-2 border-t border-border">
+                <button
+                  onClick={handleRemoveFromCalendar}
+                  className="px-3 py-1.5 text-amber-400 text-xs border border-transparent hover:border-amber-500/50 hover:bg-amber-500/10"
+                >
+                  Remove from Calendar
+                </button>
+              </div>
+            )}
 
             {/* Delete */}
             <div className="pt-3 md:pt-2 border-t border-border">

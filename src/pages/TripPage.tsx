@@ -21,7 +21,7 @@ export default function TripPage() {
   const navigate = useNavigate();
   const { signOut } = useAuthActions();
   const { isDark, toggleTheme } = useTheme();
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [selectedDate, setSelectedDate] = useState<string | null | "unscheduled">(null);
   const [visibleCategories, setVisibleCategories] = useState<Set<Id<"categories">>>(new Set());
   const [viewMode, setViewMode] = useState<ViewMode>("list"); // Mobile: list/map/calendar
   const [detailViewMode, setDetailViewMode] = useState<DetailViewMode>("map"); // Desktop: map/calendar toggle
