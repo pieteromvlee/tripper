@@ -4,7 +4,6 @@ import { api } from "../../../convex/_generated/api";
 import type { Doc, Id } from "../../../convex/_generated/dataModel";
 import { AttachmentList } from "./AttachmentList";
 import { AttachmentUpload } from "./AttachmentUpload";
-import { getCategoryBadgeStyle } from "../../lib/colorUtils";
 import { getDirectionsUrl, formatDateTime } from "../../lib/locationUtils";
 import { CategoryIcon } from "../../lib/typeIcons";
 import { getDatePart, getTimePart, combineDateTime } from "../../lib/dateUtils";
@@ -30,7 +29,6 @@ export function LocationDetail({ location, categories, onClose }: LocationDetail
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const deleteLocation = useMutation(api.locations.remove);
-  const updateLocation = useMutation(api.locations.update);
 
   // Find category for this location
   const category = categories?.find(c => c._id === location.categoryId);
@@ -82,7 +80,7 @@ export function LocationDetail({ location, categories, onClose }: LocationDetail
                 <CategoryIcon
                   iconName={category.iconName}
                   className="w-4 h-4 flex-shrink-0"
-                  style={{ color: category.color }}
+                  color={category.color}
                 />
               )}
               <h2 className="text-sm font-bold text-text-primary truncate">{location.name}</h2>
@@ -141,7 +139,7 @@ export function LocationDetail({ location, categories, onClose }: LocationDetail
                   <CategoryIcon
                     iconName={category.iconName}
                     className="w-5 h-5"
-                    style={{ color: category.color }}
+                    color={category.color}
                   />
                 )}
                 <h1 className="text-lg font-bold text-text-primary">{location.name}</h1>
