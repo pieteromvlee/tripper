@@ -91,7 +91,6 @@ export function formatDateTime(dateTime: string | undefined): string {
 
   try {
     const date = parseISODateTime(dateTime);
-    const [year, month, day] = dateTime.split('T')[0].split('-').map(Number);
     const [hour, minute] = (dateTime.split('T')[1] || '00:00').split(':').map(Number);
 
     // Format date part
