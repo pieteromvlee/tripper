@@ -77,62 +77,70 @@ export function TripMap({
     ? "mapbox://styles/mapbox/dark-v11"
     : "mapbox://styles/mapbox/outdoors-v12";
 
-  // Handle map load - position map appropriately
+  // Handle map load - position map appropriately on initial render
+  // Business rule: Show focused view when location is pre-selected, otherwise show all locations
   const handleMapLoad = useCallback(() => {
     setMapLoaded(true);
 
     if (!mapRef.current || !locations || locations.length === 0) return;
 
-    // If a location is selected, fly to it
+    // Priority 1: If a location is selected (e.g., from deep link), fly directly to it
+    // Why: User expects to see the specific location they navigated to
     if (selectedLocationId) {
       const selectedLocation = locations.find((loc) => loc._id === selectedLocationId);
       if (selectedLocation) {
         mapRef.current.flyTo({
           center: [selectedLocation.longitude, selectedLocation.latitude],
-          zoom: 15,
-          duration: 0, // Instant on load
+          zoom: 15, // Close zoom to show location details
+          duration: 0, // Instant on load to avoid animation delay
         });
         return;
       }
     }
 
-    // Otherwise fit to all locations
+    // Priority 2: Fit map to show all locations with padding
+    // Why: User should see the full extent of their trip without manual zooming
+    // Create bounding box that encompasses all location coordinates
     const bounds = new LngLatBounds();
     locations.forEach((loc) => {
       bounds.extend([loc.longitude, loc.latitude]);
     });
 
     mapRef.current.fitBounds(bounds, {
-      padding: 50,
-      maxZoom: 15,
+      padding: 50, // UI padding to prevent markers from touching screen edges
+      maxZoom: 15, // Prevent zooming too close when locations are clustered
       duration: 0, // Instant on load
     });
   }, [locations, selectedLocationId]);
 
   // Track previous selection to detect when it's cleared
+  // Why: We need to differentiate between "selection cleared" vs "never had selection"
   const prevSelectedLocationId = useRef(selectedLocationId);
 
   // Fit bounds to show all locations when selection is cleared
+  // Business rule: When user clicks "Show All", zoom out to show the full trip extent
   useEffect(() => {
-    // Only fit bounds when selection is cleared (was selected, now null)
+    // Detect if selection was just cleared (transition from selected -> null)
     const wasSelected = prevSelectedLocationId.current !== null;
     prevSelectedLocationId.current = selectedLocationId;
 
+    // Early returns for conditions where we shouldn't fit bounds
     if (!mapLoaded || !mapRef.current || !allLocations || allLocations.length === 0) return;
     if (selectedLocationId) return; // Don't fit if a location is selected
-    if (flyToLocation) return; // Don't fit if flying to search result
-    if (!wasSelected) return; // Only fit when clearing selection, not on filter changes
+    if (flyToLocation) return; // Don't fit if flying to search result (would interrupt)
+    if (!wasSelected) return; // Only fit when clearing selection, not on filter changes or initial load
 
     // Create bounds from ALL locations (not filtered) when clearing selection
+    // Why: User clicked "Show All" so they want to see everything, not just filtered items
     const bounds = new LngLatBounds();
     allLocations.forEach((loc) => {
       bounds.extend([loc.longitude, loc.latitude]);
     });
 
     mapRef.current.fitBounds(bounds, {
-      padding: 50,
-      maxZoom: 15,
-      duration: 1000,
+      padding: 50, // UI padding for controls and markers
+      maxZoom: 15, // Prevent excessive zoom on clustered locations
+      duration: 1000, // Smooth animation for better UX
     });
   }, [selectedLocationId, allLocations, flyToLocation, mapLoaded]);
 

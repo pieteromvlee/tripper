@@ -23,16 +23,32 @@ interface CalendarDay {
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
+/**
+ * Generate calendar grid days for a given month
+ *
+ * Business rule: Calendar always shows exactly 42 days (6 weeks x 7 days) for consistent UI height
+ *
+ * Why 42 days?
+ * - Most months need 5 weeks when starting mid-week
+ * - Some months need 6 weeks (e.g., 31-day month starting on Saturday)
+ * - Fixed 6-week grid prevents layout shifting between months
+ *
+ * Algorithm:
+ * 1. Fill previous month padding (to align first day with correct weekday)
+ * 2. Fill current month days (1 to lastDay)
+ * 3. Fill next month padding (to reach exactly 42 cells)
+ */
 function generateCalendarGrid(year: number, month: number): CalendarDay[] {
   const firstDay = new Date(year, month, 1);
   const lastDay = new Date(year, month + 1, 0);
-  const firstDayOfWeek = firstDay.getDay();
+  const firstDayOfWeek = firstDay.getDay(); // 0 (Sunday) to 6 (Saturday)
   const daysInMonth = lastDay.getDate();
   const prevMonthLastDay = new Date(year, month, 0).getDate();
 
   const days: CalendarDay[] = [];
 
-  // Previous month padding
+  // Step 1: Add trailing days from previous month
+  // Why: Align first day of month with correct weekday column (e.g., if month starts on Wed, show Sun-Tue from prev month)
   for (let i = firstDayOfWeek - 1; i >= 0; i--) {
     days.push({
       date: new Date(year, month - 1, prevMonthLastDay - i),
@@ -40,7 +56,7 @@ function generateCalendarGrid(year: number, month: number): CalendarDay[] {
     });
   }
 
-  // Current month
+  // Step 2: Add all days of current month
   for (let day = 1; day <= daysInMonth; day++) {
     days.push({
       date: new Date(year, month, day),
@@ -48,7 +64,8 @@ function generateCalendarGrid(year: number, month: number): CalendarDay[] {
     });
   }
 
-  // Next month padding (fill to 42 cells = 6 weeks)
+  // Step 3: Add leading days from next month to fill grid to 42 cells
+  // Why: Ensures consistent 6-week grid height across all months
   const remainingCells = 42 - days.length;
   for (let day = 1; day <= remainingCells; day++) {
     days.push({
@@ -92,16 +109,28 @@ export function CalendarView({
     });
   }
 
+  /**
+   * Handle drag-and-drop of location to a new date
+   *
+   * Business rule: When dragging a location to a different day, preserve its time but update the date
+   * Edge case: If location has no time, default to "00:00" (midnight)
+   *
+   * Why preserve time?
+   * - User likely wants to keep "dinner at 7pm" as 7pm, just on a different day
+   * - Changing the time would require extra work to fix
+   */
   async function handleDragEnd(event: DragEndEvent): Promise<void> {
     const { active, over } = event;
-    if (!over) return;
+    if (!over) return; // Dropped outside any droppable area
 
+    // Extract location being dragged
     const locationId = active.id as Id<"locations">;
     const location = locations?.find((loc) => loc._id === locationId);
     if (!location) return;
 
+    // Extract target date from droppable area ID (format: "day-YYYY-MM-DD")
     const overId = over.id.toString();
-    if (!overId.startsWith("day-")) return;
+    if (!overId.startsWith("day-")) return; // Not dropped on a calendar cell
 
     const newDate = overId.replace("day-", "");
     const time = location.dateTime ? getTimePart(location.dateTime) : "00:00";
