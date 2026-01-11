@@ -1,6 +1,7 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import type { Id, Doc } from "../../../convex/_generated/dataModel";
 import { CategoryIcon } from "../../lib/typeIcons";
+import { useClickOutside } from "../../hooks";
 
 interface CategoryFilterProps {
   categories: Doc<"categories">[] | undefined;
@@ -20,18 +21,7 @@ export function CategoryFilter({
   const hiddenCount = categories ? categories.length - visibleCategories.size : 0;
 
   // Close dropdown when clicking outside
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    }
-
-    if (isOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-      return () => document.removeEventListener("mousedown", handleClickOutside);
-    }
-  }, [isOpen]);
+  useClickOutside(dropdownRef, () => setIsOpen(false), isOpen);
 
   if (!categories) {
     return null;

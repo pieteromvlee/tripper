@@ -6,6 +6,7 @@ import { CategoryIcon } from "../../lib/typeIcons";
 import { getDatePart, getTimePart, combineDateTime } from "../../lib/dateUtils";
 import { isAccommodationCategory } from "../../lib/categoryUtils";
 import { logger } from "../../lib/logger";
+import { useClickOutside } from "../../hooks";
 
 interface MapboxFeature {
   id: string;
@@ -98,19 +99,7 @@ export function LocationEditForm({
   }, [address, location.address]);
 
   // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        addressContainerRef.current &&
-        !addressContainerRef.current.contains(event.target as Node)
-      ) {
-        setShowAddressResults(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  useClickOutside(addressContainerRef, () => setShowAddressResults(false), showAddressResults);
 
   const handleAddressSelect = (feature: MapboxFeature) => {
     const [lng, lat] = feature.center;

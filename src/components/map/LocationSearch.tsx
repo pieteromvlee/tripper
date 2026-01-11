@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { logger } from "../../lib/logger";
+import { useClickOutside } from "../../hooks";
 
 interface LocationSearchResult {
   name: string;
@@ -206,21 +207,7 @@ export function LocationSearch({
   }, [query, proximity]);
 
   // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(event.target as Node)
-      ) {
-        setIsOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
+  useClickOutside(containerRef, () => setIsOpen(false), isOpen);
 
   const handleSelect = (result: SearchResult) => {
     onSelect({

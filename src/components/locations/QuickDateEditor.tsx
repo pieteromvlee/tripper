@@ -3,6 +3,7 @@ import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { getDatePart, getTimePart, combineDateTime } from "../../lib/dateUtils";
+import { useClickOutside } from "../../hooks";
 
 interface QuickDateEditorProps {
   locationId: Id<"locations">;
@@ -48,18 +49,7 @@ export function QuickDateEditor({
   }, [isOpen]);
 
   // Close on outside click
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const handleClickOutside = (event: MouseEvent) => {
-      if (popoverRef.current && !popoverRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isOpen]);
+  useClickOutside(popoverRef, () => setIsOpen(false), isOpen);
 
   // Close on Escape key
   useEffect(() => {

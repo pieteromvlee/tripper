@@ -1,8 +1,9 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Doc, Id } from "../../../convex/_generated/dataModel";
 import { CategoryIcon } from "../../lib/typeIcons";
+import { useClickOutside } from "../../hooks";
 
 interface CategoryPickerButtonProps {
   location: Doc<"locations">;
@@ -22,21 +23,8 @@ export function CategoryPickerButton({
 
   const updateLocation = useMutation(api.locations.update);
 
-  // Close dropdown when clicking outside (must be called before any conditional returns)
-  useEffect(() => {
-    if (!isDesktop) return; // Skip effect on mobile
-
-    function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    }
-
-    if (isOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-      return () => document.removeEventListener("mousedown", handleClickOutside);
-    }
-  }, [isOpen, isDesktop]);
+  // Close dropdown when clicking outside (desktop only)
+  useClickOutside(dropdownRef, () => setIsOpen(false), isDesktop && isOpen);
 
   // Mobile: Show static icon only
   if (!isDesktop) {
