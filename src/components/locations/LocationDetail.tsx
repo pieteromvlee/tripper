@@ -286,6 +286,7 @@ function LocationEditForm({
   const [showAddressResults, setShowAddressResults] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [coordinatesUpdated, setCoordinatesUpdated] = useState(false);
+  const [isPrefilling, setIsPrefilling] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const addressContainerRef = useRef<HTMLDivElement>(null);
 
@@ -353,6 +354,40 @@ function LocationEditForm({
     setLongitude(lng);
     setCoordinatesUpdated(true);
     setShowAddressResults(false);
+  };
+
+  const handlePrefillAddress = async () => {
+    setIsPrefilling(true);
+    try {
+      const token = import.meta.env.VITE_MAPBOX_TOKEN;
+      const response = await fetch(
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${token}&types=poi,address&limit=1`
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.features && data.features.length > 0) {
+          const feature = data.features[0];
+          const isPOI = feature.properties?.category || feature.place_type?.includes('poi');
+
+          if (isPOI && feature.text) {
+            // For POIs, extract address without the POI name
+            let addr = feature.place_name;
+            if (addr.startsWith(feature.text)) {
+              addr = addr.slice(feature.text.length).replace(/^,\s*/, "");
+            }
+            setAddress(addr);
+          } else {
+            // For generic addresses, use full place_name
+            setAddress(feature.place_name);
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Address prefill failed:", error);
+    } finally {
+      setIsPrefilling(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -436,6 +471,16 @@ function LocationEditForm({
           <span>{latitude.toFixed(5)}, {longitude.toFixed(5)}</span>
           {coordinatesUpdated && (
             <span className="text-green-600 font-medium">Updated</span>
+          )}
+          {!address.trim() && (
+            <button
+              type="button"
+              onClick={handlePrefillAddress}
+              disabled={isPrefilling}
+              className="text-blue-400 hover:text-blue-300 text-xs underline disabled:opacity-50"
+            >
+              {isPrefilling ? "loading..." : "prefill address"}
+            </button>
           )}
         </div>
       </div>

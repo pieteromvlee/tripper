@@ -198,10 +198,10 @@ export function TripMap({
     async (event: MapMouseEvent) => {
       const { lng, lat } = event.lngLat;
 
-      // Immediately call with coordinates, then update with name if found
-      onMapClick({ lat, lng });
+      // Start with just coordinates
+      let locationData: { lat: number; lng: number; name?: string; address?: string } = { lat, lng };
 
-      // Try reverse geocoding to get place name
+      // Try reverse geocoding to get place name and address
       try {
         const response = await fetch(
           `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${MAPBOX_TOKEN}&types=poi,address&limit=1`
@@ -218,19 +218,17 @@ export function TripMap({
               if (address.startsWith(feature.text)) {
                 address = address.slice(feature.text.length).replace(/^,\s*/, "");
               }
-              onMapClick({
-                lat,
-                lng,
+              locationData = {
+                ...locationData,
                 name: feature.text,
                 address: address || undefined,
-              });
+              };
             } else {
               // Generic address: Use full place_name as address, no name
-              onMapClick({
-                lat,
-                lng,
+              locationData = {
+                ...locationData,
                 address: feature.place_name || undefined,
-              });
+              };
             }
           }
         }
@@ -238,6 +236,9 @@ export function TripMap({
         // Silently fail - we already have coordinates
         console.error("Reverse geocoding failed:", error);
       }
+
+      // Call once with complete data (including address if found)
+      onMapClick(locationData);
     },
     [onMapClick]
   );
