@@ -85,16 +85,16 @@ async function waitForAuth(page, timeout = 5000) {
   try {
     // Wait for either authenticated state or login form
     await Promise.race([
-      page.waitForSelector('h1:has-text("MY TRIPS")', { timeout }).catch(() => null),
+      page.waitForSelector('h1', { timeout }).catch(() => null),
       page.waitForSelector('a[href="/login"]', { timeout }).catch(() => null),
       page.waitForSelector('#email', { timeout }).catch(() => null),
     ]);
 
-    // Check which state we're in
+    // Check which state we're in by looking for authenticated indicators
     const isAuthenticated = await page.$('h1').then(async el => {
       if (!el) return false;
       const text = await el.evaluate(node => node.textContent);
-      return text && text.includes('MY TRIPS');
+      return text && text.toUpperCase().includes('MY TRIPS');
     }).catch(() => false);
 
     return isAuthenticated ? 'authenticated' : 'unauthenticated';
