@@ -6,6 +6,7 @@ import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 import { LocationList, FilterBar, LocationDetail, LocationForm, CalendarView, KanbanView } from "../components/locations";
 import { TripMap, LocationSearch, SelectionPopover } from "../components/map";
+import { ErrorBoundary, MapErrorFallback } from "../components/ErrorBoundary";
 import { useLocationSelection } from "../hooks";
 import { useTheme } from "../hooks/useDarkMode";
 import { parseTripId } from "../lib/routeParams";
@@ -399,15 +400,17 @@ export default function TripPage() {
                   />
                 </div>
               ) : (
-                <LocationList
-                  tripId={tripId}
-                  selectedDate={selectedDate ?? undefined}
-                  selectedLocationId={selectedLocationId ?? undefined}
-                  categories={categories}
-                  visibleCategories={visibleCategories}
-                  onLocationSelect={selectLocation}
-                  scrollTrigger={scrollToCounter}
-                />
+                <ErrorBoundary>
+                  <LocationList
+                    tripId={tripId}
+                    selectedDate={selectedDate ?? undefined}
+                    selectedLocationId={selectedLocationId ?? undefined}
+                    categories={categories}
+                    visibleCategories={visibleCategories}
+                    onLocationSelect={selectLocation}
+                    scrollTrigger={scrollToCounter}
+                  />
+                </ErrorBoundary>
               )}
             </div>
           </div>
@@ -438,20 +441,22 @@ export default function TripPage() {
                     </div>
                   </div>
                 )}
-                <TripMap
-                  key={isMobile ? viewMode : `desktop-${sidebarVisible}`}
-                  tripId={tripId}
-                  selectedLocationId={selectedLocationId}
-                  selectedDate={selectedDate}
-                  categories={categories}
-                  visibleCategories={visibleCategories}
-                  onLocationSelect={selectAndScrollTo}
-                  onMapClick={handleMapClick}
-                  onCenterChange={(lat, lng) => setMapCenter({ lat, lng })}
-                  flyToLocation={newLocationData ? { lat: newLocationData.lat, lng: newLocationData.lng, key: flyToCounter } : undefined}
-                  pendingLocation={showAddForm && newLocationData ? { lat: newLocationData.lat, lng: newLocationData.lng } : null}
-                  userLocation={userLocation}
-                />
+                <ErrorBoundary fallback={(error, resetError) => <MapErrorFallback error={error} resetError={resetError} />}>
+                  <TripMap
+                    key={isMobile ? viewMode : `desktop-${sidebarVisible}`}
+                    tripId={tripId}
+                    selectedLocationId={selectedLocationId}
+                    selectedDate={selectedDate}
+                    categories={categories}
+                    visibleCategories={visibleCategories}
+                    onLocationSelect={selectAndScrollTo}
+                    onMapClick={handleMapClick}
+                    onCenterChange={(lat, lng) => setMapCenter({ lat, lng })}
+                    flyToLocation={newLocationData ? { lat: newLocationData.lat, lng: newLocationData.lng, key: flyToCounter } : undefined}
+                    pendingLocation={showAddForm && newLocationData ? { lat: newLocationData.lat, lng: newLocationData.lng } : null}
+                    userLocation={userLocation}
+                  />
+                </ErrorBoundary>
                 {/* Show All button - appears when a location is selected */}
                 {selectedLocationId && (
                   <button
@@ -518,26 +523,30 @@ export default function TripPage() {
 
             {/* Show Calendar */}
             {isCalendarView && (
-              <CalendarView
-                tripId={tripId}
-                locations={locations}
-                categories={categories}
-                selectedLocationId={selectedLocationId}
-                onLocationSelect={handleLocationSelectAndShowDetail}
-                visibleCategories={visibleCategories}
-              />
+              <ErrorBoundary>
+                <CalendarView
+                  tripId={tripId}
+                  locations={locations}
+                  categories={categories}
+                  selectedLocationId={selectedLocationId}
+                  onLocationSelect={handleLocationSelectAndShowDetail}
+                  visibleCategories={visibleCategories}
+                />
+              </ErrorBoundary>
             )}
 
             {/* Show Kanban */}
             {isKanbanView && (
-              <KanbanView
-                tripId={tripId}
-                locations={locations}
-                categories={categories}
-                selectedLocationId={selectedLocationId}
-                onLocationSelect={handleLocationSelectAndShowDetail}
-                visibleCategories={visibleCategories}
-              />
+              <ErrorBoundary>
+                <KanbanView
+                  tripId={tripId}
+                  locations={locations}
+                  categories={categories}
+                  selectedLocationId={selectedLocationId}
+                  onLocationSelect={handleLocationSelectAndShowDetail}
+                  visibleCategories={visibleCategories}
+                />
+              </ErrorBoundary>
             )}
           </div>
         )}
@@ -545,11 +554,13 @@ export default function TripPage() {
 
       {/* Full-screen location detail view */}
       {detailLocation && (
-        <LocationDetail
-          location={detailLocation}
-          categories={categories}
-          onClose={() => setDetailLocationId(null)}
-        />
+        <ErrorBoundary>
+          <LocationDetail
+            location={detailLocation}
+            categories={categories}
+            onClose={() => setDetailLocationId(null)}
+          />
+        </ErrorBoundary>
       )}
 
       {/* Full-screen add location form */}

@@ -4,6 +4,7 @@ import { api } from "../../../convex/_generated/api";
 import type { Doc, Id } from "../../../convex/_generated/dataModel";
 import { AttachmentList } from "./AttachmentList";
 import { AttachmentUpload } from "./AttachmentUpload";
+import { ErrorBoundary, ImageErrorFallback } from "../ErrorBoundary";
 import { getDirectionsUrl } from "../../lib/locationUtils";
 import { CategoryIcon } from "../../lib/typeIcons";
 import { getDatePart, getTimePart, combineDateTime, formatDateTime } from "../../lib/dateUtils";
@@ -206,7 +207,9 @@ export function LocationDetail({ location, categories, onClose }: LocationDetail
             <div>
               <h2 className="text-xs font-medium text-text-secondary mb-1 uppercase tracking-wide">Attachments</h2>
               <div className="bg-surface-secondary border border-border p-3 space-y-3 md:p-2 md:space-y-2">
-                <AttachmentList locationId={location._id} />
+                <ErrorBoundary fallback={<ImageErrorFallback />}>
+                  <AttachmentList locationId={location._id} />
+                </ErrorBoundary>
                 <AttachmentUpload locationId={location._id} />
               </div>
             </div>

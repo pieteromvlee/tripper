@@ -3,6 +3,7 @@ import { Authenticated, Unauthenticated, AuthLoading, useQuery, useMutation } fr
 import { useAuthActions } from "@convex-dev/auth/react";
 import { Link, useNavigate } from "react-router-dom";
 import { TripList, CreateTripModal } from "../components/trips";
+import { ErrorBoundary } from "../components/ErrorBoundary";
 import { useTheme } from "../hooks/useDarkMode";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
@@ -151,7 +152,9 @@ function AuthenticatedHome() {
           </div>
         )}
 
-        <TripList />
+        <ErrorBoundary>
+          <TripList />
+        </ErrorBoundary>
       </main>
 
       <CreateTripModal isOpen={showCreateModal} onClose={() => setShowCreateModal(false)} />
