@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { X, Plus, Pencil, Trash2, AlertCircle } from "lucide-react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
@@ -87,30 +88,56 @@ export function CategoryManagementModal({
     setError(null);
   };
 
+  const handleBackdropClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    // Only close if clicking the backdrop itself, not the content
+    if (e.target === e.currentTarget) {
+      if (mode === "list") {
+        onClose();
+      } else {
+        handleCancelEdit();
+      }
+    }
+  };
+
   // Show editor when in create or edit mode
   if (mode === "create" || mode === "edit") {
-    return (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    return createPortal(
+      <div
+        className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+        onClick={handleBackdropClick}
+      >
         <CategoryEditor
           category={mode === "edit" ? editingCategory : null}
+          categories={categories || []}
           onSave={mode === "edit" ? handleUpdate : handleCreate}
           onCancel={handleCancelEdit}
         />
-      </div>
+      </div>,
+      document.body
     );
   }
 
   // Show category list
-  return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-surface shadow-lg max-w-xl w-full max-h-[90vh] overflow-hidden flex flex-col border border-border">
+  return createPortal(
+    <div
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+      onClick={handleBackdropClick}
+    >
+      <div
+        className="bg-surface shadow-lg max-w-xl w-full max-h-[90vh] overflow-hidden flex flex-col border border-border"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="bg-surface-secondary border-b border-border px-2 py-1 flex items-center justify-between">
           <h2 className="text-xs font-bold text-text-primary uppercase tracking-wide">
             CATEGORIES
           </h2>
           <button
-            onClick={onClose}
+            onClick={(e) => {
+              e.stopPropagation();
+              onClose();
+            }}
             className="p-1 text-text-secondary hover:text-text-primary hover:bg-surface-elevated border border-transparent hover:border-border"
           >
             <X size={14} />
@@ -129,7 +156,10 @@ export function CategoryManagementModal({
 
           {/* Add Category Button */}
           <button
-            onClick={() => setMode("create")}
+            onClick={(e) => {
+              e.stopPropagation();
+              setMode("create");
+            }}
             className="w-full mb-2 px-2 py-1 border border-dashed border-border text-text-secondary hover:border-text-primary hover:text-text-primary hover:bg-surface-elevated flex items-center justify-center gap-1.5 text-[10px] uppercase tracking-wide font-medium"
           >
             <Plus size={12} />
@@ -176,14 +206,20 @@ export function CategoryManagementModal({
                   {/* Action Buttons */}
                   <div className="flex items-center gap-0.5 flex-shrink-0">
                     <button
-                      onClick={() => handleEdit(category)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEdit(category);
+                      }}
                       className="p-1 text-text-secondary hover:text-text-primary hover:bg-surface-secondary border border-transparent hover:border-border"
                       title="Edit"
                     >
                       <Pencil size={12} />
                     </button>
                     <button
-                      onClick={() => setDeletingCategory(category._id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDeletingCategory(category._id);
+                      }}
                       className="p-1 text-text-secondary hover:text-text-primary hover:bg-surface-secondary border border-transparent hover:border-border"
                       title="Delete"
                     >
@@ -199,7 +235,10 @@ export function CategoryManagementModal({
         {/* Footer */}
         <div className="border-t border-border px-2 py-1 bg-surface-secondary">
           <button
-            onClick={onClose}
+            onClick={(e) => {
+              e.stopPropagation();
+              onClose();
+            }}
             className="w-full px-2 py-1 bg-surface-elevated border border-border text-text-primary hover:bg-surface text-[10px] uppercase tracking-wide font-medium"
           >
             DONE
@@ -209,8 +248,19 @@ export function CategoryManagementModal({
 
       {/* Delete Confirmation Dialog */}
       {deletingCategory && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-surface shadow-lg max-w-sm w-full border border-border">
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          onClick={(e) => {
+            e.stopPropagation();
+            if (e.target === e.currentTarget) {
+              setDeletingCategory(null);
+            }
+          }}
+        >
+          <div
+            className="bg-surface shadow-lg max-w-sm w-full border border-border"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="bg-surface-secondary border-b border-border px-2 py-1">
               <h3 className="text-xs font-bold text-text-primary uppercase tracking-wide">
                 DELETE CATEGORY
@@ -222,13 +272,19 @@ export function CategoryManagementModal({
               </p>
               <div className="flex items-center justify-end gap-1">
                 <button
-                  onClick={() => setDeletingCategory(null)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setDeletingCategory(null);
+                  }}
                   className="px-2 py-1 text-text-primary bg-surface-elevated border border-border hover:bg-surface text-[10px] uppercase tracking-wide font-medium"
                 >
                   CANCEL
                 </button>
                 <button
-                  onClick={() => handleDelete(deletingCategory)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDelete(deletingCategory);
+                  }}
                   className="px-2 py-1 bg-red-600 text-white border border-red-400 hover:bg-red-500 text-[10px] uppercase tracking-wide font-medium"
                 >
                   DELETE
@@ -238,6 +294,7 @@ export function CategoryManagementModal({
           </div>
         </div>
       )}
-    </div>
+    </div>,
+    document.body
   );
 }

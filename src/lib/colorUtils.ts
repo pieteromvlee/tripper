@@ -3,6 +3,8 @@
  * Handles color validation, manipulation, and generation of shades for markers
  */
 
+import type { Doc, Id } from "../../convex/_generated/dataModel";
+
 /**
  * Validate if a string is a valid hex color (#RRGGBB format)
  */
@@ -151,4 +153,33 @@ export function getContrastingTextColor(bgColor: string): "#000000" | "#FFFFFF" 
   const luminance = (0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b) / 255;
 
   return luminance > 0.5 ? "#000000" : "#FFFFFF";
+}
+
+/**
+ * Build a map of colors to categories that use them
+ * Used in color picker to show which colors are already in use
+ *
+ * @param categories - Array of all categories
+ * @param excludeCategoryId - Optional category ID to exclude (e.g., when editing)
+ * @returns Map of color hex string to array of category info
+ */
+export function buildUsedColorsMap(
+  categories: Doc<"categories">[],
+  excludeCategoryId?: Id<"categories">
+): Map<string, Array<{ iconName: string; name: string }>> {
+  const map = new Map<string, Array<{ iconName: string; name: string }>>();
+
+  categories
+    .filter((cat) => cat._id !== excludeCategoryId)
+    .forEach((cat) => {
+      if (!map.has(cat.color)) {
+        map.set(cat.color, []);
+      }
+      map.get(cat.color)!.push({
+        iconName: cat.iconName,
+        name: cat.name,
+      });
+    });
+
+  return map;
 }

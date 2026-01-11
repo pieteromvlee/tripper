@@ -1,11 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { X } from "lucide-react";
 import { ColorPicker } from "./ColorPicker";
 import { IconPicker } from "./IconPicker";
+import { buildUsedColorsMap } from "../../lib/colorUtils";
 import type { Doc } from "../../../convex/_generated/dataModel";
 
 interface CategoryEditorProps {
   category?: Doc<"categories"> | null;
+  categories: Doc<"categories">[];
   onSave: (data: {
     name: string;
     iconName: string;
@@ -17,6 +19,7 @@ interface CategoryEditorProps {
 
 export function CategoryEditor({
   category,
+  categories,
   onSave,
   onCancel,
   isLoading = false,
@@ -25,6 +28,12 @@ export function CategoryEditor({
   const [iconName, setIconName] = useState(category?.iconName || "Camera");
   const [color, setColor] = useState(category?.color || "#3B82F6");
   const [error, setError] = useState<string | null>(null);
+
+  // Compute which colors are used by other categories (excluding current category being edited)
+  const usedColors = useMemo(
+    () => buildUsedColorsMap(categories, category?._id),
+    [categories, category?._id]
+  );
 
   useEffect(() => {
     if (category) {
@@ -66,7 +75,10 @@ export function CategoryEditor({
   };
 
   return (
-    <div className="bg-surface shadow-lg max-w-xl w-full max-h-[90vh] overflow-y-auto border border-border">
+    <div
+      className="bg-surface shadow-lg max-w-xl w-full max-h-[90vh] overflow-y-auto border border-border"
+      onClick={(e) => e.stopPropagation()}
+    >
       {/* Header */}
       <div className="sticky top-0 bg-surface-secondary border-b border-border px-4 py-2 flex items-center justify-between z-10">
         <h2 className="text-sm font-bold text-text-primary uppercase tracking-wide">
@@ -127,7 +139,7 @@ export function CategoryEditor({
           <label className="block text-xs font-medium text-text-secondary mb-1 uppercase tracking-wide">
             Color
           </label>
-          <ColorPicker value={color} onChange={setColor} />
+          <ColorPicker value={color} onChange={setColor} usedColors={usedColors} />
         </div>
 
         {/* Action Buttons */}

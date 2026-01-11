@@ -10,7 +10,7 @@ interface Trip {
   _id: Id<"trips">;
   name: string;
   createdAt: number;
-  role?: "owner" | "editor" | "viewer";
+  role?: "owner" | "member";
 }
 
 interface TripCardProps {

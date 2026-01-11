@@ -1,14 +1,16 @@
 import { useState } from "react";
 import { Check } from "lucide-react";
 import { PRESET_COLORS, isValidHexColor } from "../../lib/colorUtils";
+import { CategoryIcon } from "../../lib/typeIcons";
 
 interface ColorPickerProps {
   value: string;
   onChange: (color: string) => void;
   className?: string;
+  usedColors?: Map<string, Array<{ iconName: string; name: string }>>;
 }
 
-export function ColorPicker({ value, onChange, className = "" }: ColorPickerProps) {
+export function ColorPicker({ value, onChange, className = "", usedColors }: ColorPickerProps) {
   const [customColor, setCustomColor] = useState("");
   const [showCustomInput, setShowCustomInput] = useState(false);
 
@@ -33,23 +35,41 @@ export function ColorPicker({ value, onChange, className = "" }: ColorPickerProp
     <div className={`space-y-3 ${className}`}>
       {/* Preset Colors Grid */}
       <div className="grid grid-cols-8 gap-2">
-        {PRESET_COLORS.map((color) => (
-          <button
-            key={color}
-            type="button"
-            onClick={() => onChange(color)}
-            className="relative w-8 h-8 rounded-lg border-2 border-border hover:border-text-secondary transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-surface"
-            style={{ backgroundColor: color }}
-            title={color}
-          >
-            {value === color && (
-              <Check
-                className="absolute inset-0 m-auto text-white drop-shadow-md"
-                size={16}
-              />
-            )}
-          </button>
-        ))}
+        {PRESET_COLORS.map((color) => {
+          const usedBy = usedColors?.get(color);
+          const tooltipText = usedBy
+            ? `Used by: ${usedBy.map((cat) => cat.name).join(", ")}`
+            : color;
+
+          return (
+            <button
+              key={color}
+              type="button"
+              onClick={() => onChange(color)}
+              className="relative w-8 h-8 rounded-lg border-2 border-border hover:border-text-secondary transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-surface"
+              style={{ backgroundColor: color }}
+              title={tooltipText}
+            >
+              {value === color && (
+                <Check
+                  className="absolute inset-0 m-auto text-white drop-shadow-md"
+                  size={16}
+                />
+              )}
+              {/* Badge indicator for used colors */}
+              {usedBy && usedBy.length === 1 && (
+                <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-white rounded-full border border-border flex items-center justify-center shadow-sm">
+                  <CategoryIcon iconName={usedBy[0].iconName} className="w-2 h-2" />
+                </div>
+              )}
+              {usedBy && usedBy.length > 1 && (
+                <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-white rounded-full border border-border flex items-center justify-center text-[8px] font-bold text-text-primary shadow-sm">
+                  {usedBy.length}
+                </div>
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {/* Custom Color Input */}

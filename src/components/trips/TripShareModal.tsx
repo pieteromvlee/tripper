@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
@@ -75,12 +76,13 @@ export function TripShareModal({ tripId, isOwner, onClose }: TripShareModalProps
   };
 
   const handleBackdropClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (e.target === e.currentTarget) {
       onClose();
     }
   };
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50"
       onClick={handleBackdropClick}
@@ -88,12 +90,18 @@ export function TripShareModal({ tripId, isOwner, onClose }: TripShareModalProps
       aria-modal="true"
       aria-labelledby="share-trip-title"
     >
-      <div className="bg-surface-elevated w-full max-w-md max-h-[80vh] flex flex-col border border-border">
+      <div
+        className="bg-surface-elevated w-full max-w-md max-h-[80vh] flex flex-col border border-border"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="px-4 py-2 bg-surface-secondary border-b border-border">
           <div className="flex items-center justify-between">
             <h2 id="share-trip-title" className="text-sm font-bold text-text-primary uppercase tracking-wide">Share Trip</h2>
             <button
-              onClick={onClose}
+              onClick={(e) => {
+                e.stopPropagation();
+                onClose();
+              }}
               className="p-1 text-text-muted hover:text-text-primary hover:bg-surface-elevated border border-transparent hover:border-border transition-colors"
               aria-label="Close"
             >
@@ -179,7 +187,10 @@ export function TripShareModal({ tripId, isOwner, onClose }: TripShareModalProps
                       </span>
                       {isOwner && member.role !== "owner" && (
                         <button
-                          onClick={() => handleRemoveMember(member._id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRemoveMember(member._id);
+                          }}
                           className="p-1 text-text-muted hover:text-red-400 border border-transparent hover:border-red-500/50 transition-colors"
                           title="Remove member"
                           aria-label={`Remove ${member.name || member.email}`}
@@ -218,7 +229,10 @@ export function TripShareModal({ tripId, isOwner, onClose }: TripShareModalProps
                       </div>
                     </div>
                     <button
-                      onClick={() => handleCancelInvite(invite._id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleCancelInvite(invite._id);
+                      }}
                       className="p-1 text-text-muted hover:text-red-400 border border-transparent hover:border-red-500/50 transition-colors"
                       title="Cancel invite"
                       aria-label={`Cancel invite for ${invite.email}`}
@@ -236,13 +250,17 @@ export function TripShareModal({ tripId, isOwner, onClose }: TripShareModalProps
 
         <div className="p-3 border-t border-border">
           <button
-            onClick={onClose}
+            onClick={(e) => {
+              e.stopPropagation();
+              onClose();
+            }}
             className="w-full px-4 py-2 text-text-secondary border border-border hover:bg-surface-secondary hover:border-border-focus text-xs font-medium transition-colors"
           >
             Close
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
