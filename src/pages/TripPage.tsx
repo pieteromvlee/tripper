@@ -467,7 +467,7 @@ export default function TripPage() {
               <div className="p-3 border-b border-border bg-surface-secondary">
                 <div className="flex items-center gap-2">
                   <div className="flex-1">
-                    <LocationSearch onSelect={handleSearchSelect} placeholder="Search for a place..." autoFocus />
+                    <LocationSearch onSelect={handleSearchSelect} placeholder="Search for a place..." autoFocus proximity={mapCenter} />
                   </div>
                   <button
                     onClick={() => setShowSearch(false)}
