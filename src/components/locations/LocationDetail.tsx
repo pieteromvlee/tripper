@@ -7,6 +7,7 @@ import { AttachmentUpload } from "./AttachmentUpload";
 import { getDirectionsUrl } from "../../lib/locationUtils";
 import { CategoryIcon } from "../../lib/typeIcons";
 import { getDatePart, getTimePart, combineDateTime, formatDateTime } from "../../lib/dateUtils";
+import { isAccommodationCategory } from "../../lib/categoryUtils";
 
 interface LocationDetailProps {
   location: Doc<"locations">;
@@ -176,7 +177,7 @@ export function LocationDetail({ location, categories, onClose }: LocationDetail
                   <div className="text-sm text-text-primary">{formatDateTime(location.dateTime)}</div>
                 </div>
               )}
-              {category?.name.toLowerCase() === "accommodation" && location.endDateTime && (
+              {isAccommodationCategory(category) && location.endDateTime && (
                 <div className="px-3 py-2 md:px-0 md:py-1 md:flex md:items-baseline md:gap-2">
                   <div className="text-xs text-text-secondary uppercase tracking-wide md:text-sm md:normal-case md:tracking-normal md:min-w-[100px]">Check-out</div>
                   <div className="text-sm text-text-primary">{formatDateTime(location.endDateTime)}</div>
@@ -277,7 +278,7 @@ function LocationEditForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const selectedCategory = categories?.find(c => c._id === categoryId);
-  const isAccommodation = selectedCategory?.name.toLowerCase() === "accommodation";
+  const isAccommodation = isAccommodationCategory(selectedCategory);
 
   // Address search state
   const [addressResults, setAddressResults] = useState<MapboxFeature[]>([]);

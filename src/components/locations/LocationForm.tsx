@@ -4,6 +4,7 @@ import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { CategoryIcon } from "../../lib/typeIcons";
 import { combineDateTime } from "../../lib/dateUtils";
+import { isAccommodationCategory } from "../../lib/categoryUtils";
 
 interface LocationFormProps {
   tripId: Id<"trips">;
@@ -51,7 +52,7 @@ export function LocationForm({
   }, [categories, categoryId]);
 
   const selectedCategory = categories?.find(c => c._id === categoryId);
-  const isAccommodation = selectedCategory?.name.toLowerCase() === "accommodation";
+  const isAccommodation = isAccommodationCategory(selectedCategory);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

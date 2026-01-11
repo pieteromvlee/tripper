@@ -2,6 +2,7 @@ import { useDraggable } from "@dnd-kit/core";
 import type { Doc } from "../../../convex/_generated/dataModel";
 import { formatDateTime, formatTime } from "../../lib/dateUtils";
 import { CategoryIcon } from "../../lib/typeIcons";
+import { isAccommodationCategory } from "../../lib/categoryUtils";
 
 interface LocationCardProps {
   location: Doc<"locations">;
@@ -33,7 +34,7 @@ export function LocationCard({
   });
 
   const category = categories?.find(c => c._id === location.categoryId);
-  const isAccommodation = category?.name.toLowerCase() === "accommodation";
+  const isAccommodation = isAccommodationCategory(category);
 
   return (
     <div

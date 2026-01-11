@@ -11,6 +11,7 @@ import { CategoryManagementModal } from "../components/categories/CategoryManage
 import { useLocationSelection } from "../hooks";
 import { useTheme } from "../hooks/useDarkMode";
 import { parseTripId } from "../lib/routeParams";
+import { isAccommodationCategory } from "../lib/categoryUtils";
 
 type ViewMode = "list" | "map" | "calendar" | "kanban";
 type DetailViewMode = "map" | "calendar" | "kanban";
@@ -110,7 +111,7 @@ export default function TripPage() {
   // Find accommodation and detail location
   const accommodation = locations?.find((loc) => {
     const category = categories?.find(c => c._id === loc.categoryId);
-    return category?.name.toLowerCase().includes("accommodation");
+    return isAccommodationCategory(category);
   });
   const detailLocation = locations?.find((loc) => loc._id === detailLocationId);
 
