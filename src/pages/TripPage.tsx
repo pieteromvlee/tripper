@@ -4,7 +4,7 @@ import { useQuery } from "convex/react";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
-import { LocationList, FilterBar, LocationDetail, LocationForm, CalendarView } from "../components/locations";
+import { LocationList, FilterBar, LocationDetail, LocationForm, CalendarView, CompactCalendarView } from "../components/locations";
 import { TripMap, LocationSearch, SelectionPopover } from "../components/map";
 import { TripShareModal } from "../components/trips/TripShareModal";
 import { CategoryManagementModal } from "../components/categories/CategoryManagementModal";
@@ -12,8 +12,8 @@ import { useLocationSelection } from "../hooks";
 import { useTheme } from "../hooks/useDarkMode";
 import { parseTripId } from "../lib/routeParams";
 
-type ViewMode = "list" | "map" | "calendar";
-type DetailViewMode = "map" | "calendar";
+type ViewMode = "list" | "map" | "calendar" | "kanban";
+type DetailViewMode = "map" | "calendar" | "kanban";
 
 export default function TripPage() {
   const params = useParams<{ tripId: string }>();
@@ -248,7 +248,7 @@ export default function TripPage() {
               </button>
             )}
 
-            {/* View toggle (mobile: three-way list/map/calendar) */}
+            {/* View toggle (mobile: four-way list/map/calendar/kanban) */}
             {isMobile && (
               <div className="flex items-center border border-border ml-2">
                 <button
@@ -269,11 +269,19 @@ export default function TripPage() {
                 </button>
                 <button
                   onClick={() => setViewMode("calendar")}
-                  className={`px-3 py-1.5 text-xs font-medium transition ${
+                  className={`px-3 py-1.5 text-xs font-medium transition border-r border-border ${
                     viewMode === "calendar" ? "bg-blue-600 text-white" : "text-text-secondary hover:bg-surface-elevated"
                   }`}
                 >
                   Calendar
+                </button>
+                <button
+                  onClick={() => setViewMode("kanban")}
+                  className={`px-3 py-1.5 text-xs font-medium transition ${
+                    viewMode === "kanban" ? "bg-blue-600 text-white" : "text-text-secondary hover:bg-surface-elevated"
+                  }`}
+                >
+                  Kanban
                 </button>
               </div>
             )}
@@ -510,6 +518,18 @@ export default function TripPage() {
             {/* Show Calendar */}
             {(isMobile ? viewMode === "calendar" : detailViewMode === "calendar") && (
               <CalendarView
+                tripId={tripId}
+                locations={locations}
+                categories={categories}
+                selectedLocationId={selectedLocationId}
+                onLocationSelect={selectLocation}
+                visibleCategories={visibleCategories}
+              />
+            )}
+
+            {/* Show Kanban */}
+            {(isMobile ? viewMode === "kanban" : detailViewMode === "kanban") && (
+              <CompactCalendarView
                 tripId={tripId}
                 locations={locations}
                 categories={categories}
