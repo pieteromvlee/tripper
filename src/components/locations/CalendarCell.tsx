@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { useDroppable } from "@dnd-kit/core";
 import type { Doc, Id } from "../../../convex/_generated/dataModel";
 import { CalendarLocationChip } from "./CalendarLocationChip";
@@ -13,7 +14,7 @@ interface CalendarCellProps {
   onLocationSelect: (id: Id<"locations">) => void;
 }
 
-export function CalendarCell({
+const CalendarCellComponent = ({
   date,
   isCurrentMonth,
   isToday,
@@ -21,7 +22,7 @@ export function CalendarCell({
   categories,
   selectedLocationId,
   onLocationSelect,
-}: CalendarCellProps) {
+}: CalendarCellProps) => {
   // Create droppable ID in format: day-YYYY-MM-DD
   const dateStr = formatDateString(date);
   const { setNodeRef, isOver } = useDroppable({
@@ -59,4 +60,7 @@ export function CalendarCell({
       ))}
     </div>
   );
-}
+};
+
+export const CalendarCell = memo(CalendarCellComponent);
+CalendarCell.displayName = "CalendarCell";

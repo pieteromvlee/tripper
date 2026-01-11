@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { useDraggable } from "@dnd-kit/core";
 import type { Doc } from "../../../convex/_generated/dataModel";
 import { formatDateTime, formatTime } from "../../lib/dateUtils";
@@ -22,13 +23,13 @@ function formatLocationTime(
   return formatDateTime(dateTime);
 }
 
-export function LocationCard({
+const LocationCardComponent = ({
   location,
   categories,
   isSelected,
   onClick,
   selectedDate,
-}: LocationCardProps) {
+}: LocationCardProps) => {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: location._id,
   });
@@ -89,4 +90,7 @@ export function LocationCard({
       </div>
     </div>
   );
-}
+};
+
+export const LocationCard = memo(LocationCardComponent);
+LocationCard.displayName = "LocationCard";

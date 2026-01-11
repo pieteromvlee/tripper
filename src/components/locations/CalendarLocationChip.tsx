@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { useDraggable } from "@dnd-kit/core";
 import type { Doc } from "../../../convex/_generated/dataModel";
 import { CategoryIcon } from "../../lib/typeIcons";
@@ -9,12 +10,12 @@ interface CalendarLocationChipProps {
   onClick: () => void;
 }
 
-export function CalendarLocationChip({
+const CalendarLocationChipComponent = ({
   location,
   categories,
   isSelected,
   onClick,
-}: CalendarLocationChipProps) {
+}: CalendarLocationChipProps) => {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: location._id,
   });
@@ -63,4 +64,7 @@ export function CalendarLocationChip({
       </span>
     </div>
   );
-}
+};
+
+export const CalendarLocationChip = memo(CalendarLocationChipComponent);
+CalendarLocationChip.displayName = "CalendarLocationChip";
