@@ -1,4 +1,3 @@
-import { useRef } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Doc, Id } from "../../../convex/_generated/dataModel";
@@ -39,7 +38,6 @@ export function KanbanView({
   visibleCategories,
 }: KanbanViewProps) {
   const uniqueDates = useQuery(api.locations.getUniqueDates, { tripId });
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
@@ -94,41 +92,6 @@ export function KanbanView({
     });
   }
 
-  function scrollToToday(): void {
-    if (!scrollContainerRef.current) return;
-
-    const todayIndex = visibleDates.findIndex((date) => isSameDay(date, today));
-    if (todayIndex === -1) {
-      // Today has no events, nothing to scroll to
-      return;
-    }
-
-    // Check if horizontal scrolling is needed
-    const container = scrollContainerRef.current;
-    if (container.scrollWidth <= container.clientWidth) {
-      // All columns fit in viewport, no need to scroll
-      return;
-    }
-
-    // On mobile (<1024px), use fixed column width
-    const isMobile = window.innerWidth < 1024;
-    if (isMobile) {
-      const columnWidth = 192 + 8; // w-48 (192px) + gap-2 (8px)
-      container.scrollTo({
-        left: todayIndex * columnWidth - container.clientWidth / 2 + columnWidth / 2,
-        behavior: "smooth",
-      });
-    } else {
-      // On desktop with flex columns, calculate actual width
-      const columns = container.querySelectorAll('[data-column]');
-      if (columns.length > todayIndex) {
-        const todayColumn = columns[todayIndex] as HTMLElement;
-        todayColumn.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
-      }
-    }
-  }
-
-
   // Format visible range for display
   const rangeDisplay = (() => {
     if (visibleDates.length === 0) return "";
@@ -152,10 +115,7 @@ export function KanbanView({
       </div>
 
       {/* Horizontally scrollable columns */}
-      <div
-        ref={scrollContainerRef}
-        className="flex-1 overflow-x-auto overflow-y-hidden scroll-smooth"
-      >
+      <div className="flex-1 overflow-x-auto overflow-y-hidden scroll-smooth">
         <div className="flex gap-2 p-4 h-full">
           {visibleDates.map((date) => (
             <CompactCalendarColumn
