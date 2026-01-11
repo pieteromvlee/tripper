@@ -283,7 +283,7 @@ export function TripMap({
           // Render icon or number (when filtered by date)
           const renderIcon = () => {
             // Show number when filtered by date
-            if (selectedDate) {
+            if (selectedDate && selectedDate !== "unscheduled") {
               return (
                 <span className="text-white text-sm font-bold">{index + 1}</span>
               );
