@@ -3,6 +3,21 @@ import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Id, Doc } from "../../../convex/_generated/dataModel";
 import { LocationCard } from "./LocationCard";
+import { getDatePart, formatDateForDisplay } from "../../lib/dateUtils";
+
+function DateSeparator({ date }: { date: string }) {
+  const label = date === "unscheduled"
+    ? "Unscheduled"
+    : formatDateForDisplay(date); // "Fri, Jan 16"
+
+  return (
+    <div className="px-3 py-2 bg-surface-elevated border-b border-border">
+      <h3 className="text-xs font-semibold text-text-secondary uppercase tracking-wide">
+        {label}
+      </h3>
+    </div>
+  );
+}
 
 interface LocationListProps {
   tripId: Id<"trips">;
@@ -56,6 +71,50 @@ export function LocationList({
       loc => !loc.categoryId || visibleCategories.has(loc.categoryId)
     );
   }, [dateFilteredLocations, visibleCategories]);
+
+  // Group locations by date when in "All" view
+  const groupedLocations = useMemo(() => {
+    // Only group in "All" view (selectedDate is null/undefined)
+    if (selectedDate !== null && selectedDate !== undefined) {
+      return { grouped: false, items: locations };
+    }
+
+    if (!locations) {
+      return { grouped: false, items: [] };
+    }
+
+    // Separate scheduled and unscheduled locations
+    const scheduled: Map<string, typeof locations> = new Map();
+    const unscheduled: typeof locations = [];
+
+    locations.forEach(loc => {
+      if (!loc.dateTime) {
+        unscheduled.push(loc);
+      } else {
+        const date = getDatePart(loc.dateTime); // "2026-01-16"
+        if (!scheduled.has(date)) {
+          scheduled.set(date, []);
+        }
+        scheduled.get(date)!.push(loc);
+      }
+    });
+
+    // Sort groups by date, sort locations within each group by time
+    const sortedGroups = Array.from(scheduled.entries())
+      .sort((a, b) => a[0].localeCompare(b[0])) // Sort dates chronologically
+      .map(([date, locs]) => ({
+        date,
+        locations: [...locs].sort((a, b) =>
+          a.dateTime!.localeCompare(b.dateTime!) // Sort by full datetime
+        )
+      }));
+
+    return {
+      grouped: true,
+      groups: sortedGroups,
+      unscheduled: [...unscheduled].sort((a, b) => a.sortOrder - b.sortOrder)
+    };
+  }, [locations, selectedDate]);
 
   // Scroll selected location into view when it changes or when triggered from map marker click
   useEffect(() => {
@@ -120,27 +179,83 @@ export function LocationList({
   }
 
   return (
-    <div
-      ref={containerRef}
-      className="flex flex-col gap-2 overflow-y-auto p-3"
-    >
-      {locations.map((location) => {
-        const isSelected = location._id === selectedLocationId;
-        return (
-          <div
-            key={location._id}
-            ref={isSelected ? selectedRef : undefined}
-          >
-            <LocationCard
-              location={location}
-              categories={categories}
-              isSelected={isSelected}
-              onClick={() => onLocationSelect(location._id)}
-              selectedDate={selectedDate}
-            />
-          </div>
-        );
-      })}
+    <div ref={containerRef} className="flex flex-col overflow-y-auto">
+      {!groupedLocations.grouped ? (
+        // Flat list for date-specific and unscheduled filters
+        <div className="flex flex-col gap-2 p-3">
+          {groupedLocations.items?.map((location) => {
+            const isSelected = location._id === selectedLocationId;
+            return (
+              <div
+                key={location._id}
+                ref={isSelected ? selectedRef : undefined}
+              >
+                <LocationCard
+                  location={location}
+                  categories={categories}
+                  isSelected={isSelected}
+                  onClick={() => onLocationSelect(location._id)}
+                  selectedDate={selectedDate}
+                />
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        // Grouped list for "All" view
+        <>
+          {groupedLocations.groups.map(({ date, locations: groupLocs }) => (
+            <div key={date}>
+              <DateSeparator date={date} />
+              <div className="flex flex-col gap-2 p-3">
+                {groupLocs.map((location) => {
+                  const isSelected = location._id === selectedLocationId;
+                  return (
+                    <div
+                      key={location._id}
+                      ref={isSelected ? selectedRef : undefined}
+                    >
+                      <LocationCard
+                        location={location}
+                        categories={categories}
+                        isSelected={isSelected}
+                        onClick={() => onLocationSelect(location._id)}
+                        selectedDate={selectedDate}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+
+          {/* Unscheduled section at bottom */}
+          {groupedLocations.unscheduled.length > 0 && (
+            <div>
+              <DateSeparator date="unscheduled" />
+              <div className="flex flex-col gap-2 p-3">
+                {groupedLocations.unscheduled.map((location) => {
+                  const isSelected = location._id === selectedLocationId;
+                  return (
+                    <div
+                      key={location._id}
+                      ref={isSelected ? selectedRef : undefined}
+                    >
+                      <LocationCard
+                        location={location}
+                        categories={categories}
+                        isSelected={isSelected}
+                        onClick={() => onLocationSelect(location._id)}
+                        selectedDate={selectedDate}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }
