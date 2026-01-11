@@ -137,6 +137,11 @@ export default function TripPage() {
     );
   }
 
+  // View mode computed values for cleaner conditionals
+  const isMapView = isMobile ? viewMode === "map" : detailViewMode === "map";
+  const isCalendarView = isMobile ? viewMode === "calendar" : detailViewMode === "calendar";
+  const isKanbanView = isMobile ? viewMode === "kanban" : detailViewMode === "kanban";
+  const isListView = isMobile ? viewMode === "list" : sidebarVisible;
 
   function handleMapClick(result: { lat: number; lng: number; name?: string; address?: string }): void {
     setNewLocationData({
@@ -224,7 +229,7 @@ export default function TripPage() {
 
           <div className="flex items-center gap-1">
             {/* Location tracking toggle (only visible when map view is active) */}
-            {(isMobile ? viewMode === "map" : detailViewMode === "map") && (
+            {isMapView && (
               <button
                 onClick={() => setIsTrackingLocation(!isTrackingLocation)}
                 className={`p-2 border transition ${
@@ -358,7 +363,7 @@ export default function TripPage() {
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
         {/* List Panel (Sidebar) */}
-        {(isMobile ? viewMode === "list" : sidebarVisible) && (
+        {isListView && (
           <div className={`flex flex-col bg-surface-elevated ${!isMobile ? "w-96 border-r border-border" : "flex-1"}`}>
             {/* Search (shown when triggered from header + button) */}
             {showSearch && (
@@ -422,7 +427,7 @@ export default function TripPage() {
         {(isMobile ? viewMode !== "list" : true) && (
           <div className="flex-1 w-full relative">
             {/* Show Map */}
-            {(isMobile ? viewMode === "map" : detailViewMode === "map") && (
+            {isMapView && (
               <>
                 {/* Floating Search for map-only view (triggered from header + button) */}
                 {(isMobile ? viewMode === "map" : !sidebarVisible) && showSearch && (
@@ -522,7 +527,7 @@ export default function TripPage() {
             )}
 
             {/* Show Calendar */}
-            {(isMobile ? viewMode === "calendar" : detailViewMode === "calendar") && (
+            {isCalendarView && (
               <CalendarView
                 tripId={tripId}
                 locations={locations}
@@ -534,7 +539,7 @@ export default function TripPage() {
             )}
 
             {/* Show Kanban */}
-            {(isMobile ? viewMode === "kanban" : detailViewMode === "kanban") && (
+            {isKanbanView && (
               <KanbanView
                 tripId={tripId}
                 locations={locations}
