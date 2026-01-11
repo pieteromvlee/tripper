@@ -4,6 +4,7 @@ import type { Doc } from "../../../convex/_generated/dataModel";
 import { formatDateTime, formatTime } from "../../lib/dateUtils";
 import { CategoryIcon } from "../../lib/typeIcons";
 import { isAccommodationCategory } from "../../lib/categoryUtils";
+import { CategoryPickerButton } from "./CategoryPickerButton";
 
 interface LocationCardProps {
   location: Doc<"locations">;
@@ -55,13 +56,11 @@ const LocationCardComponent = ({
       `}
     >
       <div className="flex items-start gap-2">
-        {category && (
-          <CategoryIcon
-            iconName={category.iconName}
-            className="w-4 h-4 flex-shrink-0 mt-0.5"
-            color={category.color}
-          />
-        )}
+        <CategoryPickerButton
+          location={location}
+          categories={categories}
+          currentCategory={category}
+        />
 
         <div className="flex-1 min-w-0">
           <h3 className={`font-medium text-sm truncate ${isSelected ? "text-blue-300" : "text-text-primary"}`}>
