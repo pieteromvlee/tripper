@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useRef } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Doc, Id } from "../../../convex/_generated/dataModel";
@@ -39,57 +39,48 @@ export function KanbanView({
   visibleCategories,
 }: KanbanViewProps) {
   const uniqueDates = useQuery(api.locations.getUniqueDates, { tripId });
-  const [visibleRangeStart, setVisibleRangeStart] = useState<Date | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  // Calculate date range from scheduled locations
-  useEffect(() => {
-    if (!uniqueDates || uniqueDates.length === 0) {
-      // No scheduled dates: show current week (7 days from today)
-      const start = new Date(today);
-      setVisibleRangeStart(start);
-      return;
+  // Helper: Check if a location is active on a given date (handles multi-day ranges)
+  function isLocationActiveOnDate(loc: Doc<"locations">, targetDateStr: string): boolean {
+    if (!loc.dateTime) return false;
+
+    const startDate = getDatePart(loc.dateTime);
+
+    // If no end date, only active on start date
+    if (!loc.endDateTime) {
+      return startDate === targetDateStr;
     }
 
-    // Parse scheduled dates (use parseISODate to avoid timezone conversion)
-    const scheduledDates = uniqueDates.map((dateStr) => parseISODate(dateStr));
-    scheduledDates.sort((a, b) => a.getTime() - b.getTime());
+    // Has end date: check if target falls within range (inclusive)
+    const endDate = getDatePart(loc.endDateTime);
+    return targetDateStr >= startDate && targetDateStr <= endDate;
+  }
 
-    // Get earliest scheduled date
-    const earliest = scheduledDates[0];
-
-    // Add 1 day padding before
-    const rangeStart = new Date(earliest);
-    rangeStart.setDate(rangeStart.getDate() - 1);
-
-    setVisibleRangeStart(rangeStart);
-  }, [uniqueDates]);
-
-  // Calculate visible dates
+  // Calculate visible dates - only show days with events
   const visibleDates: Date[] = (() => {
-    if (!visibleRangeStart) return [];
-
     if (!uniqueDates || uniqueDates.length === 0) {
-      // Show 7 days when no scheduled locations
+      // Show 7 days from today if no events scheduled
       return generateDateRange(
-        visibleRangeStart,
-        new Date(visibleRangeStart.getTime() + 6 * 24 * 60 * 60 * 1000)
+        today,
+        new Date(today.getTime() + 6 * 24 * 60 * 60 * 1000)
       );
     }
 
-    // Parse scheduled dates (use parseISODate to avoid timezone conversion)
-    const scheduledDates = uniqueDates.map((dateStr) => parseISODate(dateStr));
-    scheduledDates.sort((a, b) => a.getTime() - b.getTime());
-
-    const latest = scheduledDates[scheduledDates.length - 1];
-
-    // Add 1 day padding after
-    const rangeEnd = new Date(latest);
-    rangeEnd.setDate(rangeEnd.getDate() + 1);
-
-    return generateDateRange(visibleRangeStart, rangeEnd);
+    // Convert unique dates to Date objects and filter to only days with visible locations
+    return uniqueDates
+      .map((dateStr) => parseISODate(dateStr))
+      .filter((date) => {
+        // Check if this date has any visible locations (including multi-day spans)
+        const dateStr = formatDateString(date);
+        const hasLocations = locations?.some((loc) => {
+          if (loc.categoryId && !visibleCategories.has(loc.categoryId)) return false;
+          return isLocationActiveOnDate(loc, dateStr);
+        });
+        return hasLocations;
+      });
   })();
 
   function getLocationsForDate(targetDate: Date): Doc<"locations">[] {
@@ -98,9 +89,8 @@ export function KanbanView({
     const dateStr = formatDateString(targetDate);
 
     return locations.filter((loc) => {
-      if (!loc.dateTime) return false;
       if (loc.categoryId && !visibleCategories.has(loc.categoryId)) return false;
-      return getDatePart(loc.dateTime) === dateStr;
+      return isLocationActiveOnDate(loc, dateStr);
     });
   }
 
@@ -109,10 +99,7 @@ export function KanbanView({
 
     const todayIndex = visibleDates.findIndex((date) => isSameDay(date, today));
     if (todayIndex === -1) {
-      // Today not in visible range, adjust range to show today
-      const newStart = new Date(today);
-      newStart.setDate(newStart.getDate() - 3); // Show 3 days before today
-      setVisibleRangeStart(newStart);
+      // Today has no events, nothing to scroll to
       return;
     }
 
@@ -141,13 +128,6 @@ export function KanbanView({
     }
   }
 
-  function navigateWeek(delta: number): void {
-    if (!visibleRangeStart) return;
-
-    const newStart = new Date(visibleRangeStart);
-    newStart.setDate(newStart.getDate() + delta * 7);
-    setVisibleRangeStart(newStart);
-  }
 
   // Format visible range for display
   const rangeDisplay = (() => {
@@ -162,14 +142,6 @@ export function KanbanView({
     return `${firstStr} - ${lastStr}`;
   })();
 
-  if (!visibleRangeStart) {
-    return (
-      <div className="h-full flex items-center justify-center bg-surface">
-        <div className="text-text-muted text-sm">Loading...</div>
-      </div>
-    );
-  }
-
   return (
     <div className="h-full flex flex-col bg-surface">
       {/* Header with navigation */}
@@ -177,32 +149,12 @@ export function KanbanView({
         <h2 className="text-sm font-medium text-text-secondary">
           {rangeDisplay}
         </h2>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => scrollToToday()}
-            className="px-3 py-1.5 text-xs font-medium border border-border bg-surface hover:bg-surface-secondary transition"
-          >
-            Today
-          </button>
-          <button
-            onClick={() => navigateWeek(-1)}
-            className="p-1.5 border border-border bg-surface hover:bg-surface-secondary transition"
-            title="Previous week"
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          <button
-            onClick={() => navigateWeek(1)}
-            className="p-1.5 border border-border bg-surface hover:bg-surface-secondary transition"
-            title="Next week"
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
-        </div>
+        <button
+          onClick={() => scrollToToday()}
+          className="px-3 py-1.5 text-xs font-medium border border-border bg-surface hover:bg-surface-secondary transition"
+        >
+          Today
+        </button>
       </div>
 
       {/* Horizontally scrollable columns */}
