@@ -58,12 +58,12 @@ export function ColorPicker({ value, onChange, className = "", usedColors }: Col
               )}
               {/* Badge indicator for used colors */}
               {usedBy && usedBy.length === 1 && (
-                <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-white rounded-full border border-border flex items-center justify-center shadow-sm">
-                  <CategoryIcon iconName={usedBy[0].iconName} className="w-2 h-2" />
+                <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-surface-elevated rounded-full border-2 border-border flex items-center justify-center shadow-sm">
+                  <CategoryIcon iconName={usedBy[0].iconName} className="w-2 h-2" color={color} />
                 </div>
               )}
               {usedBy && usedBy.length > 1 && (
-                <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-white rounded-full border border-border flex items-center justify-center text-[8px] font-bold text-text-primary shadow-sm">
+                <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-surface-elevated rounded-full border-2 border-border flex items-center justify-center text-[8px] font-bold text-text-primary shadow-sm">
                   {usedBy.length}
                 </div>
               )}

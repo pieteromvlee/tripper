@@ -247,18 +247,6 @@ export function TripShareModal({ tripId, isOwner, onClose }: TripShareModalProps
             </div>
           )}
         </div>
-
-        <div className="p-3 border-t border-border">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onClose();
-            }}
-            className="w-full px-4 py-2 text-text-secondary border border-border hover:bg-surface-secondary hover:border-border-focus text-xs font-medium transition-colors"
-          >
-            Close
-          </button>
-        </div>
       </div>
     </div>,
     document.body

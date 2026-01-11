@@ -231,19 +231,6 @@ export function CategoryManagementModal({
             )}
           </div>
         </div>
-
-        {/* Footer */}
-        <div className="border-t border-border px-2 py-1 bg-surface-secondary">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onClose();
-            }}
-            className="w-full px-2 py-1 bg-surface-elevated border border-border text-text-primary hover:bg-surface text-[10px] uppercase tracking-wide font-medium"
-          >
-            DONE
-          </button>
-        </div>
       </div>
 
       {/* Delete Confirmation Dialog */}
