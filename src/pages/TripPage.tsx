@@ -9,6 +9,7 @@ import { TripMap, LocationSearch } from "../components/map";
 import type { LocationType } from "../lib/locationStyles";
 import { getDirectionsUrl } from "../lib/locationUtils";
 import { TripShareModal } from "../components/trips/TripShareModal";
+import { useLocationSelection } from "../hooks";
 
 type ViewMode = "list" | "map" | "both";
 
@@ -16,7 +17,6 @@ export default function TripPage() {
   const { tripId } = useParams<{ tripId: string }>();
   const navigate = useNavigate();
   const { signOut } = useAuthActions();
-  const [selectedLocationId, setSelectedLocationId] = useState<Id<"locations"> | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [visibleTypes, setVisibleTypes] = useState<Set<LocationType>>(
     new Set(["attraction", "restaurant", "accommodation", "shop", "snack"])
@@ -31,8 +31,6 @@ export default function TripPage() {
     suggestedType?: LocationType;
   } | null>(null);
   const [isMobile, setIsMobile] = useState(false);
-  const [flyToCounter, setFlyToCounter] = useState(0); // Trigger fly to location
-  const [scrollToCounter, setScrollToCounter] = useState(0); // Trigger scroll to location in list
   const [showSearch, setShowSearch] = useState(false); // Toggle search visibility
   const [detailLocationId, setDetailLocationId] = useState<Id<"locations"> | null>(null); // Full-screen detail view
   const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number } | null>(null); // Current map center for search proximity
@@ -92,9 +90,20 @@ export default function TripPage() {
   const trip = useQuery(api.trips.get, tripId ? { tripId: tripId as Id<"trips"> } : "skip");
   const locations = useQuery(api.locations.listByTrip, tripId ? { tripId: tripId as Id<"trips"> } : "skip");
 
-  // Find accommodation, selected location, and detail location
+  const {
+    selectedLocationId,
+    selectedLocation,
+    selectLocation,
+    selectAndFlyTo,
+    selectAndScrollTo,
+    clearSelection,
+    triggerFlyTo,
+    flyToCounter,
+    scrollToCounter,
+  } = useLocationSelection(locations);
+
+  // Find accommodation and detail location
   const accommodation = locations?.find((loc) => loc.locationType === "accommodation");
-  const selectedLocation = locations?.find((loc) => loc._id === selectedLocationId);
   const detailLocation = locations?.find((loc) => loc._id === detailLocationId);
 
   if (!tripId) {
@@ -140,17 +149,16 @@ export default function TripPage() {
     setShowAddForm(true);
     setShowSearch(false); // Hide search after selection
     // Trigger map to fly to this location
-    setFlyToCounter(prev => prev + 1);
+    triggerFlyTo();
   };
 
   const handleLocationSelect = (locationId: Id<"locations">) => {
-    setSelectedLocationId(locationId);
+    selectLocation(locationId);
   };
 
   // Called when a marker on the map is clicked - also triggers scroll in the list
   const handleMarkerSelect = (locationId: Id<"locations">) => {
-    setSelectedLocationId(locationId);
-    setScrollToCounter(prev => prev + 1);
+    selectAndScrollTo(locationId);
   };
 
   const handleFormSuccess = () => {
@@ -162,12 +170,8 @@ export default function TripPage() {
   const handleFormCancel = () => {
     setShowAddForm(false);
     setNewLocationData(null);
-    setSelectedLocationId(null); // Clear selection to show all pins
+    clearSelection(); // Clear selection to show all pins
     setShowFullscreenAddForm(false);
-  };
-
-  const handleClearSelection = () => {
-    setSelectedLocationId(null);
   };
 
   const handleToggleType = (type: LocationType) => {
@@ -184,8 +188,7 @@ export default function TripPage() {
 
   const handleFlyToAccommodation = () => {
     if (accommodation) {
-      setSelectedLocationId(accommodation._id);
-      setFlyToCounter((prev) => prev + 1);
+      selectAndFlyTo(accommodation._id);
     }
   };
 
@@ -409,7 +412,7 @@ export default function TripPage() {
             {/* Show All button - appears when a location is selected */}
             {selectedLocationId && (
               <button
-                onClick={handleClearSelection}
+                onClick={clearSelection}
                 className="absolute left-4 z-10 bg-surface-elevated px-3 py-2 border border-border text-xs font-medium text-text-secondary hover:bg-surface-secondary hover:border-border-focus flex items-center gap-2"
                 style={{ bottom: "calc(1rem + env(safe-area-inset-bottom, 0px))" }}
               >
