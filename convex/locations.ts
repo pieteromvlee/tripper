@@ -7,6 +7,37 @@ import {
   requireEditorAccess,
 } from "./helpers";
 
+// HELPERS
+
+/**
+ * Validate and normalize dateTime format to YYYY-MM-DDTHH:mm
+ */
+function validateDateTime(dateTime: string | undefined): string | undefined {
+  if (!dateTime) return undefined;
+
+  // Expected format: YYYY-MM-DDTHH:mm or YYYY-MM-DD
+  const isoPattern = /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2})?$/;
+
+  if (isoPattern.test(dateTime)) {
+    // Valid ISO format, return as-is (add T00:00 if missing time)
+    return dateTime.includes('T') ? dateTime : `${dateTime}T00:00`;
+  }
+
+  // Try to fix MM/DD/YYYY format
+  const corruptedPattern = /^(\d{1,2})\/(\d{1,2})\/(\d{4})(T\d{2}:\d{2})?$/;
+  const match = dateTime.match(corruptedPattern);
+
+  if (match) {
+    const [, month, day, year, timePart] = match;
+    const normalizedDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    const normalizedTime = timePart || 'T00:00';
+    return `${normalizedDate}${normalizedTime}`;
+  }
+
+  // Invalid format - throw error
+  throw new ConvexError(`Invalid dateTime format: ${dateTime}. Expected YYYY-MM-DD or YYYY-MM-DDTHH:mm`);
+}
+
 // QUERIES
 
 // Get all locations for a trip, sorted by sortOrder
@@ -137,8 +168,8 @@ export const create = mutation({
       name: args.name,
       latitude: args.latitude,
       longitude: args.longitude,
-      dateTime: args.dateTime,
-      endDateTime: args.endDateTime,
+      dateTime: validateDateTime(args.dateTime),
+      endDateTime: validateDateTime(args.endDateTime),
       categoryId: args.categoryId,
       notes: args.notes,
       address: args.address,
@@ -203,8 +234,8 @@ export const update = mutation({
     if (updates.name !== undefined) updateData.name = updates.name;
     if (updates.latitude !== undefined) updateData.latitude = updates.latitude;
     if (updates.longitude !== undefined) updateData.longitude = updates.longitude;
-    if (updates.dateTime !== undefined) updateData.dateTime = updates.dateTime || undefined;
-    if (updates.endDateTime !== undefined) updateData.endDateTime = updates.endDateTime || undefined;
+    if (updates.dateTime !== undefined) updateData.dateTime = validateDateTime(updates.dateTime);
+    if (updates.endDateTime !== undefined) updateData.endDateTime = validateDateTime(updates.endDateTime);
     if (updates.categoryId !== undefined) updateData.categoryId = updates.categoryId;
     if (updates.notes !== undefined) updateData.notes = updates.notes;
     if (updates.address !== undefined) updateData.address = updates.address;

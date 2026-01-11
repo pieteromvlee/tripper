@@ -1,7 +1,7 @@
 import { memo } from "react";
 import { useDraggable } from "@dnd-kit/core";
 import type { Doc } from "../../../convex/_generated/dataModel";
-import { formatDateTime, formatTime, formatDateForDisplay } from "../../lib/dateUtils";
+import { formatDateTime, formatTime, formatDateForDisplay, getDatePart } from "../../lib/dateUtils";
 import { isAccommodationCategory } from "../../lib/categoryUtils";
 import { CategoryPickerButton } from "./CategoryPickerButton";
 import { QuickTimeEditor } from "./QuickTimeEditor";
@@ -97,7 +97,7 @@ const LocationCardComponent = ({
                         locationId={location._id}
                         dateTime={location.dateTime}
                         isDesktop={isDesktop}
-                        displayText={formatDateForDisplay(location.dateTime)}
+                        displayText={formatDateForDisplay(getDatePart(location.dateTime))}
                         className={isSelected ? "text-blue-400" : "text-text-secondary"}
                       />
                       {", "}
@@ -131,7 +131,7 @@ const LocationCardComponent = ({
                             dateTime={location.endDateTime}
                             isEndDate={true}
                             isDesktop={isDesktop}
-                            displayText={formatDateForDisplay(location.endDateTime)}
+                            displayText={formatDateForDisplay(getDatePart(location.endDateTime))}
                             className="text-text-muted"
                           />
                           {", "}

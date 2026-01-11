@@ -8,12 +8,42 @@
  */
 
 /**
+ * Normalize any date format to YYYY-MM-DD
+ * Handles: YYYY-MM-DD (pass-through), MM/DD/YYYY (convert), other formats (best effort)
+ * @param dateStr Date string in any format
+ * @returns Date string in YYYY-MM-DD format
+ */
+export function normalizeDatePart(dateStr: string): string {
+  if (!dateStr) return "";
+
+  // Already ISO format (YYYY-MM-DD)
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    return dateStr;
+  }
+
+  // Corrupted format: MM/DD/YYYY
+  if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(dateStr)) {
+    const [month, day, year] = dateStr.split('/').map(Number);
+    return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  }
+
+  // Try parsing with parseISODate (handles both formats)
+  try {
+    const date = parseISODate(dateStr);
+    return formatDateString(date);
+  } catch {
+    return dateStr; // Return as-is if all else fails
+  }
+}
+
+/**
  * Extract date part from ISO datetime string
  * @param dateTime ISO string like "2026-01-16T13:00"
  * @returns Date part like "2026-01-16"
  */
 export function getDatePart(dateTime: string): string {
-  return dateTime.slice(0, 10);
+  const extracted = dateTime.slice(0, 10);
+  return normalizeDatePart(extracted);
 }
 
 /**

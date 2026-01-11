@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
@@ -41,6 +41,10 @@ export default function TripPage() {
   const [showFullscreenAddForm, setShowFullscreenAddForm] = useState(false); // Full-screen add form for mobile
   const [isTrackingLocation, setIsTrackingLocation] = useState(false); // Location tracking toggle
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null); // User's current location
+  const [migrationStatus, setMigrationStatus] = useState<string | null>(null); // Date migration status
+
+  // Update mutation for fixing dates
+  const updateLocation = useMutation(api.locations.update);
 
   // Detect mobile viewport
   useEffect(() => {
@@ -172,6 +176,99 @@ export default function TripPage() {
     setDetailLocationId(locationId);
   }, [selectLocation]);
 
+  const handleMigrateDates = useCallback(async () => {
+    if (!locations) return;
+
+    try {
+      setMigrationStatus("Scanning for corrupted dates...");
+
+      // First, log ALL locations to see what we have
+      console.log('=== ALL LOCATIONS ===');
+      locations.forEach(loc => {
+        console.log(`${loc.name}: dateTime="${loc.dateTime}" endDateTime="${loc.endDateTime || 'none'}"`);
+      });
+
+      // Pattern for valid YYYY-MM-DD format
+      const validPattern = /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2})?$/;
+
+      // Find locations with ANY invalid date format (not matching YYYY-MM-DD)
+      // OR dates that parse to invalid Date objects
+      const locationsToFix = locations.filter(loc => {
+        const hasInvalidDateTime = loc.dateTime && !validPattern.test(loc.dateTime);
+        const hasInvalidEndDateTime = loc.endDateTime && !validPattern.test(loc.endDateTime);
+
+        // Also check if dates parse to valid Date objects
+        let hasUnparsableDateTime = false;
+        let hasUnparsableEndDateTime = false;
+
+        if (loc.dateTime && validPattern.test(loc.dateTime)) {
+          try {
+            const [datePart] = loc.dateTime.split('T');
+            const [year, month, day] = datePart.split('-').map(Number);
+            const testDate = new Date(year, month - 1, day);
+            if (isNaN(testDate.getTime())) {
+              console.log('Found unparsable dateTime:', loc.name, loc.dateTime);
+              hasUnparsableDateTime = true;
+            }
+          } catch (e) {
+            console.log('Error parsing dateTime:', loc.name, loc.dateTime, e);
+            hasUnparsableDateTime = true;
+          }
+        }
+
+        if (loc.endDateTime && validPattern.test(loc.endDateTime)) {
+          try {
+            const [datePart] = loc.endDateTime.split('T');
+            const [year, month, day] = datePart.split('-').map(Number);
+            const testDate = new Date(year, month - 1, day);
+            if (isNaN(testDate.getTime())) {
+              console.log('Found unparsable endDateTime:', loc.name, loc.endDateTime);
+              hasUnparsableEndDateTime = true;
+            }
+          } catch (e) {
+            console.log('Error parsing endDateTime:', loc.name, loc.endDateTime, e);
+            hasUnparsableEndDateTime = true;
+          }
+        }
+
+        // Log what we found for debugging
+        if (hasInvalidDateTime) {
+          console.log('Found invalid format dateTime:', loc.name, loc.dateTime);
+        }
+        if (hasInvalidEndDateTime) {
+          console.log('Found invalid format endDateTime:', loc.name, loc.endDateTime);
+        }
+
+        return hasInvalidDateTime || hasInvalidEndDateTime || hasUnparsableDateTime || hasUnparsableEndDateTime;
+      });
+
+      if (locationsToFix.length === 0) {
+        setMigrationStatus("No corrupted dates found!");
+        setTimeout(() => setMigrationStatus(null), 3000);
+        return;
+      }
+
+      setMigrationStatus(`Fixing ${locationsToFix.length} location(s)...`);
+
+      // Update each location - backend validation will auto-fix the format
+      for (const location of locationsToFix) {
+        console.log('Fixing location:', location.name, 'dateTime:', location.dateTime, 'endDateTime:', location.endDateTime);
+        await updateLocation({
+          id: location._id,
+          dateTime: location.dateTime,
+          endDateTime: location.endDateTime,
+        });
+      }
+
+      setMigrationStatus(`Fixed ${locationsToFix.length} location(s) with corrupted dates!`);
+      setTimeout(() => setMigrationStatus(null), 5000);
+    } catch (error) {
+      console.error('Migration error:', error);
+      setMigrationStatus(`Error: ${error instanceof Error ? error.message : String(error)}`);
+      setTimeout(() => setMigrationStatus(null), 5000);
+    }
+  }, [locations, updateLocation]);
+
   // Early returns AFTER all hooks
   if (!tripId) {
     return <div className="p-4">Invalid trip ID</div>;
@@ -259,6 +356,22 @@ export default function TripPage() {
                   <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
                 </svg>
               </button>
+            )}
+
+            {/* Date migration button */}
+            <button
+              onClick={handleMigrateDates}
+              className="hidden md:block px-3 py-1 text-xs border border-border bg-surface hover:bg-surface-secondary text-text-secondary hover:text-text-primary"
+              title="Fix date format issues (MM/DD/YYYY → YYYY-MM-DD)"
+            >
+              Fix Dates
+            </button>
+
+            {/* Migration status indicator */}
+            {migrationStatus && (
+              <span className="hidden md:inline-block text-xs text-text-secondary px-2 py-1 bg-surface-elevated border border-border max-w-xs truncate">
+                {migrationStatus}
+              </span>
             )}
 
             {/* View toggle (mobile: three-way list/map/calendar) */}
