@@ -103,92 +103,96 @@ export function CategoryManagementModal({
   // Show category list
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-surface rounded-lg shadow-lg max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col border border-border">
+      <div className="bg-surface shadow-lg max-w-xl w-full max-h-[90vh] overflow-hidden flex flex-col border border-border">
         {/* Header */}
-        <div className="bg-surface border-b border-border px-6 py-4 flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-text-primary">
-            Manage Categories
+        <div className="bg-surface-secondary border-b border-border px-2 py-1 flex items-center justify-between">
+          <h2 className="text-xs font-bold text-text-primary uppercase tracking-wide">
+            CATEGORIES
           </h2>
           <button
             onClick={onClose}
-            className="text-text-secondary hover:text-text-primary transition-colors"
+            className="p-1 text-text-secondary hover:text-text-primary hover:bg-surface-elevated border border-transparent hover:border-border"
           >
-            <X size={24} />
+            <X size={14} />
           </button>
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-2">
           {/* Error Message */}
           {error && (
-            <div className="mb-4 p-3 bg-red-500/10 border border-red-500/50 rounded-lg flex items-start gap-2">
-              <AlertCircle className="text-red-400 flex-shrink-0 mt-0.5" size={18} />
-              <div className="text-sm text-red-400">{error}</div>
+            <div className="mb-2 p-1.5 bg-red-500/10 border border-red-500/50 flex items-start gap-1.5">
+              <AlertCircle className="text-red-400 flex-shrink-0 mt-0.5" size={12} />
+              <div className="text-[10px] text-red-400">{error}</div>
             </div>
           )}
 
           {/* Add Category Button */}
           <button
             onClick={() => setMode("create")}
-            className="w-full mb-4 px-4 py-3 border-2 border-dashed border-border rounded-lg text-text-secondary hover:border-text-secondary hover:text-text-primary hover:bg-surface-elevated transition-all flex items-center justify-center gap-2"
+            className="w-full mb-2 px-2 py-1 border border-dashed border-border text-text-secondary hover:border-text-primary hover:text-text-primary hover:bg-surface-elevated flex items-center justify-center gap-1.5 text-[10px] uppercase tracking-wide font-medium"
           >
-            <Plus size={20} />
-            Add Category
+            <Plus size={12} />
+            ADD
           </button>
 
           {/* Categories List */}
-          <div className="space-y-2">
+          <div className="border border-border">
             {categories === undefined ? (
-              <div className="text-center py-8 text-text-secondary">
-                Loading categories...
+              <div className="text-center py-4 text-text-secondary text-[10px]">
+                LOADING...
               </div>
             ) : categories.length === 0 ? (
-              <div className="text-center py-8 text-text-secondary">
-                No categories yet. Create one to get started!
+              <div className="text-center py-4 text-text-secondary text-[10px]">
+                NO CATEGORIES
               </div>
             ) : (
-              categories.map((category) => (
+              categories.map((category, index) => (
                 <div
                   key={category._id}
-                  className="flex items-center gap-3 p-3 border border-border rounded-lg hover:bg-surface-elevated transition-colors"
+                  className={`flex items-center gap-2 p-1.5 hover:bg-surface-elevated ${
+                    index < categories.length - 1 ? "border-b border-border" : ""
+                  }`}
                 >
                   {/* Icon and Name */}
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5 flex-1 min-w-0">
                     <div
-                      className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 border border-border"
+                      className="w-6 h-6 flex items-center justify-center flex-shrink-0 border"
                       style={getCategoryBadgeStyle(category.color)}
                     >
                       <CategoryIcon
                         iconName={category.iconName}
-                        className="w-5 h-5"
+                        className="w-3 h-3"
                         color={category.color}
                       />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium text-text-primary truncate">
+                    <div className="flex-1 min-w-0 flex items-center gap-1.5">
+                      <div className="font-medium text-text-primary text-xs truncate">
                         {category.name}
                       </div>
                       {category.isDefault && (
-                        <div className="text-xs text-text-secondary">Default</div>
+                        <div className="text-[9px] text-text-muted uppercase tracking-wider px-1 py-0.5 border border-border bg-surface-secondary">
+                          DEF
+                        </div>
                       )}
                     </div>
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="flex items-center gap-2 flex-shrink-0">
+                  <div className="flex items-center gap-0.5 flex-shrink-0">
                     <button
                       onClick={() => handleEdit(category)}
-                      className="p-2 text-text-secondary hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors border border-transparent hover:border-blue-500/50"
-                      title="Edit category"
+                      className="p-1 text-text-secondary hover:text-text-primary hover:bg-surface-secondary border border-transparent hover:border-border"
+                      title="Edit"
                     >
-                      <Pencil size={18} />
+                      <Pencil size={12} />
                     </button>
                     <button
                       onClick={() => setDeletingCategory(category._id)}
-                      className="p-2 text-text-secondary hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors border border-transparent hover:border-red-500/50"
-                      title="Delete category"
+                      className="p-1 text-text-secondary hover:text-text-primary hover:bg-surface-secondary border border-transparent hover:border-border"
+                      title="Delete"
                     >
-                      <Trash2 size={18} />
+                      <Trash2 size={12} />
                     </button>
                   </div>
                 </div>
@@ -198,12 +202,12 @@ export function CategoryManagementModal({
         </div>
 
         {/* Footer */}
-        <div className="border-t border-border px-6 py-4 bg-surface-elevated">
+        <div className="border-t border-border px-2 py-1 bg-surface-secondary">
           <button
             onClick={onClose}
-            className="w-full px-4 py-2 bg-surface border border-border rounded-lg text-text-primary hover:bg-surface-elevated transition-colors"
+            className="w-full px-2 py-1 bg-surface-elevated border border-border text-text-primary hover:bg-surface text-[10px] uppercase tracking-wide font-medium"
           >
-            Done
+            DONE
           </button>
         </div>
       </div>
@@ -211,27 +215,30 @@ export function CategoryManagementModal({
       {/* Delete Confirmation Dialog */}
       {deletingCategory && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-surface rounded-lg shadow-lg max-w-md w-full p-6 border border-border">
-            <h3 className="text-lg font-semibold text-text-primary mb-2">
-              Delete Category
-            </h3>
-            <p className="text-text-secondary mb-6">
-              Are you sure you want to delete this category? This action cannot be
-              undone.
-            </p>
-            <div className="flex items-center justify-end gap-3">
-              <button
-                onClick={() => setDeletingCategory(null)}
-                className="px-4 py-2 text-text-primary bg-surface-elevated border border-border rounded-lg hover:bg-surface"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => handleDelete(deletingCategory)}
-                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
-              >
-                Delete
-              </button>
+          <div className="bg-surface shadow-lg max-w-sm w-full border border-border">
+            <div className="bg-surface-secondary border-b border-border px-2 py-1">
+              <h3 className="text-xs font-bold text-text-primary uppercase tracking-wide">
+                DELETE CATEGORY
+              </h3>
+            </div>
+            <div className="p-2">
+              <p className="text-text-secondary text-xs mb-3">
+                Delete this category? Cannot be undone.
+              </p>
+              <div className="flex items-center justify-end gap-1">
+                <button
+                  onClick={() => setDeletingCategory(null)}
+                  className="px-2 py-1 text-text-primary bg-surface-elevated border border-border hover:bg-surface text-[10px] uppercase tracking-wide font-medium"
+                >
+                  CANCEL
+                </button>
+                <button
+                  onClick={() => handleDelete(deletingCategory)}
+                  className="px-2 py-1 bg-red-600 text-white border border-red-400 hover:bg-red-500 text-[10px] uppercase tracking-wide font-medium"
+                >
+                  DELETE
+                </button>
+              </div>
             </div>
           </div>
         </div>
