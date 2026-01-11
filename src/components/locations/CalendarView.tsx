@@ -5,6 +5,7 @@ import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Doc, Id } from "../../../convex/_generated/dataModel";
 import { CalendarCell } from "./CalendarCell";
+import { formatDateString, getTimePart } from "../../lib/dateUtils";
 
 interface CalendarViewProps {
   tripId: Id<"trips">;
@@ -67,13 +68,6 @@ function isSameDay(date1: Date, date2: Date): boolean {
   );
 }
 
-function extractTimeFromDateTime(dateTime: string | undefined): string {
-  if (!dateTime) return "00:00";
-  const parsed = new Date(dateTime);
-  const hours = parsed.getHours().toString().padStart(2, "0");
-  const minutes = parsed.getMinutes().toString().padStart(2, "0");
-  return `${hours}:${minutes}`;
-}
 
 export function CalendarView({
   locations,
@@ -98,7 +92,7 @@ export function CalendarView({
   function getLocationsForDate(targetDate: Date): Doc<"locations">[] {
     if (!locations) return [];
 
-    const dateStr = targetDate.toISOString().split("T")[0];
+    const dateStr = formatDateString(targetDate);
 
     return locations.filter((loc) => {
       if (!loc.dateTime) return false;
@@ -119,7 +113,7 @@ export function CalendarView({
     if (!overId.startsWith("day-")) return;
 
     const newDate = overId.replace("day-", "");
-    const time = extractTimeFromDateTime(location.dateTime);
+    const time = location.dateTime ? getTimePart(location.dateTime) : "00:00";
 
     await updateLocation({
       id: locationId,

@@ -7,7 +7,10 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:ui": "node ui-audit-screenshots.cjs",
+    "test:quick": "node quick-verify.cjs",
+    "test:ui:headed": "PUPPETEER_HEADLESS=false node quick-verify.cjs"
   },
   "dependencies": {
     "@auth/core": "^0.37.4",

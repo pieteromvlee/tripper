@@ -3,6 +3,7 @@ import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Doc, Id } from "../../../convex/_generated/dataModel";
 import { CompactCalendarColumn } from "./CompactCalendarColumn";
+import { formatDateString } from "../../lib/dateUtils";
 
 interface CompactCalendarViewProps {
   tripId: Id<"trips">;
@@ -102,7 +103,7 @@ export function CompactCalendarView({
   function getLocationsForDate(targetDate: Date): Doc<"locations">[] {
     if (!locations) return [];
 
-    const dateStr = targetDate.toISOString().split("T")[0];
+    const dateStr = formatDateString(targetDate);
 
     return locations.filter((loc) => {
       if (!loc.dateTime) return false;

@@ -2,6 +2,7 @@ import { useRef, useEffect } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
+import { getTodayDateString, formatDateForDisplay } from "../../lib/dateUtils";
 
 interface DaySelectorProps {
   tripId: Id<"trips">;
@@ -25,14 +26,6 @@ function getButtonClasses(variant: ButtonVariant): string {
   }
 }
 
-function formatDateForDisplay(dateStr: string): string {
-  const date = new Date(dateStr + "T00:00:00");
-  return date.toLocaleDateString(undefined, {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-  });
-}
 
 export function DaySelector({
   tripId,
@@ -46,7 +39,7 @@ export function DaySelector({
   const allLocations = useQuery(api.locations.listByTrip, { tripId });
 
   const hasUnscheduledLocations = allLocations?.some(loc => !loc.dateTime);
-  const today = new Date().toISOString().split("T")[0];
+  const today = getTodayDateString();
 
   useEffect(() => {
     if (selectedRef.current && containerRef.current) {

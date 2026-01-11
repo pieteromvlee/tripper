@@ -7,6 +7,7 @@ import { AttachmentUpload } from "./AttachmentUpload";
 import { getCategoryBadgeStyle } from "../../lib/colorUtils";
 import { getDirectionsUrl, formatDateTime } from "../../lib/locationUtils";
 import { CategoryIcon } from "../../lib/typeIcons";
+import { getDatePart, getTimePart, combineDateTime } from "../../lib/dateUtils";
 
 interface LocationDetailProps {
   location: Doc<"locations">;
@@ -21,28 +22,6 @@ interface MapboxFeature {
   center: [number, number];
 }
 
-function toDatePart(isoString: string): string {
-  try {
-    const date = new Date(isoString);
-    return date.toISOString().slice(0, 10);
-  } catch {
-    return "";
-  }
-}
-
-function toTimePart(isoString: string): string {
-  try {
-    const date = new Date(isoString);
-    return date.toISOString().slice(11, 16);
-  } catch {
-    return "";
-  }
-}
-
-function combineDateTime(date: string, time: string): string {
-  if (!date) return "";
-  return time ? `${date}T${time}` : `${date}T00:00`;
-}
 
 export function LocationDetail({ location, categories, onClose }: LocationDetailProps) {
   const [isEditing, setIsEditing] = useState(false);
@@ -291,10 +270,10 @@ function LocationEditForm({
   const [address, setAddress] = useState(location.address || "");
   const [latitude, setLatitude] = useState(location.latitude);
   const [longitude, setLongitude] = useState(location.longitude);
-  const [date, setDate] = useState(location.dateTime ? toDatePart(location.dateTime) : "");
-  const [time, setTime] = useState(location.dateTime ? toTimePart(location.dateTime) : "");
-  const [endDate, setEndDate] = useState(location.endDateTime ? toDatePart(location.endDateTime) : "");
-  const [endTime, setEndTime] = useState(location.endDateTime ? toTimePart(location.endDateTime) : "");
+  const [date, setDate] = useState(location.dateTime ? getDatePart(location.dateTime) : "");
+  const [time, setTime] = useState(location.dateTime ? getTimePart(location.dateTime) : "");
+  const [endDate, setEndDate] = useState(location.endDateTime ? getDatePart(location.endDateTime) : "");
+  const [endTime, setEndTime] = useState(location.endDateTime ? getTimePart(location.endDateTime) : "");
   const [categoryId, setCategoryId] = useState<Id<"categories"> | null>(location.categoryId || null);
   const [notes, setNotes] = useState(location.notes || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -501,9 +480,11 @@ function LocationEditForm({
             className="flex-1 px-4 py-3 border border-border focus:outline-none focus:border-blue-400 md:px-2 md:py-1.5 md:text-sm"
           />
           <input
-            type="time"
+            type="text"
             value={time}
             onChange={(e) => setTime(e.target.value)}
+            placeholder="HH:mm"
+            pattern="[0-2][0-9]:[0-5][0-9]"
             className="w-28 px-4 py-3 border border-border focus:outline-none focus:border-blue-400 md:w-24 md:px-2 md:py-1.5 md:text-sm"
           />
           <button
@@ -531,9 +512,11 @@ function LocationEditForm({
               className="flex-1 px-4 py-3 border border-border focus:outline-none focus:border-blue-400 md:px-2 md:py-1.5 md:text-sm"
             />
             <input
-              type="time"
+              type="text"
               value={endTime}
               onChange={(e) => setEndTime(e.target.value)}
+              placeholder="HH:mm"
+              pattern="[0-2][0-9]:[0-5][0-9]"
               className="w-28 px-4 py-3 border border-border focus:outline-none focus:border-blue-400 md:w-24 md:px-2 md:py-1.5 md:text-sm"
             />
             <button

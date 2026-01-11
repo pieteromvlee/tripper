@@ -58,7 +58,8 @@ export const listByTripAndDate = query({
 
     return filteredLocations.sort((a, b) => {
       if (a.dateTime && b.dateTime) {
-        return new Date(a.dateTime).getTime() - new Date(b.dateTime).getTime();
+        // String comparison works for ISO format (YYYY-MM-DDTHH:mm)
+        return a.dateTime.localeCompare(b.dateTime);
       }
       return a.sortOrder - b.sortOrder;
     });
@@ -312,11 +313,19 @@ export const getUniqueDates = query({
         // For locations with date ranges, add all dates in range
         if (loc.endDateTime) {
           const endDate = loc.endDateTime.substring(0, 10);
-          const currentDate = new Date(date);
-          const end = new Date(endDate);
+
+          // Parse dates without timezone conversion
+          const [startYear, startMonth, startDay] = date.split('-').map(Number);
+          const [endYear, endMonth, endDay] = endDate.split('-').map(Number);
+
+          const currentDate = new Date(startYear, startMonth - 1, startDay);
+          const end = new Date(endYear, endMonth - 1, endDay);
 
           while (currentDate <= end) {
-            dates.add(currentDate.toISOString().split("T")[0]);
+            const year = currentDate.getFullYear();
+            const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+            const day = String(currentDate.getDate()).padStart(2, '0');
+            dates.add(`${year}-${month}-${day}`);
             currentDate.setDate(currentDate.getDate() + 1);
           }
         }

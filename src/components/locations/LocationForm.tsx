@@ -3,6 +3,7 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { CategoryIcon } from "../../lib/typeIcons";
+import { combineDateTime } from "../../lib/dateUtils";
 
 interface LocationFormProps {
   tripId: Id<"trips">;
@@ -50,11 +51,6 @@ export function LocationForm({
   const selectedCategory = categories?.find(c => c._id === categoryId);
   const isAccommodation = selectedCategory?.name.toLowerCase() === "accommodation";
 
-  const combineDateTime = (d: string, t: string) => {
-    if (!d) return undefined;
-    return t ? `${d}T${t}` : `${d}T00:00`;
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || isSubmitting || !categoryId) return;
@@ -67,8 +63,8 @@ export function LocationForm({
         name: name.trim(),
         latitude,
         longitude,
-        dateTime: combineDateTime(date, time),
-        endDateTime: isAccommodation ? combineDateTime(endDate, endTime) : undefined,
+        dateTime: combineDateTime(date, time) || undefined,
+        endDateTime: isAccommodation ? (combineDateTime(endDate, endTime) || undefined) : undefined,
         categoryId,
         notes: notes.trim() || undefined,
         address: address.trim() || undefined,
@@ -165,9 +161,11 @@ export function LocationForm({
             className={`flex-1 ${inputPadding} border border-border bg-surface-inset focus:outline-none focus:border-blue-400 ${inputTextSize}`}
           />
           <input
-            type="time"
+            type="text"
             value={time}
             onChange={(e) => setTime(e.target.value)}
+            placeholder="HH:mm"
+            pattern="[0-2][0-9]:[0-5][0-9]"
             className={`w-28 ${inputPadding} border border-border bg-surface-inset focus:outline-none focus:border-blue-400 ${inputTextSize}`}
           />
         </div>
@@ -184,9 +182,11 @@ export function LocationForm({
               className={`flex-1 ${inputPadding} border border-border bg-surface-inset focus:outline-none focus:border-blue-400 ${inputTextSize}`}
             />
             <input
-              type="time"
+              type="text"
               value={endTime}
               onChange={(e) => setEndTime(e.target.value)}
+              placeholder="HH:mm"
+              pattern="[0-2][0-9]:[0-5][0-9]"
               className={`w-28 ${inputPadding} border border-border bg-surface-inset focus:outline-none focus:border-blue-400 ${inputTextSize}`}
             />
           </div>
