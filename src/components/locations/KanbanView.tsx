@@ -145,16 +145,10 @@ export function KanbanView({
   return (
     <div className="h-full flex flex-col bg-surface">
       {/* Header with navigation */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-surface-elevated">
+      <div className="flex items-center px-4 py-3 border-b border-border bg-surface-elevated">
         <h2 className="text-sm font-medium text-text-secondary">
           {rangeDisplay}
         </h2>
-        <button
-          onClick={() => scrollToToday()}
-          className="px-3 py-1.5 text-xs font-medium border border-border bg-surface hover:bg-surface-secondary transition"
-        >
-          Today
-        </button>
       </div>
 
       {/* Horizontally scrollable columns */}
