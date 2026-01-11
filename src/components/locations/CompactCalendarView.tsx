@@ -3,7 +3,7 @@ import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Doc, Id } from "../../../convex/_generated/dataModel";
 import { CompactCalendarColumn } from "./CompactCalendarColumn";
-import { formatDateString } from "../../lib/dateUtils";
+import { formatDateString, isSameDay } from "../../lib/dateUtils";
 
 interface CompactCalendarViewProps {
   tripId: Id<"trips">;
@@ -12,14 +12,6 @@ interface CompactCalendarViewProps {
   selectedLocationId: Id<"locations"> | null;
   onLocationSelect: (id: Id<"locations">) => void;
   visibleCategories: Set<Id<"categories">>;
-}
-
-function isSameDay(date1: Date, date2: Date): boolean {
-  return (
-    date1.getDate() === date2.getDate() &&
-    date1.getMonth() === date2.getMonth() &&
-    date1.getFullYear() === date2.getFullYear()
-  );
 }
 
 function generateDateRange(startDate: Date, endDate: Date): Date[] {

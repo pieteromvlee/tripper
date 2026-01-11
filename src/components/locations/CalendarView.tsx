@@ -5,7 +5,7 @@ import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Doc, Id } from "../../../convex/_generated/dataModel";
 import { CalendarCell } from "./CalendarCell";
-import { formatDateString, getTimePart } from "../../lib/dateUtils";
+import { formatDateString, getTimePart, isSameDay } from "../../lib/dateUtils";
 
 interface CalendarViewProps {
   tripId: Id<"trips">;
@@ -59,15 +59,6 @@ function generateCalendarGrid(year: number, month: number): CalendarDay[] {
 
   return days;
 }
-
-function isSameDay(date1: Date, date2: Date): boolean {
-  return (
-    date1.getDate() === date2.getDate() &&
-    date1.getMonth() === date2.getMonth() &&
-    date1.getFullYear() === date2.getFullYear()
-  );
-}
-
 
 export function CalendarView({
   locations,
