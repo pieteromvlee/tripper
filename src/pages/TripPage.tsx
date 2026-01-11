@@ -11,7 +11,7 @@ import { getDirectionsUrl } from "../lib/locationUtils";
 import { TripShareModal } from "../components/trips/TripShareModal";
 import { useLocationSelection } from "../hooks";
 
-type ViewMode = "list" | "map" | "both";
+type ViewMode = "list" | "map";
 
 export default function TripPage() {
   const { tripId } = useParams<{ tripId: string }>();
@@ -21,7 +21,8 @@ export default function TripPage() {
   const [visibleTypes, setVisibleTypes] = useState<Set<LocationType>>(
     new Set(["attraction", "restaurant", "accommodation", "shop", "snack"])
   );
-  const [viewMode, setViewMode] = useState<ViewMode>("both");
+  const [viewMode, setViewMode] = useState<ViewMode>("list"); // Mobile only
+  const [sidebarVisible, setSidebarVisible] = useState(true); // Desktop only
   const [showAddForm, setShowAddForm] = useState(false);
   const [newLocationData, setNewLocationData] = useState<{
     lat: number;
@@ -47,12 +48,6 @@ export default function TripPage() {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  // On mobile, default to list view
-  useEffect(() => {
-    if (isMobile && viewMode === "both") {
-      setViewMode("list");
-    }
-  }, [isMobile, viewMode]);
 
   // Geolocation tracking
   useEffect(() => {
@@ -248,35 +243,27 @@ export default function TripPage() {
               </button>
             )}
 
-            {/* View toggle */}
-            <div className="flex items-center border border-border ml-2">
-              <button
-                onClick={() => setViewMode("list")}
-                className={`px-3 py-1.5 text-xs font-medium transition border-r border-border ${
-                  viewMode === "list" ? "bg-blue-600 text-white" : "text-text-secondary hover:bg-surface-elevated"
-                }`}
-              >
-                List
-              </button>
-              <button
-                onClick={() => setViewMode("map")}
-                className={`px-3 py-1.5 text-xs font-medium transition ${!isMobile ? "border-r border-border" : ""} ${
-                  viewMode === "map" ? "bg-blue-600 text-white" : "text-text-secondary hover:bg-surface-elevated"
-                }`}
-              >
-                Map
-              </button>
-              {!isMobile && (
+            {/* View toggle (mobile only) */}
+            {isMobile && (
+              <div className="flex items-center border border-border ml-2">
                 <button
-                  onClick={() => setViewMode("both")}
-                  className={`px-3 py-1.5 text-xs font-medium transition ${
-                    viewMode === "both" ? "bg-blue-600 text-white" : "text-text-secondary hover:bg-surface-elevated"
+                  onClick={() => setViewMode("list")}
+                  className={`px-3 py-1.5 text-xs font-medium transition border-r border-border ${
+                    viewMode === "list" ? "bg-blue-600 text-white" : "text-text-secondary hover:bg-surface-elevated"
                   }`}
                 >
-                  Both
+                  List
                 </button>
-              )}
-            </div>
+                <button
+                  onClick={() => setViewMode("map")}
+                  className={`px-3 py-1.5 text-xs font-medium transition ${
+                    viewMode === "map" ? "bg-blue-600 text-white" : "text-text-secondary hover:bg-surface-elevated"
+                  }`}
+                >
+                  Map
+                </button>
+              </div>
+            )}
             {/* Share button */}
             <button
               onClick={() => setShowShareModal(true)}
@@ -308,13 +295,15 @@ export default function TripPage() {
         onDateSelect={setSelectedDate}
         visibleTypes={visibleTypes}
         onToggleType={handleToggleType}
+        sidebarVisible={!isMobile ? sidebarVisible : undefined}
+        onToggleSidebar={!isMobile ? () => setSidebarVisible((prev) => !prev) : undefined}
       />
 
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
-        {/* List Panel */}
-        {(viewMode === "list" || viewMode === "both") && (
-          <div className={`flex flex-col bg-surface-elevated ${viewMode === "both" ? "w-96 border-r border-border" : "flex-1"}`}>
+        {/* List Panel (Sidebar) */}
+        {(isMobile ? viewMode === "list" : sidebarVisible) && (
+          <div className={`flex flex-col bg-surface-elevated ${!isMobile ? "w-96 border-r border-border" : "flex-1"}`}>
             {/* Search (shown when triggered from header + button) */}
             {showSearch && (
               <div className="p-3 border-b border-border bg-surface-secondary">
@@ -373,11 +362,11 @@ export default function TripPage() {
           </div>
         )}
 
-        {/* Map Panel */}
-        {(viewMode === "map" || viewMode === "both") && (
+        {/* Map Panel (Detail Pane) */}
+        {(isMobile ? viewMode === "map" : true) && (
           <div className="flex-1 w-full relative">
             {/* Floating Search for map-only view (triggered from header + button) */}
-            {viewMode === "map" && showSearch && (
+            {(isMobile ? viewMode === "map" : !sidebarVisible) && showSearch && (
               <div className="absolute top-3 left-3 right-3 z-10">
                 <div className="flex items-center gap-2 bg-surface-elevated border border-border p-2">
                   <div className="flex-1">
@@ -396,7 +385,7 @@ export default function TripPage() {
               </div>
             )}
             <TripMap
-              key={viewMode}
+              key={isMobile ? viewMode : `desktop-${sidebarVisible}`}
               tripId={tripId as Id<"trips">}
               selectedLocationId={selectedLocationId}
               selectedDate={selectedDate}
@@ -422,8 +411,8 @@ export default function TripPage() {
               </button>
             )}
 
-            {/* Floating action buttons for selected location (map view) */}
-            {selectedLocation && viewMode === "map" && !showAddForm && (
+            {/* Floating action buttons for selected location (map-only or sidebar hidden) */}
+            {selectedLocation && (isMobile ? viewMode === "map" : !sidebarVisible) && !showAddForm && (
               <div
                 className="absolute right-4 z-10 flex flex-col gap-2"
                 style={{ bottom: "calc(1rem + env(safe-area-inset-bottom, 0px))" }}
@@ -458,8 +447,8 @@ export default function TripPage() {
               </div>
             )}
 
-            {/* Floating action buttons for pending location (map view) */}
-            {showAddForm && newLocationData && viewMode === "map" && (
+            {/* Floating action buttons for pending location (map-only or sidebar hidden) */}
+            {showAddForm && newLocationData && (isMobile ? viewMode === "map" : !sidebarVisible) && (
               <div
                 className="absolute right-4 z-10 flex flex-col gap-2"
                 style={{ bottom: "calc(1rem + env(safe-area-inset-bottom, 0px))" }}
