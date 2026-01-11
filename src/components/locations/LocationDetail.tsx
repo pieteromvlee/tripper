@@ -423,7 +423,7 @@ function LocationEditForm({
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="w-full px-4 py-3 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 md:px-3 md:py-2 md:text-sm"
+          className="w-full px-4 py-3 border border-border focus:outline-none focus:border-blue-400 md:px-3 md:py-2 md:text-sm"
           placeholder="e.g., Eiffel Tower"
         />
       </div>
@@ -445,13 +445,13 @@ function LocationEditForm({
               setShowAddressResults(true);
             }
           }}
-          className="w-full px-4 py-3 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 md:px-3 md:py-2 md:text-sm"
+          className="w-full px-4 py-3 border border-border focus:outline-none focus:border-blue-400 md:px-3 md:py-2 md:text-sm"
           placeholder="Search for an address..."
         />
 
         {/* Address search results dropdown */}
         {showAddressResults && addressResults.length > 0 && (
-          <div className="absolute z-50 w-full mt-1 bg-surface-elevated rounded-lg border border-border shadow-lg max-h-48 overflow-y-auto">
+          <div className="absolute z-50 w-full mt-1 bg-surface-elevated border border-border shadow-lg max-h-48 overflow-y-auto">
             {addressResults.map((feature) => (
               <button
                 key={feature.id}
@@ -512,18 +512,18 @@ function LocationEditForm({
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            className="flex-1 px-4 py-3 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 md:px-2 md:py-1.5 md:text-sm"
+            className="flex-1 px-4 py-3 border border-border focus:outline-none focus:border-blue-400 md:px-2 md:py-1.5 md:text-sm"
           />
           <input
             type="time"
             value={time}
             onChange={(e) => setTime(e.target.value)}
-            className="w-28 px-4 py-3 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 md:w-24 md:px-2 md:py-1.5 md:text-sm"
+            className="w-28 px-4 py-3 border border-border focus:outline-none focus:border-blue-400 md:w-24 md:px-2 md:py-1.5 md:text-sm"
           />
           <button
             type="button"
             onClick={() => { setDate(""); setTime(""); }}
-            className={`px-3 py-3 rounded-lg border border-border transition md:px-2 md:py-1.5 ${date ? "text-text-muted hover:text-text-secondary hover:bg-surface-secondary" : "text-text-muted cursor-not-allowed"}`}
+            className={`px-3 py-3 border border-border transition md:px-2 md:py-1.5 ${date ? "text-text-muted hover:text-text-secondary hover:bg-surface-secondary" : "text-text-muted cursor-not-allowed"}`}
             title="Clear date"
             disabled={!date}
           >
@@ -542,18 +542,18 @@ function LocationEditForm({
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="flex-1 px-4 py-3 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 md:px-2 md:py-1.5 md:text-sm"
+              className="flex-1 px-4 py-3 border border-border focus:outline-none focus:border-blue-400 md:px-2 md:py-1.5 md:text-sm"
             />
             <input
               type="time"
               value={endTime}
               onChange={(e) => setEndTime(e.target.value)}
-              className="w-28 px-4 py-3 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 md:w-24 md:px-2 md:py-1.5 md:text-sm"
+              className="w-28 px-4 py-3 border border-border focus:outline-none focus:border-blue-400 md:w-24 md:px-2 md:py-1.5 md:text-sm"
             />
             <button
               type="button"
               onClick={() => { setEndDate(""); setEndTime(""); }}
-              className={`px-3 py-3 rounded-lg border border-border transition md:px-2 md:py-1.5 ${endDate ? "text-text-muted hover:text-text-secondary hover:bg-surface-secondary" : "text-text-muted cursor-not-allowed"}`}
+              className={`px-3 py-3 border border-border transition md:px-2 md:py-1.5 ${endDate ? "text-text-muted hover:text-text-secondary hover:bg-surface-secondary" : "text-text-muted cursor-not-allowed"}`}
               title="Clear date"
               disabled={!endDate}
             >
@@ -571,7 +571,7 @@ function LocationEditForm({
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           rows={3}
-          className="w-full px-4 py-3 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none md:px-3 md:py-2 md:text-sm"
+          className="w-full px-4 py-3 border border-border focus:outline-none focus:border-blue-400 resize-none md:px-3 md:py-2 md:text-sm"
         />
       </div>
 
@@ -579,14 +579,14 @@ function LocationEditForm({
         <button
           type="button"
           onClick={onCancel}
-          className="flex-1 px-4 py-3 border border-border rounded-lg text-text-secondary font-medium md:px-3 md:py-2 md:text-sm"
+          className="flex-1 px-4 py-3 border border-border text-text-secondary font-medium md:px-3 md:py-2 md:text-sm"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={!name.trim() || isSubmitting || !categoryId}
-          className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg font-medium disabled:opacity-50 md:px-3 md:py-2 md:text-sm"
+          className="flex-1 px-4 py-3 bg-blue-600 text-white border border-blue-400 font-medium disabled:opacity-50 md:px-3 md:py-2 md:text-sm"
         >
           {isSubmitting ? "Saving..." : "Save"}
         </button>
