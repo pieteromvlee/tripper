@@ -31,7 +31,7 @@ export function CalendarCell({
     <div
       ref={setNodeRef}
       className={`
-        min-h-24 max-h-48 overflow-y-auto p-2 bg-surface
+        h-full overflow-y-auto p-2 bg-surface
         transition-colors
         ${isCurrentMonth ? "text-text-primary" : "text-text-muted opacity-50"}
         ${

@@ -174,8 +174,8 @@ export function CalendarView({
         </div>
 
         {/* Main calendar area */}
-        <div className="flex-1 overflow-auto">
-            <div className="min-w-[700px]">
+        <div className="flex-1 flex flex-col">
+            <div className="min-w-[700px] flex-1 flex flex-col">
               {/* Weekday headers */}
               <div className="grid grid-cols-7 gap-px bg-border border-b border-border sticky top-0 z-10">
                 {WEEKDAYS.map((day) => (
@@ -188,7 +188,10 @@ export function CalendarView({
                 ))}
               </div>
 
-              <div className="grid grid-cols-7 gap-px bg-border">
+              <div
+                className="flex-1 grid grid-cols-7 grid-rows-6 gap-px bg-border"
+                style={{ gridTemplateRows: 'repeat(6, 1fr)' }}
+              >
                 {calendarDays.map((day, index) => (
                   <CalendarCell
                     key={index}
