@@ -1,6 +1,6 @@
 import { useDraggable } from "@dnd-kit/core";
 import type { Doc } from "../../../convex/_generated/dataModel";
-import { formatDateTime, formatTime } from "../../lib/locationUtils";
+import { formatDateTime, formatTime } from "../../lib/dateUtils";
 import { CategoryIcon } from "../../lib/typeIcons";
 
 interface LocationCardProps {

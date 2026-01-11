@@ -4,9 +4,9 @@ import { api } from "../../../convex/_generated/api";
 import type { Doc, Id } from "../../../convex/_generated/dataModel";
 import { AttachmentList } from "./AttachmentList";
 import { AttachmentUpload } from "./AttachmentUpload";
-import { getDirectionsUrl, formatDateTime } from "../../lib/locationUtils";
+import { getDirectionsUrl } from "../../lib/locationUtils";
 import { CategoryIcon } from "../../lib/typeIcons";
-import { getDatePart, getTimePart, combineDateTime } from "../../lib/dateUtils";
+import { getDatePart, getTimePart, combineDateTime, formatDateTime } from "../../lib/dateUtils";
 
 interface LocationDetailProps {
   location: Doc<"locations">;

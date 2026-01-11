@@ -2,8 +2,6 @@
  * Shared location utility functions
  */
 
-import { formatDateTime as formatDateTimeUtil, formatTime as formatTimeUtil } from './dateUtils';
-
 /**
  * Detects if the user is on an Apple device (iOS or macOS)
  */
@@ -27,20 +25,4 @@ export function getDirectionsUrl(latitude: number, longitude: number): string {
     return `https://maps.apple.com/?daddr=${latitude},${longitude}`;
   }
   return `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`;
-}
-
-/**
- * Formats a naive datetime string for display (timezone-independent)
- * Input: "2026-01-16T13:00" → Output: "Fri, Jan 16, 13:00"
- */
-export function formatDateTime(dateTime: string | undefined): string {
-  return formatDateTimeUtil(dateTime);
-}
-
-/**
- * Formats a naive datetime string to show only the time (24-hour format)
- * Input: "2026-01-16T13:00" → Output: "13:00"
- */
-export function formatTime(dateTime: string | undefined): string {
-  return formatTimeUtil(dateTime);
 }
