@@ -270,7 +270,7 @@ import {
 ### Why This Matters
 
 Timezone conversion bugs cause:
-- Events appearing on wrong days in calendar/kanban views
+- Events appearing on wrong days in calendar view
 - Times shifting (13:00 becomes 03:00 or 23:00 depending on timezone)
 - Confusion when users view from different timezones
 - The mental model of "Friday at 1pm" not matching what's displayed

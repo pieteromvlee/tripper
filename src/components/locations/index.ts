@@ -5,5 +5,3 @@ export { DaySelector } from "./DaySelector";
 export { LocationDetail } from "./LocationDetail";
 export { FilterBar } from "./FilterBar";
 export { CalendarView } from "./CalendarView";
-export { KanbanView } from "./KanbanView";
-export { CompactCalendarColumn } from "./CompactCalendarColumn";

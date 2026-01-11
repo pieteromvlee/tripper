@@ -4,7 +4,7 @@ import { useQuery } from "convex/react";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
-import { LocationList, FilterBar, LocationDetail, LocationForm, CalendarView, KanbanView } from "../components/locations";
+import { LocationList, FilterBar, LocationDetail, LocationForm, CalendarView } from "../components/locations";
 import { TripMap, LocationSearch, SelectionPopover } from "../components/map";
 import { ErrorBoundary, MapErrorFallback } from "../components/ErrorBoundary";
 import { useLocationSelection } from "../hooks";
@@ -13,8 +13,8 @@ import { parseTripId } from "../lib/routeParams";
 import { isAccommodationCategory } from "../lib/categoryUtils";
 import { logger } from "../lib/logger";
 
-type ViewMode = "list" | "map" | "calendar" | "kanban";
-type DetailViewMode = "map" | "calendar" | "kanban";
+type ViewMode = "list" | "map" | "calendar";
+type DetailViewMode = "map" | "calendar";
 
 export default function TripPage() {
   const params = useParams<{ tripId: string }>();
@@ -201,7 +201,6 @@ export default function TripPage() {
   // View mode computed values for cleaner conditionals
   const isMapView = isMobile ? viewMode === "map" : detailViewMode === "map";
   const isCalendarView = isMobile ? viewMode === "calendar" : detailViewMode === "calendar";
-  const isKanbanView = isMobile ? viewMode === "kanban" : detailViewMode === "kanban";
   const isListView = isMobile ? viewMode === "list" : sidebarVisible;
 
   return (
@@ -262,7 +261,7 @@ export default function TripPage() {
               </button>
             )}
 
-            {/* View toggle (mobile: four-way list/map/calendar/kanban) */}
+            {/* View toggle (mobile: three-way list/map/calendar) */}
             {isMobile && (
               <div className="flex items-center border border-border ml-2">
                 <button
@@ -290,24 +289,13 @@ export default function TripPage() {
                 </button>
                 <button
                   onClick={() => setViewMode("calendar")}
-                  className={`p-2 transition border-r border-border ${
+                  className={`p-2 transition ${
                     viewMode === "calendar" ? "bg-blue-600 text-white" : "text-text-secondary hover:bg-surface-elevated"
                   }`}
                   title="Calendar view"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                </button>
-                <button
-                  onClick={() => setViewMode("kanban")}
-                  className={`p-2 transition ${
-                    viewMode === "kanban" ? "bg-blue-600 text-white" : "text-text-secondary hover:bg-surface-elevated"
-                  }`}
-                  title="Kanban view"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v12a2 2 0 01-2 2" />
                   </svg>
                 </button>
               </div>
@@ -530,20 +518,6 @@ export default function TripPage() {
             {isCalendarView && (
               <ErrorBoundary>
                 <CalendarView
-                  tripId={tripId}
-                  locations={locations}
-                  categories={categories}
-                  selectedLocationId={selectedLocationId}
-                  onLocationSelect={handleLocationSelectAndShowDetail}
-                  visibleCategories={visibleCategories}
-                />
-              </ErrorBoundary>
-            )}
-
-            {/* Show Kanban */}
-            {isKanbanView && (
-              <ErrorBoundary>
-                <KanbanView
                   tripId={tripId}
                   locations={locations}
                   categories={categories}

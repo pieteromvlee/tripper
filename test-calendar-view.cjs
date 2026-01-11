@@ -1,9 +1,9 @@
 const puppeteer = require('puppeteer');
 const { loadEnv, login, takeScreenshot, waitForAuth, setupBrowserLogging } = require('./test-helpers.cjs');
 
-async function testCalendarKanbanViews() {
-  console.log('\n🧪 Testing Calendar and Kanban Views');
-  console.log('=====================================\n');
+async function testCalendarView() {
+  console.log('\n🧪 Testing Calendar View');
+  console.log('==========================\n');
 
   const env = loadEnv();
   const browser = await puppeteer.launch({
@@ -68,35 +68,6 @@ async function testCalendarKanbanViews() {
       console.log('⚠ No location chips found in calendar view');
     }
 
-    // Step 5: Switch to Kanban view
-    console.log('📸 Step 5: Switching to Kanban view...');
-    await page.evaluate(() => {
-      const buttons = Array.from(document.querySelectorAll('button'));
-      const kanbanBtn = buttons.find(btn => btn.textContent.includes('Kanban'));
-      if (kanbanBtn) kanbanBtn.click();
-    });
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    await takeScreenshot(page, '05-kanban-view', '/tmp/tripper-calendar-test');
-
-    // Step 6: Click on a location in kanban view
-    console.log('📸 Step 6: Clicking location in kanban...');
-    const kanbanLocationChip = await page.$('.cursor-pointer[class*="px-2 py-1"]');
-    if (kanbanLocationChip) {
-      await kanbanLocationChip.click();
-      await new Promise(resolve => setTimeout(resolve, 500));
-      await takeScreenshot(page, '06-kanban-location-detail', '/tmp/tripper-calendar-test');
-
-      // Check if modal opened
-      const modal = await page.$('.fixed.inset-0.z-50');
-      if (modal) {
-        console.log('✓ LocationDetail modal opened from kanban view');
-      } else {
-        console.log('✗ Modal did not open');
-      }
-    } else {
-      console.log('⚠ No location chips found in kanban view');
-    }
-
     console.log('\n✅ Test complete!');
     console.log('📁 Screenshots saved to: /tmp/tripper-calendar-test\n');
 
@@ -108,4 +79,4 @@ async function testCalendarKanbanViews() {
   }
 }
 
-testCalendarKanbanViews();
+testCalendarView();

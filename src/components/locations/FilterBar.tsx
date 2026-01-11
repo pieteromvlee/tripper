@@ -2,7 +2,7 @@ import type { Id, Doc } from "../../../convex/_generated/dataModel";
 import { DaySelector } from "./DaySelector";
 import { CategoryFilter } from "./CategoryFilter";
 
-type DetailViewMode = "map" | "calendar" | "kanban";
+type DetailViewMode = "map" | "calendar";
 
 interface FilterBarProps {
   tripId: Id<"trips">;
@@ -79,19 +79,11 @@ export function FilterBar({
             </button>
             <button
               onClick={() => onDetailViewModeChange("calendar")}
-              className={`px-3 py-1.5 text-xs font-medium transition border-r border-border ${
+              className={`px-3 py-1.5 text-xs font-medium transition ${
                 detailViewMode === "calendar" ? "bg-blue-600 text-white" : "text-text-secondary hover:bg-surface-elevated"
               }`}
             >
               Calendar
-            </button>
-            <button
-              onClick={() => onDetailViewModeChange("kanban")}
-              className={`px-3 py-1.5 text-xs font-medium transition ${
-                detailViewMode === "kanban" ? "bg-blue-600 text-white" : "text-text-secondary hover:bg-surface-elevated"
-              }`}
-            >
-              Kanban
             </button>
           </div>
         </div>
