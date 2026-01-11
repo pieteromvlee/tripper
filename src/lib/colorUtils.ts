@@ -118,28 +118,6 @@ export function getCategoryBadgeStyle(color: string): React.CSSProperties {
 }
 
 /**
- * Generate button style for category selection
- */
-export function getCategoryButtonStyle(
-  color: string,
-  isSelected: boolean
-): React.CSSProperties {
-  if (isSelected) {
-    return {
-      backgroundColor: color,
-      color: "#ffffff",
-      borderColor: color,
-    };
-  }
-
-  return {
-    backgroundColor: "transparent",
-    color: color,
-    borderColor: hexWithOpacity(color, 0.3),
-  };
-}
-
-/**
  * Preset color palette for category color picker
  * Includes all default category colors plus additional options
  */
