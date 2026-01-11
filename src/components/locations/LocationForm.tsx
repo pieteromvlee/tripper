@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { useMutation } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
-import { locationTypeOptions, type LocationType } from "../../lib/locationStyles";
+import { CategoryIcon } from "../../lib/typeIcons";
 
 interface LocationFormProps {
   tripId: Id<"trips">;
@@ -10,7 +10,7 @@ interface LocationFormProps {
   longitude: number;
   initialName?: string;
   initialAddress?: string;
-  initialLocationType?: LocationType;
+  initialCategoryId?: Id<"categories">;
   onSuccess: () => void;
   onCancel: () => void;
   variant: "inline" | "fullscreen";
@@ -22,23 +22,33 @@ export function LocationForm({
   longitude,
   initialName,
   initialAddress,
-  initialLocationType,
+  initialCategoryId,
   onSuccess,
   onCancel,
   variant,
 }: LocationFormProps) {
+  const categories = useQuery(api.categories.list, { tripId });
+
   const [name, setName] = useState(initialName || "");
   const [address, setAddress] = useState(initialAddress || "");
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [endDate, setEndDate] = useState("");
   const [endTime, setEndTime] = useState("");
-  const [locationType, setLocationType] = useState<LocationType>(initialLocationType || "attraction");
+  const [categoryId, setCategoryId] = useState<Id<"categories"> | null>(initialCategoryId || null);
   const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const createLocation = useMutation(api.locations.create);
+
+  // Set default category when categories load
+  if (categories && categories.length > 0 && !categoryId) {
+    setCategoryId(categories[0]._id);
+  }
+
+  const selectedCategory = categories?.find(c => c._id === categoryId);
+  const isAccommodation = selectedCategory?.name.toLowerCase() === "accommodation";
 
   const combineDateTime = (d: string, t: string) => {
     if (!d) return undefined;
@@ -47,7 +57,7 @@ export function LocationForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || isSubmitting) return;
+    if (!name.trim() || isSubmitting || !categoryId) return;
 
     setIsSubmitting(true);
     setError(null);
@@ -58,8 +68,8 @@ export function LocationForm({
         latitude,
         longitude,
         dateTime: combineDateTime(date, time),
-        endDateTime: locationType === "accommodation" ? combineDateTime(endDate, endTime) : undefined,
-        locationType,
+        endDateTime: isAccommodation ? combineDateTime(endDate, endTime) : undefined,
+        categoryId,
         notes: notes.trim() || undefined,
         address: address.trim() || undefined,
       });
@@ -116,23 +126,33 @@ export function LocationForm({
       )}
 
       <div>
-        <label className="block text-xs font-medium text-text-secondary mb-2 uppercase tracking-wide">Type</label>
-        <div className="flex gap-1">
-          {locationTypeOptions.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              onClick={() => setLocationType(option.value)}
-              className={`flex-1 px-2 ${isFullscreen ? "py-2" : "py-1.5"} text-xs font-medium transition-colors border ${
-                locationType === option.value
-                  ? `${option.color} text-white border-transparent`
-                  : "bg-surface-secondary text-text-secondary border-border hover:bg-surface-inset hover:border-border-focus"
-              }`}
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
+        <label className="block text-xs font-medium text-text-secondary mb-2 uppercase tracking-wide">Category</label>
+        {categories === undefined ? (
+          <div className="text-xs text-text-secondary">Loading categories...</div>
+        ) : categories.length === 0 ? (
+          <div className="text-xs text-red-400 bg-red-500/10 px-3 py-2 border border-red-500/30">
+            No categories available. Please create a category first.
+          </div>
+        ) : (
+          <div className="flex gap-1 flex-wrap">
+            {categories.map((category) => (
+              <button
+                key={category._id}
+                type="button"
+                onClick={() => setCategoryId(category._id)}
+                className={`flex items-center gap-1.5 px-2 ${isFullscreen ? "py-2" : "py-1.5"} text-xs font-medium transition-colors border ${
+                  categoryId === category._id
+                    ? "text-white border-transparent"
+                    : "bg-surface-secondary text-text-secondary border-border hover:bg-surface-inset hover:border-border-focus"
+                }`}
+                style={categoryId === category._id ? { backgroundColor: category.color } : undefined}
+              >
+                <CategoryIcon iconName={category.iconName} className="w-3.5 h-3.5" />
+                {category.name}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       <div>
@@ -153,7 +173,7 @@ export function LocationForm({
         </div>
       </div>
 
-      {locationType === "accommodation" && (
+      {isAccommodation && (
         <div>
           <label className="block text-xs font-medium text-text-secondary mb-1 uppercase tracking-wide">Check-out</label>
           <div className="flex gap-2">
@@ -199,7 +219,7 @@ export function LocationForm({
           </button>
           <button
             type="submit"
-            disabled={!name.trim() || isSubmitting}
+            disabled={!name.trim() || isSubmitting || !categoryId}
             className="flex-1 px-4 py-2 bg-blue-600 text-white border border-blue-400 hover:bg-blue-500 disabled:opacity-50 text-xs"
           >
             {isSubmitting ? "Adding..." : "Add Location"}
@@ -224,7 +244,7 @@ export function LocationForm({
           <h2 className="text-sm font-bold text-text-primary uppercase tracking-wide">Add Location</h2>
           <button
             onClick={handleSubmit}
-            disabled={!name.trim() || isSubmitting}
+            disabled={!name.trim() || isSubmitting || !categoryId}
             className="px-4 py-1.5 bg-green-600 text-white border border-green-400 text-xs font-medium disabled:opacity-50"
           >
             {isSubmitting ? "Adding..." : "Add"}

@@ -1,9 +1,10 @@
 import type { Doc } from "../../../convex/_generated/dataModel";
 import { formatDateTime, formatTime } from "../../lib/locationUtils";
-import { TypeIcon } from "../../lib/typeIcons";
+import { CategoryIcon } from "../../lib/typeIcons";
 
 interface LocationCardProps {
   location: Doc<"locations">;
+  categories?: Doc<"categories">[];
   isSelected: boolean;
   onClick: () => void;
   selectedDate?: string;
@@ -11,10 +12,14 @@ interface LocationCardProps {
 
 export function LocationCard({
   location,
+  categories,
   isSelected,
   onClick,
   selectedDate,
 }: LocationCardProps) {
+  // Find category for this location
+  const category = categories?.find(c => c._id === location.categoryId);
+
   return (
     <div
       onClick={onClick}
@@ -29,10 +34,13 @@ export function LocationCard({
       `}
     >
       <div className="flex items-start gap-2">
-        <TypeIcon
-          type={location.locationType || "attraction"}
-          className="w-4 h-4 flex-shrink-0 mt-0.5"
-        />
+        {category && (
+          <CategoryIcon
+            iconName={category.iconName}
+            className="w-4 h-4 flex-shrink-0 mt-0.5"
+            color={category.color}
+          />
+        )}
 
         <div className="flex-1 min-w-0">
           {/* Name */}
@@ -61,7 +69,7 @@ export function LocationCard({
               `}
             >
               {selectedDate ? formatTime(location.dateTime) : formatDateTime(location.dateTime)}
-              {location.locationType === "accommodation" && location.endDateTime && (
+              {category?.name.toLowerCase() === "accommodation" && location.endDateTime && (
                 <span className="text-text-muted">
                   {" "}
                   - {selectedDate ? formatTime(location.endDateTime) : formatDateTime(location.endDateTime)}

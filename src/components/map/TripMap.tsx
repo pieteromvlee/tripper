@@ -4,9 +4,9 @@ import { LngLatBounds } from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
-import type { Id } from "../../../convex/_generated/dataModel";
-import type { LocationType } from "../../lib/locationStyles";
+import type { Id, Doc } from "../../../convex/_generated/dataModel";
 import { useDarkMode } from "../../hooks";
+import { CategoryIcon } from "../../lib/typeIcons";
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
 
@@ -28,7 +28,8 @@ interface TripMapProps {
   tripId: Id<"trips">;
   selectedLocationId: Id<"locations"> | null;
   selectedDate?: string | null; // ISO date string for filtering
-  visibleTypes?: Set<LocationType>; // Filter by location type
+  categories?: Doc<"categories">[];
+  visibleCategories?: Set<Id<"categories">>; // Filter by category
   onLocationSelect: (id: Id<"locations">) => void;
   onMapClick: (result: MapClickResult) => void;
   onCenterChange?: (lat: number, lng: number) => void;
@@ -41,7 +42,8 @@ export function TripMap({
   tripId,
   selectedLocationId,
   selectedDate,
-  visibleTypes,
+  categories,
+  visibleCategories,
   onLocationSelect,
   onMapClick,
   onCenterChange,
@@ -61,9 +63,9 @@ export function TripMap({
   // Use filtered locations when date is selected, otherwise all
   const baseLocations = selectedDate ? filteredLocations : allLocations;
 
-  // Apply type filter
+  // Apply category filter (backward compatible - show locations without categoryId)
   const locations = baseLocations?.filter(
-    (loc) => !visibleTypes || visibleTypes.has((loc.locationType || "attraction") as LocationType)
+    (loc) => !visibleCategories || !loc.categoryId || visibleCategories.has(loc.categoryId)
   );
 
   // Track if map has loaded
@@ -258,20 +260,14 @@ export function TripMap({
         <NavigationControl position="top-right" />
 
         {locations?.map((location, index) => {
-          // Determine color based on location type
-          const getMarkerColor = () => {
-            if (selectedLocationId === location._id) return "bg-blue-600 scale-125";
-            switch (location.locationType) {
-              case "accommodation": return "bg-purple-500";
-              case "restaurant": return "bg-orange-500";
-              case "shop": return "bg-green-500";
-              case "snack": return "bg-pink-500";
-              case "attraction":
-              default: return "bg-blue-500";
-            }
-          };
+          // Find category for this location
+          const category = categories?.find(c => c._id === location.categoryId);
+          const isSelected = selectedLocationId === location._id;
 
-          // Render icon based on location type (or number when filtered by date)
+          // Generate color styles from category color (or default blue)
+          const baseColor = category?.color || "#3B82F6";
+
+          // Render icon or number (when filtered by date)
           const renderIcon = () => {
             // Show number when filtered by date
             if (selectedDate) {
@@ -280,39 +276,22 @@ export function TripMap({
               );
             }
 
-            switch (location.locationType) {
-              case "accommodation":
-                return (
-                  <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
-                  </svg>
-                );
-              case "restaurant":
-                return (
-                  <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 16 16">
-                    <path d="M7 0a1 1 0 0 1 1 1v5a1 1 0 0 1-.29.71L6 8.41V15a1 1 0 1 1-2 0V8.41L2.29 6.71A1 1 0 0 1 2 6V1a1 1 0 0 1 2 0v4.59l.5.5.5-.5V1a1 1 0 0 1 2 0zm7 1v14a1 1 0 1 1-2 0v-5h-1a1 1 0 0 1-1-1V5c0-2.21 1.79-4 4-4z" />
-                  </svg>
-                );
-              case "shop":
-                return (
-                  <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.11l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zm2 5V6a2 2 0 10-4 0v1h4zm-6 3a1 1 0 112 0 1 1 0 01-2 0zm7-1a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd" />
-                  </svg>
-                );
-              case "snack":
-                return (
-                  <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-.293.707L12 12.414V17a1 1 0 01-1 1h-2a1 1 0 01-1-1v-4.586L3.293 7.707A1 1 0 013 7V5z" clipRule="evenodd" />
-                  </svg>
-                );
-              case "attraction":
-              default:
-                return (
-                  <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M4 5a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-1.121-1.121A2 2 0 0011.172 3H8.828a2 2 0 00-1.414.586L6.293 4.707A1 1 0 015.586 5H4zm6 9a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
-                  </svg>
-                );
+            // Show category icon
+            if (category) {
+              return (
+                <CategoryIcon
+                  iconName={category.iconName}
+                  className="w-4 h-4 text-white"
+                />
+              );
             }
+
+            // Fallback to default icon if no category
+            return (
+              <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M4 5a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-1.121-1.121A2 2 0 0011.172 3H8.828a2 2 0 00-1.414.586L6.293 4.707A1 1 0 015.586 5H4zm6 9a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
+              </svg>
+            );
           };
 
           return (
@@ -326,7 +305,8 @@ export function TripMap({
               }}
             >
               <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center cursor-pointer transition-transform ${getMarkerColor()}`}
+                className={`w-8 h-8 rounded-full flex items-center justify-center cursor-pointer transition-transform ${isSelected ? "scale-125" : ""}`}
+                style={{ backgroundColor: baseColor }}
               >
                 {renderIcon()}
               </div>

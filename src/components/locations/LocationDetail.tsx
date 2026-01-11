@@ -1,14 +1,16 @@
 import { useState, useEffect, useRef } from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
-import type { Doc } from "../../../convex/_generated/dataModel";
+import type { Doc, Id } from "../../../convex/_generated/dataModel";
 import { AttachmentList } from "./AttachmentList";
 import { AttachmentUpload } from "./AttachmentUpload";
-import { getLocationTypeBadgeClasses, getLocationTypeLabel, locationTypeOptions, type LocationType } from "../../lib/locationStyles";
+import { getCategoryBadgeStyle } from "../../lib/colorUtils";
 import { getDirectionsUrl, formatDateTime } from "../../lib/locationUtils";
+import { CategoryIcon } from "../../lib/typeIcons";
 
 interface LocationDetailProps {
   location: Doc<"locations">;
+  categories?: Doc<"categories">[];
   onClose: () => void;
 }
 
@@ -20,13 +22,16 @@ interface MapboxFeature {
   center: [number, number];
 }
 
-export function LocationDetail({ location, onClose }: LocationDetailProps) {
+export function LocationDetail({ location, categories, onClose }: LocationDetailProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const deleteLocation = useMutation(api.locations.remove);
+
+  // Find category for this location
+  const category = categories?.find(c => c._id === location.categoryId);
 
   const handleDelete = async () => {
     setIsDeleting(true);
@@ -98,6 +103,7 @@ export function LocationDetail({ location, onClose }: LocationDetailProps) {
         {isEditing ? (
           <LocationEditForm
             location={location}
+            categories={categories}
             onSave={() => setIsEditing(false)}
             onCancel={() => setIsEditing(false)}
           />
@@ -107,9 +113,15 @@ export function LocationDetail({ location, onClose }: LocationDetailProps) {
             <div className="md:hidden">
               <div className="flex items-center gap-2">
                 <h1 className="text-lg font-bold text-text-primary">{location.name}</h1>
-                <span className={`px-2 py-0.5 text-xs font-medium border ${getLocationTypeBadgeClasses(location.locationType || "attraction")}`}>
-                  {getLocationTypeLabel(location.locationType || "attraction")}
-                </span>
+                {category && (
+                  <span
+                    className="px-2 py-0.5 text-xs font-medium border flex items-center gap-1"
+                    style={getCategoryBadgeStyle(category.color)}
+                  >
+                    <CategoryIcon iconName={category.iconName} className="w-3 h-3" />
+                    {category.name}
+                  </span>
+                )}
               </div>
               {location.address && (
                 <p className="text-sm text-text-secondary mt-1">{location.address}</p>
@@ -119,9 +131,15 @@ export function LocationDetail({ location, onClose }: LocationDetailProps) {
             {/* Desktop: Compact header with type badge and address */}
             <div className="hidden md:block">
               <div className="flex items-center gap-2 mb-1">
-                <span className={`px-2 py-0.5 text-xs font-medium border ${getLocationTypeBadgeClasses(location.locationType || "attraction")}`}>
-                  {getLocationTypeLabel(location.locationType || "attraction")}
-                </span>
+                {category && (
+                  <span
+                    className="px-2 py-0.5 text-xs font-medium border flex items-center gap-1"
+                    style={getCategoryBadgeStyle(category.color)}
+                  >
+                    <CategoryIcon iconName={category.iconName} className="w-3 h-3" />
+                    {category.name}
+                  </span>
+                )}
               </div>
               {location.address && (
                 <p className="text-xs text-text-secondary">{location.address}</p>
@@ -148,7 +166,7 @@ export function LocationDetail({ location, onClose }: LocationDetailProps) {
                   <div className="text-sm text-text-primary">{formatDateTime(location.dateTime)}</div>
                 </div>
               )}
-              {location.locationType === "accommodation" && location.endDateTime && (
+              {category?.name.toLowerCase() === "accommodation" && location.endDateTime && (
                 <div className="px-3 py-2 md:px-0 md:py-1 md:flex md:items-center md:gap-2">
                   <div className="text-xs text-text-secondary uppercase tracking-wide md:min-w-[80px]">Check-out</div>
                   <div className="text-sm text-text-primary">{formatDateTime(location.endDateTime)}</div>
@@ -226,10 +244,12 @@ export function LocationDetail({ location, onClose }: LocationDetailProps) {
 // Edit form component
 function LocationEditForm({
   location,
+  categories,
   onSave,
   onCancel,
 }: {
   location: Doc<"locations">;
+  categories?: Doc<"categories">[];
   onSave: () => void;
   onCancel: () => void;
 }) {
@@ -260,9 +280,12 @@ function LocationEditForm({
   const [time, setTime] = useState(location.dateTime ? toTimePart(location.dateTime) : "");
   const [endDate, setEndDate] = useState(location.endDateTime ? toDatePart(location.endDateTime) : "");
   const [endTime, setEndTime] = useState(location.endDateTime ? toTimePart(location.endDateTime) : "");
-  const [locationType, setLocationType] = useState<LocationType>(location.locationType || "attraction");
+  const [categoryId, setCategoryId] = useState<Id<"categories"> | null>(location.categoryId || null);
   const [notes, setNotes] = useState(location.notes || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const selectedCategory = categories?.find(c => c._id === categoryId);
+  const isAccommodation = selectedCategory?.name.toLowerCase() === "accommodation";
 
   // Address search state
   const [addressResults, setAddressResults] = useState<MapboxFeature[]>([]);
@@ -357,8 +380,8 @@ function LocationEditForm({
         latitude,
         longitude,
         dateTime: combineDateTime(date, time), // Pass empty string to clear
-        endDateTime: locationType === "accommodation" ? combineDateTime(endDate, endTime) : "", // Pass empty string to clear
-        locationType,
+        endDateTime: isAccommodation ? combineDateTime(endDate, endTime) : "", // Pass empty string to clear
+        categoryId: categoryId || undefined,
         notes: notes.trim() || undefined,
       });
       onSave();
@@ -430,23 +453,33 @@ function LocationEditForm({
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-text-secondary mb-2 md:text-xs md:mb-1">Type</label>
-        <div className="flex gap-2 md:gap-1">
-          {locationTypeOptions.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              onClick={() => setLocationType(option.value)}
-              className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all md:px-2 md:py-1.5 md:text-xs ${
-                locationType === option.value
-                  ? `${option.color} text-white`
-                  : "bg-surface-secondary text-text-secondary hover:bg-surface-inset"
-              }`}
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
+        <label className="block text-sm font-medium text-text-secondary mb-2 md:text-xs md:mb-1">Category</label>
+        {categories === undefined ? (
+          <div className="text-xs text-text-secondary">Loading categories...</div>
+        ) : categories.length === 0 ? (
+          <div className="text-xs text-red-400 bg-red-500/10 px-3 py-2 border border-red-500/30">
+            No categories available. Please create a category first.
+          </div>
+        ) : (
+          <div className="flex gap-2 flex-wrap md:gap-1">
+            {categories.map((cat) => (
+              <button
+                key={cat._id}
+                type="button"
+                onClick={() => setCategoryId(cat._id)}
+                className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium transition-all border md:px-2 md:py-1.5 md:text-xs ${
+                  categoryId === cat._id
+                    ? "text-white border-transparent"
+                    : "bg-surface-secondary text-text-secondary border-border hover:bg-surface-inset hover:border-border-focus"
+                }`}
+                style={categoryId === cat._id ? { backgroundColor: cat.color } : undefined}
+              >
+                <CategoryIcon iconName={cat.iconName} className="w-3.5 h-3.5" />
+                {cat.name}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       <div>
@@ -478,7 +511,7 @@ function LocationEditForm({
         </div>
       </div>
 
-      {locationType === "accommodation" && (
+      {isAccommodation && (
         <div>
           <label className="block text-sm font-medium text-text-secondary mb-1 md:text-xs">Check-out</label>
           <div className="flex gap-2 md:gap-1">
@@ -529,7 +562,7 @@ function LocationEditForm({
         </button>
         <button
           type="submit"
-          disabled={!name.trim() || isSubmitting}
+          disabled={!name.trim() || isSubmitting || !categoryId}
           className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg font-medium disabled:opacity-50 md:px-3 md:py-2 md:text-sm"
         >
           {isSubmitting ? "Saving..." : "Save"}

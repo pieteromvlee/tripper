@@ -1,14 +1,14 @@
-import type { Id } from "../../../convex/_generated/dataModel";
-import type { LocationType } from "../../lib/locationStyles";
+import type { Id, Doc } from "../../../convex/_generated/dataModel";
 import { DaySelector } from "./DaySelector";
-import { TypeFilter } from "./TypeFilter";
+import { CategoryFilter } from "./CategoryFilter";
 
 interface FilterBarProps {
   tripId: Id<"trips">;
   selectedDate: string | null;
   onDateSelect: (date: string | null) => void;
-  visibleTypes: Set<LocationType>;
-  onToggleType: (type: LocationType) => void;
+  categories: Doc<"categories">[] | undefined;
+  visibleCategories: Set<Id<"categories">>;
+  onToggleCategory: (categoryId: Id<"categories">) => void;
   sidebarVisible?: boolean;
   onToggleSidebar?: () => void;
 }
@@ -17,8 +17,9 @@ export function FilterBar({
   tripId,
   selectedDate,
   onDateSelect,
-  visibleTypes,
-  onToggleType,
+  categories,
+  visibleCategories,
+  onToggleCategory,
   sidebarVisible,
   onToggleSidebar,
 }: FilterBarProps) {
@@ -58,9 +59,13 @@ export function FilterBar({
         />
       </div>
 
-      {/* Separator and type filter on the right */}
+      {/* Separator and category filter on the right */}
       <div className="flex-shrink-0 flex items-center pl-3 pr-3 py-2 border-l border-border ml-0">
-        <TypeFilter visibleTypes={visibleTypes} onToggleType={onToggleType} />
+        <CategoryFilter
+          categories={categories}
+          visibleCategories={visibleCategories}
+          onToggleCategory={onToggleCategory}
+        />
       </div>
     </div>
   );

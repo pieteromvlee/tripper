@@ -1,92 +1,23 @@
 import type { Doc } from "../../../convex/_generated/dataModel";
-import { markerColorSchemes } from "../../lib/locationStyles";
+import { CategoryIcon } from "../../lib/typeIcons";
+import { generateMarkerColorScheme } from "../../lib/colorUtils";
 
 interface LocationMarkerProps {
   location: Doc<"locations">;
+  category?: Doc<"categories">;
   isSelected: boolean;
   onClick: () => void;
 }
 
 export function LocationMarker({
   location,
+  category,
   isSelected,
   onClick,
 }: LocationMarkerProps) {
-  const locationType = location.locationType || "attraction";
-  const colors = markerColorSchemes[locationType];
-
-  const renderIcon = () => {
-    switch (locationType) {
-      case "accommodation":
-        return (
-          <g transform="translate(8, 6)">
-            {/* Bed base */}
-            <rect x="0" y="8" width="12" height="2" rx="0.5" className={colors.icon} />
-            {/* Headboard */}
-            <rect x="0" y="4" width="3" height="4" rx="0.5" className={colors.icon} />
-            {/* Pillow */}
-            <rect x="1" y="5" width="2" height="2" rx="0.5" className={colors.iconLight} />
-            {/* Blanket */}
-            <rect x="3" y="6" width="8" height="2" rx="0.5" className={colors.pin} />
-            {/* Legs */}
-            <rect x="0" y="10" width="1" height="2" className={colors.icon} />
-            <rect x="11" y="10" width="1" height="2" className={colors.icon} />
-          </g>
-        );
-      case "restaurant":
-        return (
-          <g transform="translate(8, 6)">
-            {/* Fork - left */}
-            <rect x="0" y="0" width="1.5" height="4" rx="0.3" className={colors.iconLight} />
-            <rect x="0" y="3" width="1.5" height="9" rx="0.5" className={colors.icon} />
-            {/* Knife - right */}
-            <path d="M10.5 0 C10.5 0 12.5 0 12.5 3 L12.5 6 L10.5 6 L10.5 0 Z" className={colors.iconLight} />
-            <rect x="10.5" y="5" width="2" height="7" rx="0.5" className={colors.icon} />
-          </g>
-        );
-      case "shop":
-        return (
-          <g transform="translate(7, 5)">
-            {/* Shopping bag body */}
-            <rect x="1" y="4" width="12" height="9" rx="1" className={colors.icon} />
-            {/* Bag opening */}
-            <rect x="2" y="4" width="10" height="2" rx="0.5" className={colors.iconLight} />
-            {/* Handle left */}
-            <path d="M4 4 C4 2 5 1 7 1" stroke="currentColor" strokeWidth="1.5" fill="none" className={colors.icon} />
-            {/* Handle right */}
-            <path d="M10 4 C10 2 9 1 7 1" stroke="currentColor" strokeWidth="1.5" fill="none" className={colors.icon} />
-          </g>
-        );
-      case "snack":
-        return (
-          <g transform="translate(7, 5)">
-            {/* Coffee cup body */}
-            <path d="M2 4 L3 13 L11 13 L12 4 Z" className={colors.icon} />
-            {/* Cup rim */}
-            <rect x="1" y="3" width="12" height="2" rx="0.5" className={colors.iconLight} />
-            {/* Steam lines */}
-            <path d="M5 1 Q6 0 5 -1" stroke="currentColor" strokeWidth="1" fill="none" className={colors.iconLight} />
-            <path d="M7 1.5 Q8 0.5 7 -0.5" stroke="currentColor" strokeWidth="1" fill="none" className={colors.iconLight} />
-            <path d="M9 1 Q10 0 9 -1" stroke="currentColor" strokeWidth="1" fill="none" className={colors.iconLight} />
-          </g>
-        );
-      case "attraction":
-      default:
-        return (
-          <g transform="translate(7, 5)">
-            {/* Camera body */}
-            <rect x="0" y="3" width="14" height="9" rx="1" className={colors.icon} />
-            {/* Camera lens */}
-            <circle cx="7" cy="7.5" r="3" className={colors.iconLight} />
-            <circle cx="7" cy="7.5" r="1.5" className={colors.icon} />
-            {/* Camera top */}
-            <rect x="4" y="1" width="6" height="2" rx="0.5" className={colors.icon} />
-            {/* Flash */}
-            <rect x="11" y="4" width="2" height="1.5" rx="0.25" className={colors.iconLight} />
-          </g>
-        );
-    }
-  };
+  // Generate color scheme from category color (or default blue)
+  const baseColor = category?.color || "#3B82F6";
+  const colors = generateMarkerColorScheme(baseColor);
 
   return (
     <div
@@ -149,8 +80,19 @@ export function LocationMarker({
               className={`transition-colors duration-200 ${colors.inner}`}
             />
 
-            {/* Type-specific icon */}
-            {renderIcon()}
+            {/* Category icon */}
+            <g transform="translate(8, 6)">
+              {category && (
+                <foreignObject x="-3" y="-3" width="12" height="12">
+                  <div className="flex items-center justify-center w-full h-full">
+                    <CategoryIcon
+                      iconName={category.iconName}
+                      className="w-3 h-3 text-white"
+                    />
+                  </div>
+                </foreignObject>
+              )}
+            </g>
           </svg>
 
           {/* Shadow ellipse at base */}

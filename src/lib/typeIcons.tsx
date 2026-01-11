@@ -1,82 +1,182 @@
-import type { LocationType } from "./locationStyles";
+import * as LucideIcons from "lucide-react";
+import type { LucideProps } from "lucide-react";
 
+interface CategoryIconProps {
+  iconName: string;
+  className?: string;
+  color?: string;
+  size?: number;
+}
+
+type LucideIconComponent = React.ForwardRefExoticComponent<
+  Omit<LucideProps, "ref"> & React.RefAttributes<SVGSVGElement>
+>;
+
+/**
+ * Renders a Lucide icon dynamically based on the icon name from a category
+ */
+export function CategoryIcon({
+  iconName,
+  className = "w-4 h-4",
+  color,
+  size,
+}: CategoryIconProps) {
+  // Try to get the icon from Lucide
+  const Icon = (LucideIcons as unknown as Record<string, LucideIconComponent>)[iconName];
+
+  if (!Icon) {
+    // Fallback to a default icon if the specified icon doesn't exist
+    const FallbackIcon = LucideIcons.HelpCircle;
+    return (
+      <FallbackIcon
+        className={className}
+        style={color ? { color } : undefined}
+        size={size}
+      />
+    );
+  }
+
+  return (
+    <Icon
+      className={className}
+      style={color ? { color } : undefined}
+      size={size}
+    />
+  );
+}
+
+/**
+ * Legacy TypeIcon component for backward compatibility during migration
+ * This can be removed once all components are updated to use CategoryIcon
+ */
 interface TypeIconProps {
-  type: LocationType;
+  type: "attraction" | "restaurant" | "accommodation" | "shop" | "snack";
   className?: string;
 }
 
 export function TypeIcon({ type, className = "w-4 h-4" }: TypeIconProps) {
-  const colorClass = getIconColorClass(type);
+  const iconMap: Record<typeof type, { iconName: string; color: string }> = {
+    attraction: { iconName: "Camera", color: "#3B82F6" },
+    restaurant: { iconName: "UtensilsCrossed", color: "#F97316" },
+    accommodation: { iconName: "Hotel", color: "#A855F7" },
+    shop: { iconName: "ShoppingBag", color: "#10B981" },
+    snack: { iconName: "Coffee", color: "#EC4899" },
+  };
 
-  switch (type) {
-    case "attraction":
-      return (
-        <svg
-          className={`${className} ${colorClass}`}
-          viewBox="0 0 24 24"
-          fill="currentColor"
-        >
-          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-        </svg>
-      );
-    case "restaurant":
-      return (
-        <svg
-          className={`${className} ${colorClass}`}
-          viewBox="0 0 24 24"
-          fill="currentColor"
-        >
-          <path d="M11 9H9V2H7v7H5V2H3v7c0 2.12 1.66 3.84 3.75 3.97V22h2.5v-9.03C11.34 12.84 13 11.12 13 9V2h-2v7zm5-3v8h2.5v8H21V2c-2.76 0-5 2.24-5 4z" />
-        </svg>
-      );
-    case "accommodation":
-      return (
-        <svg
-          className={`${className} ${colorClass}`}
-          viewBox="0 0 24 24"
-          fill="currentColor"
-        >
-          <path d="M7 13c1.66 0 3-1.34 3-3S8.66 7 7 7s-3 1.34-3 3 1.34 3 3 3zm12-6h-8v7H3V5H1v15h2v-3h18v3h2v-9c0-2.21-1.79-4-4-4z" />
-        </svg>
-      );
-    case "shop":
-      return (
-        <svg
-          className={`${className} ${colorClass}`}
-          viewBox="0 0 24 24"
-          fill="currentColor"
-        >
-          <path d="M18 6h-2c0-2.21-1.79-4-4-4S8 3.79 8 6H6c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-6-2c1.1 0 2 .9 2 2h-4c0-1.1.9-2 2-2zm6 16H6V8h2v2c0 .55.45 1 1 1s1-.45 1-1V8h4v2c0 .55.45 1 1 1s1-.45 1-1V8h2v12z" />
-        </svg>
-      );
-    case "snack":
-      return (
-        <svg
-          className={`${className} ${colorClass}`}
-          viewBox="0 0 24 24"
-          fill="currentColor"
-        >
-          <path d="M2 21h18v-2H2v2zm18-11.5c0-.83-.67-1.5-1.5-1.5S17 8.67 17 9.5V11h3V9.5zm-15.5.5h-1c-.28 0-.5-.22-.5-.5V9c0-.28.22-.5.5-.5h1c.28 0 .5.22.5.5v.5c0 .28-.22.5-.5.5zM18 13H4c-1.1 0-2 .9-2 2v2h18v-2c0-1.1-.9-2-2-2z" />
-        </svg>
-      );
-    default:
-      return null;
-  }
+  const { iconName, color } = iconMap[type];
+  return <CategoryIcon iconName={iconName} className={className} color={color} />;
 }
 
-function getIconColorClass(type: LocationType): string {
-  switch (type) {
-    case "attraction":
-      return "text-blue-400";
-    case "restaurant":
-      return "text-orange-400";
-    case "accommodation":
-      return "text-purple-400";
-    case "shop":
-      return "text-green-400";
-    case "snack":
-      return "text-pink-400";
-    default:
-      return "text-gray-400";
-  }
+/**
+ * List of curated Lucide icons for the icon picker
+ * This is a subset of commonly used icons for categories
+ */
+export const AVAILABLE_ICONS = [
+  // Travel & Places
+  "Camera",
+  "MapPin",
+  "Map",
+  "Landmark",
+  "Mountain",
+  "Palmtree",
+  "Castle",
+  "Church",
+  "Tent",
+  "Plane",
+  "Train",
+  "Bus",
+  "Ship",
+  "Anchor",
+
+  // Food & Dining
+  "UtensilsCrossed",
+  "Coffee",
+  "Pizza",
+  "IceCream",
+  "Cake",
+  "Cookie",
+  "Wine",
+  "Beer",
+  "Martini",
+  "Soup",
+
+  // Accommodation
+  "Hotel",
+  "Home",
+  "Building",
+  "Building2",
+  "House",
+
+  // Shopping
+  "ShoppingBag",
+  "ShoppingCart",
+  "Store",
+  "Gift",
+  "Tag",
+
+  // Entertainment
+  "Film",
+  "Ticket",
+  "Music",
+  "Gamepad2",
+  "PartyPopper",
+  "Theater",
+  "Palette",
+  "BookOpen",
+  "Library",
+
+  // Nature & Outdoors
+  "Trees",
+  "Flower",
+  "Waves",
+  "Sun",
+  "Cloud",
+  "Umbrella",
+  "Bike",
+  "Footprints",
+
+  // Activities
+  "Dumbbell",
+  "Trophy",
+  "Sparkles",
+  "Heart",
+  "Star",
+  "Flag",
+  "Compass",
+
+  // Services
+  "Hospital",
+  "Pill",
+  "Stethoscope",
+  "GraduationCap",
+  "Briefcase",
+  "Scissors",
+  "Wrench",
+
+  // Miscellaneous
+  "Info",
+  "AlertCircle",
+  "CheckCircle",
+  "XCircle",
+  "Circle",
+  "Square",
+  "Triangle",
+  "Diamond",
+] as const;
+
+export type AvailableIconName = (typeof AVAILABLE_ICONS)[number];
+
+/**
+ * Check if an icon name exists in Lucide
+ */
+export function isValidIconName(iconName: string): boolean {
+  return iconName in LucideIcons;
+}
+
+/**
+ * Get a Lucide icon component by name (type-safe)
+ */
+export function getLucideIcon(iconName: string): LucideIconComponent | null {
+  const Icon = (LucideIcons as unknown as Record<string, LucideIconComponent>)[iconName];
+  return Icon || null;
 }

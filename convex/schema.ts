@@ -14,6 +14,18 @@ export default defineSchema({
     updatedAt: v.number(),
   }).index("by_ownerId", ["ownerId"]),
 
+  categories: defineTable({
+    tripId: v.id("trips"),
+    name: v.string(),
+    iconName: v.string(),
+    color: v.string(),
+    sortOrder: v.number(),
+    isDefault: v.boolean(),
+    createdBy: v.id("users"),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("by_tripId", ["tripId"]),
+
   tripMembers: defineTable({
     tripId: v.id("trips"),
     userId: v.id("users"),
@@ -41,13 +53,16 @@ export default defineSchema({
     longitude: v.number(),
     dateTime: v.optional(v.string()),
     endDateTime: v.optional(v.string()),
-    locationType: v.union(
-      v.literal("attraction"),
-      v.literal("restaurant"),
-      v.literal("accommodation"),
-      v.literal("shop"),
-      v.literal("snack")
+    locationType: v.optional(
+      v.union(
+        v.literal("attraction"),
+        v.literal("restaurant"),
+        v.literal("accommodation"),
+        v.literal("shop"),
+        v.literal("snack")
+      )
     ),
+    categoryId: v.optional(v.id("categories")),
     attachmentId: v.optional(v.id("_storage")),
     attachmentName: v.optional(v.string()),
     notes: v.optional(v.string()),

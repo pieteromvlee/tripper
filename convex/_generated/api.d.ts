@@ -10,9 +10,11 @@
 
 import type * as attachments from "../attachments.js";
 import type * as auth from "../auth.js";
+import type * as categories from "../categories.js";
 import type * as helpers from "../helpers.js";
 import type * as http from "../http.js";
 import type * as locations from "../locations.js";
+import type * as migrations_addCategories from "../migrations/addCategories.js";
 import type * as tripMembers from "../tripMembers.js";
 import type * as trips from "../trips.js";
 
@@ -25,9 +27,11 @@ import type {
 declare const fullApi: ApiFromModules<{
   attachments: typeof attachments;
   auth: typeof auth;
+  categories: typeof categories;
   helpers: typeof helpers;
   http: typeof http;
   locations: typeof locations;
+  "migrations/addCategories": typeof migrations_addCategories;
   tripMembers: typeof tripMembers;
   trips: typeof trips;
 }>;

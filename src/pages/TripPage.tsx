@@ -6,8 +6,8 @@ import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 import { LocationList, FilterBar, LocationDetail, LocationForm } from "../components/locations";
 import { TripMap, LocationSearch, SelectionPopover } from "../components/map";
-import type { LocationType } from "../lib/locationStyles";
 import { TripShareModal } from "../components/trips/TripShareModal";
+import { CategoryManagementModal } from "../components/categories/CategoryManagementModal";
 import { useLocationSelection } from "../hooks";
 import { useTheme } from "../hooks/useDarkMode";
 import { parseTripId } from "../lib/routeParams";
@@ -21,9 +21,7 @@ export default function TripPage() {
   const { signOut } = useAuthActions();
   const { isDark, toggleTheme } = useTheme();
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [visibleTypes, setVisibleTypes] = useState<Set<LocationType>>(
-    new Set(["attraction", "restaurant", "accommodation", "shop", "snack"])
-  );
+  const [visibleCategories, setVisibleCategories] = useState<Set<Id<"categories">>>(new Set());
   const [viewMode, setViewMode] = useState<ViewMode>("list"); // Mobile only
   const [sidebarVisible, setSidebarVisible] = useState(true); // Desktop only
   const [showAddForm, setShowAddForm] = useState(false);
@@ -32,7 +30,6 @@ export default function TripPage() {
     lng: number;
     name?: string;
     address?: string;
-    suggestedType?: LocationType;
   } | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [showSearch, setShowSearch] = useState(false); // Toggle search visibility
@@ -40,6 +37,7 @@ export default function TripPage() {
   const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number } | null>(null); // Current map center for search proximity
   const [showFullscreenAddForm, setShowFullscreenAddForm] = useState(false); // Full-screen add form for mobile
   const [showShareModal, setShowShareModal] = useState(false); // Share trip modal
+  const [showCategoryManagement, setShowCategoryManagement] = useState(false); // Category management modal
   const [isTrackingLocation, setIsTrackingLocation] = useState(false); // Location tracking toggle
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null); // User's current location
 
@@ -87,6 +85,14 @@ export default function TripPage() {
 
   const trip = useQuery(api.trips.get, { tripId });
   const locations = useQuery(api.locations.listByTrip, { tripId });
+  const categories = useQuery(api.categories.list, { tripId });
+
+  // Initialize visibleCategories when categories load
+  useEffect(() => {
+    if (categories && visibleCategories.size === 0) {
+      setVisibleCategories(new Set(categories.map(c => c._id)));
+    }
+  }, [categories]);
 
   const {
     selectedLocationId,
@@ -136,13 +142,12 @@ export default function TripPage() {
     setShowAddForm(true);
   };
 
-  const handleSearchSelect = (result: { name: string; address: string; latitude: number; longitude: number; suggestedType?: LocationType }) => {
+  const handleSearchSelect = (result: { name: string; address: string; latitude: number; longitude: number }) => {
     setNewLocationData({
       lat: result.latitude,
       lng: result.longitude,
       name: result.name,
       address: result.address,
-      suggestedType: result.suggestedType,
     });
     setShowAddForm(true);
     setShowSearch(false); // Hide search after selection
@@ -172,13 +177,13 @@ export default function TripPage() {
     setShowFullscreenAddForm(false);
   };
 
-  const handleToggleType = (type: LocationType) => {
-    setVisibleTypes((prev) => {
+  const handleToggleCategory = (categoryId: Id<"categories">) => {
+    setVisibleCategories((prev) => {
       const next = new Set(prev);
-      if (next.has(type)) {
-        next.delete(type);
+      if (next.has(categoryId)) {
+        next.delete(categoryId);
       } else {
-        next.add(type);
+        next.add(categoryId);
       }
       return next;
     });
@@ -267,10 +272,20 @@ export default function TripPage() {
                 </button>
               </div>
             )}
+            {/* Category management button */}
+            <button
+              onClick={() => setShowCategoryManagement(true)}
+              className="p-2 text-text-secondary hover:text-text-primary hover:bg-surface-elevated border border-transparent hover:border-border ml-2"
+              title="Manage categories"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+              </svg>
+            </button>
             {/* Share button */}
             <button
               onClick={() => setShowShareModal(true)}
-              className="p-2 text-text-secondary hover:text-text-primary hover:bg-surface-elevated border border-transparent hover:border-border ml-2"
+              className="p-2 text-text-secondary hover:text-text-primary hover:bg-surface-elevated border border-transparent hover:border-border"
               title="Share trip"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -307,13 +322,14 @@ export default function TripPage() {
         </div>
       </header>
 
-      {/* Filter Bar (Date + Type filters) */}
+      {/* Filter Bar (Date + Category filters) */}
       <FilterBar
         tripId={tripId}
         selectedDate={selectedDate}
         onDateSelect={setSelectedDate}
-        visibleTypes={visibleTypes}
-        onToggleType={handleToggleType}
+        categories={categories}
+        visibleCategories={visibleCategories}
+        onToggleCategory={handleToggleCategory}
         sidebarVisible={!isMobile ? sidebarVisible : undefined}
         onToggleSidebar={!isMobile ? () => setSidebarVisible((prev) => !prev) : undefined}
       />
@@ -361,7 +377,6 @@ export default function TripPage() {
                     longitude={newLocationData.lng}
                     initialName={newLocationData.name}
                     initialAddress={newLocationData.address}
-                    initialLocationType={newLocationData.suggestedType}
                     onSuccess={handleFormSuccess}
                     onCancel={handleFormCancel}
                     variant="inline"
@@ -372,7 +387,8 @@ export default function TripPage() {
                   tripId={tripId}
                   selectedDate={selectedDate ?? undefined}
                   selectedLocationId={selectedLocationId ?? undefined}
-                  visibleTypes={visibleTypes}
+                  categories={categories}
+                  visibleCategories={visibleCategories}
                   onLocationSelect={handleLocationSelect}
                   scrollTrigger={scrollToCounter}
                 />
@@ -408,7 +424,8 @@ export default function TripPage() {
               tripId={tripId}
               selectedLocationId={selectedLocationId}
               selectedDate={selectedDate}
-              visibleTypes={visibleTypes}
+              categories={categories}
+              visibleCategories={visibleCategories}
               onLocationSelect={handleMarkerSelect}
               onMapClick={handleMapClick}
               onCenterChange={(lat, lng) => setMapCenter({ lat, lng })}
@@ -435,6 +452,7 @@ export default function TripPage() {
               <div className={`absolute left-3 z-10 ${showSearch ? "top-16" : "top-3"}`}>
                 <SelectionPopover
                   location={selectedLocation}
+                  category={categories?.find(c => c._id === selectedLocation.categoryId)}
                   onInfo={() => setDetailLocationId(selectedLocation._id)}
                   onFlyTo={triggerFlyTo}
                   onClose={clearSelection}
@@ -484,6 +502,7 @@ export default function TripPage() {
       {detailLocation && (
         <LocationDetail
           location={detailLocation}
+          categories={categories}
           onClose={() => setDetailLocationId(null)}
         />
       )}
@@ -496,7 +515,6 @@ export default function TripPage() {
           longitude={newLocationData.lng}
           initialName={newLocationData.name}
           initialAddress={newLocationData.address}
-          initialLocationType={newLocationData.suggestedType}
           onSuccess={handleFormSuccess}
           onCancel={handleFormCancel}
           variant="fullscreen"
@@ -509,6 +527,14 @@ export default function TripPage() {
           tripId={tripId}
           isOwner={trip.role === "owner"}
           onClose={() => setShowShareModal(false)}
+        />
+      )}
+
+      {/* Category management modal */}
+      {showCategoryManagement && (
+        <CategoryManagementModal
+          tripId={tripId}
+          onClose={() => setShowCategoryManagement(false)}
         />
       )}
     </div>

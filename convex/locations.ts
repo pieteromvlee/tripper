@@ -92,13 +92,16 @@ export const create = mutation({
     longitude: v.number(),
     dateTime: v.optional(v.string()),
     endDateTime: v.optional(v.string()),
-    locationType: v.union(
-      v.literal("attraction"),
-      v.literal("restaurant"),
-      v.literal("accommodation"),
-      v.literal("shop"),
-      v.literal("snack")
+    locationType: v.optional(
+      v.union(
+        v.literal("attraction"),
+        v.literal("restaurant"),
+        v.literal("accommodation"),
+        v.literal("shop"),
+        v.literal("snack")
+      )
     ),
+    categoryId: v.optional(v.id("categories")),
     notes: v.optional(v.string()),
     address: v.optional(v.string()),
   },
@@ -112,6 +115,17 @@ export const create = mutation({
     }
     if (args.longitude < -180 || args.longitude > 180) {
       throw new ConvexError("Invalid longitude: must be between -180 and 180");
+    }
+
+    // Validate categoryId if provided
+    if (args.categoryId) {
+      const category = await ctx.db.get(args.categoryId);
+      if (!category) {
+        throw new ConvexError("Category not found");
+      }
+      if (category.tripId !== args.tripId) {
+        throw new ConvexError("Category does not belong to this trip");
+      }
     }
 
     const existingLocations = await ctx.db
@@ -134,6 +148,7 @@ export const create = mutation({
       dateTime: args.dateTime,
       endDateTime: args.endDateTime,
       locationType: args.locationType,
+      categoryId: args.categoryId,
       notes: args.notes,
       address: args.address,
       sortOrder: maxSortOrder + 1,
@@ -162,6 +177,7 @@ export const update = mutation({
         v.literal("snack")
       )
     ),
+    categoryId: v.optional(v.id("categories")),
     notes: v.optional(v.string()),
     address: v.optional(v.string()),
     attachmentId: v.optional(v.id("_storage")),
@@ -185,6 +201,17 @@ export const update = mutation({
       throw new ConvexError("Invalid longitude: must be between -180 and 180");
     }
 
+    // Validate categoryId if provided
+    if (args.categoryId) {
+      const category = await ctx.db.get(args.categoryId);
+      if (!category) {
+        throw new ConvexError("Category not found");
+      }
+      if (category.tripId !== location.tripId) {
+        throw new ConvexError("Category does not belong to this trip");
+      }
+    }
+
     const { id, ...updates } = args;
 
     const updateData: Partial<Doc<"locations">> = {
@@ -197,6 +224,7 @@ export const update = mutation({
     if (updates.dateTime !== undefined) updateData.dateTime = updates.dateTime || undefined;
     if (updates.endDateTime !== undefined) updateData.endDateTime = updates.endDateTime || undefined;
     if (updates.locationType !== undefined) updateData.locationType = updates.locationType;
+    if (updates.categoryId !== undefined) updateData.categoryId = updates.categoryId;
     if (updates.notes !== undefined) updateData.notes = updates.notes;
     if (updates.address !== undefined) updateData.address = updates.address;
     if (updates.attachmentId !== undefined) updateData.attachmentId = updates.attachmentId;

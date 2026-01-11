@@ -106,6 +106,29 @@ export const create = mutation({
       invitedAt: now,
     });
 
+    // Create default categories for the trip
+    const defaultCategories = [
+      { name: "Attraction", iconName: "Camera", color: "#3B82F6", sortOrder: 1 },
+      { name: "Restaurant", iconName: "UtensilsCrossed", color: "#F97316", sortOrder: 2 },
+      { name: "Accommodation", iconName: "Hotel", color: "#A855F7", sortOrder: 3 },
+      { name: "Shop", iconName: "ShoppingBag", color: "#10B981", sortOrder: 4 },
+      { name: "Snack", iconName: "Coffee", color: "#EC4899", sortOrder: 5 },
+    ];
+
+    for (const category of defaultCategories) {
+      await ctx.db.insert("categories", {
+        tripId,
+        name: category.name,
+        iconName: category.iconName,
+        color: category.color,
+        sortOrder: category.sortOrder,
+        isDefault: true,
+        createdBy: userId,
+        createdAt: now,
+        updatedAt: now,
+      });
+    }
+
     return tripId;
   },
 });
@@ -223,6 +246,16 @@ export const remove = mutation({
       }
 
       await ctx.db.delete(location._id);
+    }
+
+    // Delete all categories for this trip
+    const categories = await ctx.db
+      .query("categories")
+      .withIndex("by_tripId", (q) => q.eq("tripId", args.tripId))
+      .collect();
+
+    for (const category of categories) {
+      await ctx.db.delete(category._id);
     }
 
     // Delete the trip itself

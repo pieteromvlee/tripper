@@ -1,15 +1,15 @@
 import { useEffect, useRef } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
-import type { Id } from "../../../convex/_generated/dataModel";
-import type { LocationType } from "../../lib/locationStyles";
+import type { Id, Doc } from "../../../convex/_generated/dataModel";
 import { LocationCard } from "./LocationCard";
 
 interface LocationListProps {
   tripId: Id<"trips">;
   selectedDate?: string; // ISO date string (YYYY-MM-DD) for filtering
   selectedLocationId?: Id<"locations">;
-  visibleTypes?: Set<LocationType>; // Filter by location type
+  categories?: Doc<"categories">[];
+  visibleCategories?: Set<Id<"categories">>; // Filter by category
   onLocationSelect: (locationId: Id<"locations">) => void;
   scrollTrigger?: number; // Incremented when the list should scroll to the selected location
 }
@@ -18,7 +18,8 @@ export function LocationList({
   tripId,
   selectedDate,
   selectedLocationId,
-  visibleTypes,
+  categories,
+  visibleCategories,
   onLocationSelect,
   scrollTrigger,
 }: LocationListProps) {
@@ -39,9 +40,9 @@ export function LocationList({
   // Use filtered locations if date is selected, otherwise all locations
   const dateFilteredLocations = selectedDate ? filteredLocations : allLocations;
 
-  // Apply type filter
+  // Apply category filter (backward compatible - show locations without categoryId)
   const locations = dateFilteredLocations?.filter(
-    (loc) => !visibleTypes || visibleTypes.has(loc.locationType || "attraction")
+    (loc) => !visibleCategories || !loc.categoryId || visibleCategories.has(loc.categoryId)
   );
 
   // Scroll selected location into view when it changes or when triggered from map marker click
@@ -94,7 +95,7 @@ export function LocationList({
           </div>
           <p className="text-text-secondary font-medium">No locations yet</p>
           <p className="text-sm text-text-muted mt-1">
-            {selectedDate || (visibleTypes && visibleTypes.size < 3)
+            {selectedDate || (visibleCategories && categories && visibleCategories.size < categories.length)
               ? "No locations match the current filters"
               : "Tap the map or search to add your first location"}
           </p>
@@ -117,6 +118,7 @@ export function LocationList({
           >
             <LocationCard
               location={location}
+              categories={categories}
               isSelected={isSelected}
               onClick={() => onLocationSelect(location._id)}
               selectedDate={selectedDate}
