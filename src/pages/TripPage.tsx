@@ -4,7 +4,7 @@ import { useQuery } from "convex/react";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
-import { LocationList, FilterBar, LocationDetail, LocationForm, CalendarView, CompactCalendarView } from "../components/locations";
+import { LocationList, FilterBar, LocationDetail, LocationForm, CalendarView, KanbanView } from "../components/locations";
 import { TripMap, LocationSearch, SelectionPopover } from "../components/map";
 import { TripShareModal } from "../components/trips/TripShareModal";
 import { CategoryManagementModal } from "../components/categories/CategoryManagementModal";
@@ -535,7 +535,7 @@ export default function TripPage() {
 
             {/* Show Kanban */}
             {(isMobile ? viewMode === "kanban" : detailViewMode === "kanban") && (
-              <CompactCalendarView
+              <KanbanView
                 tripId={tripId}
                 locations={locations}
                 categories={categories}

@@ -5,7 +5,7 @@ import type { Doc, Id } from "../../../convex/_generated/dataModel";
 import { CompactCalendarColumn } from "./CompactCalendarColumn";
 import { formatDateString, isSameDay } from "../../lib/dateUtils";
 
-interface CompactCalendarViewProps {
+interface KanbanViewProps {
   tripId: Id<"trips">;
   locations: Doc<"locations">[] | undefined;
   categories: Doc<"categories">[] | undefined;
@@ -30,14 +30,14 @@ function generateDateRange(startDate: Date, endDate: Date): Date[] {
   return dates;
 }
 
-export function CompactCalendarView({
+export function KanbanView({
   tripId,
   locations,
   categories,
   selectedLocationId,
   onLocationSelect,
   visibleCategories,
-}: CompactCalendarViewProps) {
+}: KanbanViewProps) {
   const uniqueDates = useQuery(api.locations.getUniqueDates, { tripId });
   const [visibleRangeStart, setVisibleRangeStart] = useState<Date | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
