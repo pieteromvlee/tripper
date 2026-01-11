@@ -5,9 +5,8 @@ import { useAuthActions } from "@convex-dev/auth/react";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 import { LocationList, FilterBar, LocationDetail, LocationForm } from "../components/locations";
-import { TripMap, LocationSearch } from "../components/map";
+import { TripMap, LocationSearch, SelectionPopover } from "../components/map";
 import type { LocationType } from "../lib/locationStyles";
-import { getDirectionsUrl } from "../lib/locationUtils";
 import { TripShareModal } from "../components/trips/TripShareModal";
 import { useLocationSelection } from "../hooks";
 
@@ -411,39 +410,15 @@ export default function TripPage() {
               </button>
             )}
 
-            {/* Floating action buttons for selected location (map-only or sidebar hidden) */}
-            {selectedLocation && (isMobile ? viewMode === "map" : !sidebarVisible) && !showAddForm && (
-              <div
-                className="absolute right-4 z-10 flex flex-col gap-2"
-                style={{ bottom: "calc(1rem + env(safe-area-inset-bottom, 0px))" }}
-              >
-                {/* Location name label */}
-                <div className="bg-surface-elevated px-3 py-2 border border-border text-xs font-medium text-text-primary max-w-[200px] truncate">
-                  {selectedLocation.name}
-                </div>
-                <div className="flex gap-2">
-                  {/* Info button */}
-                  <button
-                    onClick={() => setDetailLocationId(selectedLocation._id)}
-                    className="bg-surface-elevated p-3 border border-border text-blue-400 hover:bg-blue-500/10 hover:border-blue-500/50 transition"
-                    title="View details"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </button>
-                  {/* Directions button */}
-                  <button
-                    onClick={() => window.open(getDirectionsUrl(selectedLocation.latitude, selectedLocation.longitude), "_blank")}
-                    className="bg-blue-600 p-3 border border-blue-400 text-white hover:bg-blue-500 transition"
-                    title="Get directions"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                  </button>
-                </div>
+            {/* Selection popover - top-left of map pane */}
+            {selectedLocation && (!isMobile || viewMode === "map") && !showAddForm && (
+              <div className={`absolute left-3 z-10 ${showSearch ? "top-16" : "top-3"}`}>
+                <SelectionPopover
+                  location={selectedLocation}
+                  onInfo={() => setDetailLocationId(selectedLocation._id)}
+                  onFlyTo={triggerFlyTo}
+                  onClose={clearSelection}
+                />
               </div>
             )}
 
