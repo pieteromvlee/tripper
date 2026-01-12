@@ -136,6 +136,9 @@ export function MapPanel({
   // Determine if pending location actions should be shown
   const showPendingActions = showAddForm && newLocationData && isFloatingSearch;
 
+  // Determine if we're in map view (for hiding redundant map button in SelectionPopover)
+  const isInMapView = isMobile ? viewMode === "map" : true;
+
   return (
     <>
       {/* Floating Search for map-only view */}
@@ -189,6 +192,8 @@ export function MapPanel({
             onInfo={() => onShowLocationDetail(selectedLocation._id)}
             onFlyTo={onTriggerFlyTo}
             onClose={onClearSelection}
+            isMobile={isMobile}
+            isInMapView={isInMapView}
           />
         </div>
       )}

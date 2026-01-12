@@ -94,6 +94,14 @@ export default function TripPage() {
     setDetailLocationId(locationId);
   }, [selectLocation]);
 
+  // Handle location double-click (switch to map view and fly to location)
+  const handleLocationDoubleClick = useCallback((locationId: Id<"locations">) => {
+    // Switch to map view
+    viewMode.setViewMode("map");
+    // Select and fly to location
+    selectAndFlyTo(locationId);
+  }, [viewMode, selectAndFlyTo]);
+
   // Early returns AFTER all hooks
   if (!tripId) {
     return <div className="p-4">Invalid trip ID</div>;
@@ -176,6 +184,7 @@ export default function TripPage() {
             categories={categories}
             visibleCategories={visibleCategories}
             onLocationSelect={selectLocation}
+            onLocationDoubleClick={handleLocationDoubleClick}
             scrollTrigger={scrollToCounter}
           />
         )}

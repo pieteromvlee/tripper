@@ -40,6 +40,7 @@ interface ListPanelProps {
   categories?: Doc<"categories">[];
   visibleCategories: Set<Id<"categories">>;
   onLocationSelect: (id: Id<"locations">) => void;
+  onLocationDoubleClick?: (id: Id<"locations">) => void;
   scrollTrigger: number;
 }
 
@@ -59,6 +60,7 @@ export function ListPanel({
   categories,
   visibleCategories,
   onLocationSelect,
+  onLocationDoubleClick,
   scrollTrigger,
 }: ListPanelProps) {
   return (
@@ -104,6 +106,7 @@ export function ListPanel({
               categories={categories}
               visibleCategories={visibleCategories}
               onLocationSelect={onLocationSelect}
+              onLocationDoubleClick={onLocationDoubleClick}
               scrollTrigger={scrollTrigger}
             />
           </ErrorBoundary>

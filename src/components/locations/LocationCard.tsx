@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useRef } from "react";
 import { useDraggable } from "@dnd-kit/core";
 import type { Doc } from "../../../convex/_generated/dataModel";
 import { formatDateTime, formatTime, formatDateForDisplay, getDatePart } from "../../lib/dateUtils";
@@ -13,6 +13,7 @@ interface LocationCardProps {
   categories?: Doc<"categories">[];
   isSelected: boolean;
   onClick: () => void;
+  onDoubleClick?: () => void;
   selectedDate?: string;
   isDndEnabled?: boolean;
 }
@@ -32,6 +33,7 @@ const LocationCardComponent = ({
   categories,
   isSelected,
   onClick,
+  onDoubleClick,
   selectedDate,
   isDndEnabled = false,
 }: LocationCardProps) => {
@@ -44,11 +46,29 @@ const LocationCardComponent = ({
   const isAccommodation = isAccommodationCategory(category);
   const isDesktop = useIsDesktop();
 
+  // Double-tap detection (300ms threshold)
+  const lastTapTime = useRef<number>(0);
+
+  const handleClick = () => {
+    const now = Date.now();
+    const timeSinceLastTap = now - lastTapTime.current;
+
+    if (timeSinceLastTap < 300 && onDoubleClick) {
+      // Double-tap detected
+      onDoubleClick();
+      lastTapTime.current = 0; // Reset to prevent triple-tap
+    } else {
+      // Single tap
+      onClick();
+      lastTapTime.current = now;
+    }
+  };
+
   return (
     <div
       ref={setNodeRef}
       {...(isDndEnabled ? { ...listeners, ...attributes } : {})}
-      onClick={onClick}
+      onClick={handleClick}
       className={`
         p-3 transition-colors touch-manipulation border
         ${isDndEnabled ? "cursor-grab active:cursor-grabbing" : "cursor-pointer"}

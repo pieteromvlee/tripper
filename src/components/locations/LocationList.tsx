@@ -114,6 +114,7 @@ interface LocationListProps {
   categories?: Doc<"categories">[];
   visibleCategories?: Set<Id<"categories">>;
   onLocationSelect: (locationId: Id<"locations">) => void;
+  onLocationDoubleClick?: (locationId: Id<"locations">) => void;
   scrollTrigger?: number;
 }
 
@@ -124,6 +125,7 @@ export function LocationList({
   categories,
   visibleCategories,
   onLocationSelect,
+  onLocationDoubleClick,
   scrollTrigger,
 }: LocationListProps): React.ReactNode {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -408,6 +410,7 @@ export function LocationList({
           categories={categories}
           isSelected={showAsSelected}
           onClick={() => onLocationSelect(location._id)}
+          onDoubleClick={onLocationDoubleClick ? () => onLocationDoubleClick(location._id) : undefined}
           selectedDate={selectedDate}
           isDndEnabled={isDndEnabled}
         />
