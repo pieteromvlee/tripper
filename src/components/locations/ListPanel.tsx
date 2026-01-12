@@ -73,7 +73,7 @@ export function ListPanel({
       />
 
       {/* Location List or Add Form */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden">
         {showAddForm && newLocationData ? (
           <div>
             <div className="px-4 py-2 bg-blue-500/10 border-b border-blue-500/30 flex items-center justify-between">

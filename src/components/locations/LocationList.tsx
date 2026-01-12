@@ -47,7 +47,7 @@ interface PendingDrop {
 
 function DropIndicator(): React.ReactNode {
   return (
-    <div className="absolute -left-3 -right-3 top-1/2 translate-y-1 h-px bg-blue-500 pointer-events-none z-10" />
+    <div className="absolute left-0 right-0 top-1/2 translate-y-1 h-px bg-blue-500 pointer-events-none z-10" />
   );
 }
 
@@ -229,7 +229,11 @@ export function LocationList({
   // Scroll to selected location
   useEffect(() => {
     if (selectedLocationId && selectedRef.current && containerRef.current) {
-      selectedRef.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      selectedRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+        inline: "nearest" // Prevents horizontal scrolling
+      });
     }
   }, [selectedLocationId, scrollTrigger]);
 
@@ -429,7 +433,7 @@ export function LocationList({
   }
 
   const listContent = (
-    <div ref={containerRef} className="flex flex-col h-full">
+    <div ref={containerRef} className="flex flex-col h-full w-full">
       {!groupedLocations.grouped ? (
         // Flat list for date-specific and unscheduled filters
         <div className="flex flex-col gap-2 p-3">
