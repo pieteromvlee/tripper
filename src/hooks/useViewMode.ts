@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 type ViewMode = "list" | "map" | "calendar";
 type DetailViewMode = "map" | "calendar";
@@ -34,14 +34,27 @@ export function useViewMode(): UseViewModeReturn {
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [detailViewMode, setDetailViewMode] = useState<DetailViewMode>("map");
   const [sidebarVisible, setSidebarVisible] = useState(true);
+  const prevIsMobileRef = useRef(isMobile);
 
-  // Detect mobile viewport
+  // Detect mobile viewport and handle calendar fallback
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 1024);
+    const checkMobile = () => {
+      const newIsMobile = window.innerWidth < 1024;
+      const wasMobile = prevIsMobileRef.current;
+
+      // Transition from desktop to mobile with calendar active
+      if (!wasMobile && newIsMobile && viewMode === "calendar") {
+        setViewMode("list");
+      }
+
+      prevIsMobileRef.current = newIsMobile;
+      setIsMobile(newIsMobile);
+    };
+
     checkMobile();
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
-  }, []);
+  }, [viewMode]);
 
   // Computed values for cleaner conditionals
   const isMapView = isMobile ? viewMode === "map" : detailViewMode === "map";

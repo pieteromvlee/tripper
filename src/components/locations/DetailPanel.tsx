@@ -88,8 +88,8 @@ export function DetailPanel({
       {/* Show Map */}
       {isMapView && <MapPanel {...mapPanelProps} />}
 
-      {/* Show Calendar */}
-      {isCalendarView && (
+      {/* Show Calendar (desktop only) */}
+      {isCalendarView && !isMobile && (
         <ErrorBoundary>
           <CalendarView
             tripId={tripId}
