@@ -1,29 +1,23 @@
 import { useState, useEffect, useCallback } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { useQuery } from "convex/react";
-import { useAuthActions } from "@convex-dev/auth/react";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
-import { LocationList, FilterBar, LocationDetail, LocationForm, CalendarView } from "../components/locations";
-import { TripMap, LocationSearch, SelectionPopover } from "../components/map";
-import { ErrorBoundary, MapErrorFallback } from "../components/ErrorBoundary";
+import { LocationDetail, FilterBar, ListPanel, DetailPanel } from "../components/locations";
+import { TripHeader } from "../components/trips";
+import { LocationForm } from "../components/locations";
+import { ErrorBoundary } from "../components/ErrorBoundary";
 import {
   useLocationSelection,
   useViewMode,
   useLocationForm,
-  useGeolocation,
-  useDateMigration,
+  useHeaderActions,
 } from "../hooks";
-import { useTheme } from "../hooks/useDarkMode";
 import { parseTripId } from "../lib/routeParams";
-import { isAccommodationCategory } from "../lib/categoryUtils";
 
 export default function TripPage() {
   const params = useParams<{ tripId: string }>();
   const tripId = parseTripId(params.tripId);
-  const navigate = useNavigate();
-  const { signOut } = useAuthActions();
-  const { isDark, toggleTheme } = useTheme();
 
   // Filter state
   const [selectedDate, setSelectedDate] = useState<string | null | "unscheduled">(null);
@@ -59,8 +53,11 @@ export default function TripPage() {
     onClearSelection: clearSelection,
   });
 
-  const { userLocation, isTracking: isTrackingLocation, toggleTracking: toggleLocationTracking } = useGeolocation();
-  const { migrationStatus, migrateDates } = useDateMigration(locations);
+  const headerActions = useHeaderActions({
+    locations,
+    categories,
+    onFlyToAccommodation: selectAndFlyTo,
+  });
 
   // Initialize visibleCategories when categories load
   useEffect(() => {
@@ -91,20 +88,7 @@ export default function TripPage() {
     [locationForm]
   );
 
-  // Other callbacks
-
-  // Find accommodation for use in handleFlyToAccommodation callback
-  const accommodation = locations?.find((loc) => {
-    const category = categories?.find(c => c._id === loc.categoryId);
-    return isAccommodationCategory(category);
-  });
-
-  const handleFlyToAccommodation = useCallback(() => {
-    if (accommodation) {
-      selectAndFlyTo(accommodation._id);
-    }
-  }, [accommodation, selectAndFlyTo]);
-
+  // Handle location select and show detail (for calendar view)
   const handleLocationSelectAndShowDetail = useCallback((locationId: Id<"locations">) => {
     selectLocation(locationId);
     setDetailLocationId(locationId);
@@ -139,145 +123,24 @@ export default function TripPage() {
   return (
     <div className="h-screen flex flex-col bg-surface">
       {/* Header */}
-      <header className="bg-surface border-b border-border px-4 py-2 flex-shrink-0">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => navigate("/")}
-              className="p-2 -ml-2 text-text-secondary hover:text-text-primary hover:bg-surface-elevated border border-transparent hover:border-border"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <h1 className="text-sm font-bold text-text-primary truncate uppercase tracking-wide">{trip.name}</h1>
-            <button
-              onClick={() => setShowSearch(true)}
-              className="p-1.5 text-blue-400 hover:bg-blue-500/10 border border-transparent hover:border-blue-500/50"
-              title="Add location"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-            </button>
-          </div>
-
-          <div className="flex items-center gap-1">
-            {/* Location tracking toggle (only visible when map view is active) */}
-            {viewMode.isMapView && (
-              <button
-                onClick={toggleLocationTracking}
-                className={`p-2 border transition ${
-                  isTrackingLocation
-                    ? "text-blue-400 bg-blue-500/10 border-blue-500/50"
-                    : "text-text-secondary hover:text-text-primary hover:bg-surface-elevated border-transparent hover:border-border"
-                }`}
-                title={isTrackingLocation ? "Stop tracking location" : "Show my location"}
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 2v2m0 16v2m10-10h-2M4 12H2" />
-                </svg>
-              </button>
-            )}
-
-            {/* Accommodation button */}
-            {accommodation && (
-              <button
-                onClick={handleFlyToAccommodation}
-                className="p-2 text-purple-400 hover:bg-purple-500/10 border border-transparent hover:border-purple-500/50"
-                title="Go to accommodation"
-              >
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
-                </svg>
-              </button>
-            )}
-
-            {/* Date migration button */}
-            <button
-              onClick={migrateDates}
-              className="hidden md:block px-3 py-1 text-xs border border-border bg-surface hover:bg-surface-secondary text-text-secondary hover:text-text-primary"
-              title="Fix date format issues (MM/DD/YYYY → YYYY-MM-DD)"
-            >
-              Fix Dates
-            </button>
-
-            {/* Migration status indicator */}
-            {migrationStatus && (
-              <span className="hidden md:inline-block text-xs text-text-secondary px-2 py-1 bg-surface-elevated border border-border max-w-xs truncate">
-                {migrationStatus}
-              </span>
-            )}
-
-            {/* View toggle (mobile: three-way list/map/calendar) */}
-            {viewMode.isMobile && (
-              <div className="flex items-center border border-border ml-2">
-                <button
-                  onClick={() => viewMode.setViewMode("list")}
-                  className={`p-2 transition border-r border-border ${
-                    viewMode.viewMode === "list" ? "bg-blue-600 text-white" : "text-text-secondary hover:bg-surface-elevated"
-                  }`}
-                  title="List view"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                  </svg>
-                </button>
-                <button
-                  onClick={() => viewMode.setViewMode("map")}
-                  className={`p-2 transition border-r border-border ${
-                    viewMode.viewMode === "map" ? "bg-blue-600 text-white" : "text-text-secondary hover:bg-surface-elevated"
-                  }`}
-                  title="Map view"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                </button>
-                <button
-                  onClick={() => viewMode.setViewMode("calendar")}
-                  className={`p-2 transition ${
-                    viewMode.viewMode === "calendar" ? "bg-blue-600 text-white" : "text-text-secondary hover:bg-surface-elevated"
-                  }`}
-                  title="Calendar view"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                </button>
-              </div>
-            )}
-            {/* Theme toggle (desktop only) */}
-            <button
-              onClick={toggleTheme}
-              className="hidden md:flex p-2 text-text-secondary hover:text-text-primary hover:bg-surface-elevated border border-transparent hover:border-border"
-              title={isDark ? "Switch to light mode" : "Switch to dark mode"}
-            >
-              {isDark ? (
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                </svg>
-              ) : (
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                </svg>
-              )}
-            </button>
-            {/* Sign Out */}
-            <button
-              onClick={() => signOut()}
-              className="hidden md:block text-text-secondary hover:text-text-primary p-2 hover:bg-surface-elevated border border-transparent hover:border-border"
-              title="Sign Out"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
-            </button>
-          </div>
-        </div>
-      </header>
+      <TripHeader
+        tripName={trip.name}
+        onBack={headerActions.handleBack}
+        onAddLocation={() => setShowSearch(true)}
+        isMobile={viewMode.isMobile}
+        viewMode={viewMode.viewMode}
+        onViewModeChange={viewMode.setViewMode}
+        isMapView={viewMode.isMapView}
+        isTrackingLocation={headerActions.isTrackingLocation}
+        onToggleLocationTracking={headerActions.toggleLocationTracking}
+        accommodation={headerActions.accommodation}
+        onFlyToAccommodation={headerActions.handleFlyToAccommodation}
+        migrationStatus={headerActions.migrationStatus}
+        onMigrateDates={headerActions.migrateDates}
+        isDark={headerActions.isDark}
+        onToggleTheme={headerActions.toggleTheme}
+        onSignOut={headerActions.handleSignOut}
+      />
 
       {/* Filter Bar (Date + Category filters + Detail View Mode toggle) */}
       <FilterBar
@@ -297,187 +160,67 @@ export default function TripPage() {
       <div className="flex-1 flex overflow-hidden">
         {/* List Panel (Sidebar) */}
         {viewMode.isListView && (
-          <div className={`flex flex-col bg-surface-elevated ${!viewMode.isMobile ? "w-96 border-r border-border" : "flex-1"}`}>
-            {/* Search (shown when triggered from header + button) */}
-            {showSearch && (
-              <div className="p-3 border-b border-border bg-surface-secondary">
-                <div className="flex items-center gap-2">
-                  <div className="flex-1">
-                    <LocationSearch onSelect={handleSearchSelect} placeholder="Search for a place..." autoFocus proximity={mapCenter} />
-                  </div>
-                  <button
-                    onClick={() => setShowSearch(false)}
-                    className="p-2 text-text-muted hover:text-text-secondary hover:bg-surface-elevated border border-transparent hover:border-border"
-                    title="Cancel"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Location List or Add Form */}
-            <div className="flex-1 overflow-y-auto">
-              {locationForm.showAddForm && locationForm.newLocationData ? (
-                <div>
-                  <div className="px-4 py-2 bg-blue-500/10 border-b border-blue-500/30 flex items-center justify-between">
-                    <span className="text-xs font-bold text-blue-400 uppercase tracking-wide">Add New Location</span>
-                    <button onClick={locationForm.handleFormCancel} className="text-blue-400 hover:text-blue-300 p-1 hover:bg-blue-500/20 border border-transparent hover:border-blue-500/50">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  </div>
-                  <LocationForm
-                    tripId={tripId}
-                    latitude={locationForm.newLocationData.lat}
-                    longitude={locationForm.newLocationData.lng}
-                    initialName={locationForm.newLocationData.name}
-                    initialAddress={locationForm.newLocationData.address}
-                    onSuccess={locationForm.handleFormSuccess}
-                    onCancel={locationForm.handleFormCancel}
-                    variant="inline"
-                  />
-                </div>
-              ) : (
-                <ErrorBoundary>
-                  <LocationList
-                    tripId={tripId}
-                    selectedDate={selectedDate ?? undefined}
-                    selectedLocationId={selectedLocationId ?? undefined}
-                    categories={categories}
-                    visibleCategories={visibleCategories}
-                    onLocationSelect={selectLocation}
-                    scrollTrigger={scrollToCounter}
-                  />
-                </ErrorBoundary>
-              )}
-            </div>
-          </div>
+          <ListPanel
+            tripId={tripId}
+            isMobile={viewMode.isMobile}
+            showSearch={showSearch}
+            onSearchClose={() => setShowSearch(false)}
+            onSearchSelect={handleSearchSelect}
+            mapCenter={mapCenter}
+            showAddForm={locationForm.showAddForm}
+            newLocationData={locationForm.newLocationData}
+            onFormSuccess={locationForm.handleFormSuccess}
+            onFormCancel={locationForm.handleFormCancel}
+            selectedDate={selectedDate}
+            selectedLocationId={selectedLocationId}
+            categories={categories}
+            visibleCategories={visibleCategories}
+            onLocationSelect={selectLocation}
+            scrollTrigger={scrollToCounter}
+          />
         )}
 
         {/* Detail Panel (Map or Calendar) */}
-        {(viewMode.isMobile ? viewMode.viewMode !== "list" : true) && (
-          <div className="flex-1 w-full relative">
-            {/* Show Map */}
-            {viewMode.isMapView && (
-              <>
-                {/* Floating Search for map-only view (triggered from header + button) */}
-                {(viewMode.isMobile ? viewMode.viewMode === "map" : !viewMode.sidebarVisible) && showSearch && (
-                  <div className="absolute top-3 left-3 right-3 z-10">
-                    <div className="flex items-center gap-2 bg-surface-elevated border border-border p-2">
-                      <div className="flex-1">
-                        <LocationSearch onSelect={handleSearchSelect} placeholder="Search for a place..." autoFocus proximity={mapCenter} />
-                      </div>
-                      <button
-                        onClick={() => setShowSearch(false)}
-                        className="p-2 text-text-muted hover:text-text-secondary hover:bg-surface-secondary border border-transparent hover:border-border"
-                        title="Cancel"
-                      >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                      </button>
-                    </div>
-                  </div>
-                )}
-                <ErrorBoundary fallback={(error, resetError) => <MapErrorFallback error={error} resetError={resetError} />}>
-                  <TripMap
-                    key={viewMode.isMobile ? viewMode : `desktop-${viewMode.sidebarVisible}`}
-                    tripId={tripId}
-                    selectedLocationId={selectedLocationId}
-                    selectedDate={selectedDate}
-                    categories={categories}
-                    visibleCategories={visibleCategories}
-                    onLocationSelect={selectAndScrollTo}
-                    onMapClick={locationForm.handleMapClick}
-                    onCenterChange={(lat, lng) => setMapCenter({ lat, lng })}
-                    flyToLocation={locationForm.newLocationData ? { lat: locationForm.newLocationData.lat, lng: locationForm.newLocationData.lng, key: flyToCounter } : undefined}
-                    pendingLocation={locationForm.showAddForm && locationForm.newLocationData ? { lat: locationForm.newLocationData.lat, lng: locationForm.newLocationData.lng } : null}
-                    userLocation={userLocation}
-                  />
-                </ErrorBoundary>
-                {/* Show All button - appears when a location is selected */}
-                {selectedLocationId && (
-                  <button
-                    onClick={clearSelection}
-                    className="absolute left-4 z-10 bg-surface-elevated px-3 py-2 border border-border text-xs font-medium text-text-secondary hover:bg-surface-secondary hover:border-border-focus flex items-center gap-2"
-                    style={{ bottom: "calc(1rem + env(safe-area-inset-bottom, 0px))" }}
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-                    </svg>
-                    Show All
-                  </button>
-                )}
-
-                {/* Selection popover - top-left of map pane */}
-                {selectedLocation && (!viewMode.isMobile || viewMode.viewMode === "map") && !locationForm.showAddForm && (
-                  <div className={`absolute left-3 z-10 ${showSearch ? "top-16" : "top-3"}`}>
-                    <SelectionPopover
-                      location={selectedLocation}
-                      category={categories?.find(c => c._id === selectedLocation.categoryId)}
-                      onInfo={() => setDetailLocationId(selectedLocation._id)}
-                      onFlyTo={triggerFlyTo}
-                      onClose={clearSelection}
-                    />
-                  </div>
-                )}
-
-                {/* Floating action buttons for pending location (map-only or sidebar hidden) */}
-                {locationForm.showAddForm && locationForm.newLocationData && (viewMode.isMobile ? viewMode.viewMode === "map" : !viewMode.sidebarVisible) && (
-                  <div
-                    className="absolute right-4 z-10 flex flex-col gap-2"
-                    style={{ bottom: "calc(1rem + env(safe-area-inset-bottom, 0px))" }}
-                  >
-                    {/* Location name label */}
-                    <div className="bg-green-500/10 border border-green-500/50 px-3 py-2 text-xs font-medium text-green-400 max-w-[200px] truncate">
-                      {locationForm.newLocationData.name || "New Location"}
-                    </div>
-                    <div className="flex gap-2">
-                      {/* Cancel button */}
-                      <button
-                        onClick={locationForm.handleFormCancel}
-                        className="bg-surface-elevated p-3 border border-border text-text-secondary hover:bg-surface-secondary hover:border-border-focus transition"
-                        title="Cancel"
-                      >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                      </button>
-                      {/* Add button */}
-                      <button
-                        onClick={() => locationForm.setShowFullscreenAddForm(true)}
-                        className="bg-green-600 p-3 border border-green-400 text-white hover:bg-green-500 transition"
-                        title="Add location"
-                      >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                        </svg>
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </>
-            )}
-
-            {/* Show Calendar */}
-            {viewMode.isCalendarView && (
-              <ErrorBoundary>
-                <CalendarView
-                  tripId={tripId}
-                  locations={locations}
-                  categories={categories}
-                  selectedLocationId={selectedLocationId}
-                  onLocationSelect={handleLocationSelectAndShowDetail}
-                  visibleCategories={visibleCategories}
-                />
-              </ErrorBoundary>
-            )}
-          </div>
-        )}
+        <DetailPanel
+          isMobile={viewMode.isMobile}
+          viewMode={viewMode.viewMode}
+          detailViewMode={viewMode.detailViewMode}
+          isMapView={viewMode.isMapView}
+          isCalendarView={viewMode.isCalendarView}
+          mapPanelProps={{
+            tripId,
+            isMobile: viewMode.isMobile,
+            viewMode: viewMode.viewMode,
+            sidebarVisible: viewMode.sidebarVisible,
+            showSearch,
+            onSearchClose: () => setShowSearch(false),
+            onSearchSelect: handleSearchSelect,
+            selectedLocationId,
+            selectedLocation: selectedLocation ?? null,
+            onLocationSelect: selectAndScrollTo,
+            onClearSelection: clearSelection,
+            onShowLocationDetail: setDetailLocationId,
+            onTriggerFlyTo: triggerFlyTo,
+            mapCenter,
+            onMapCenterChange: (lat, lng) => setMapCenter({ lat, lng }),
+            userLocation: headerActions.userLocation,
+            showAddForm: locationForm.showAddForm,
+            newLocationData: locationForm.newLocationData,
+            onMapClick: locationForm.handleMapClick,
+            onFormCancel: locationForm.handleFormCancel,
+            onShowFullscreenForm: () => locationForm.setShowFullscreenAddForm(true),
+            flyToCounter,
+            selectedDate,
+            categories,
+            visibleCategories,
+          }}
+          tripId={tripId}
+          locations={locations}
+          categories={categories}
+          selectedLocationId={selectedLocationId}
+          onLocationSelectForCalendar={handleLocationSelectAndShowDetail}
+          visibleCategories={visibleCategories}
+        />
       </div>
 
       {/* Full-screen location detail view */}

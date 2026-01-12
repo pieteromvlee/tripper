@@ -9,7 +9,7 @@ import type { RefObject } from 'react';
  * added/removed when enabled changes, not on every render.
  */
 export function useClickOutside(
-  ref: RefObject<HTMLElement>,
+  ref: RefObject<HTMLElement | null>,
   handler: () => void,
   enabled: boolean = true
 ): void {

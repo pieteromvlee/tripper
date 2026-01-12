@@ -7,3 +7,4 @@ export { useViewMode } from "./useViewMode";
 export { useLocationForm } from "./useLocationForm";
 export { useGeolocation } from "./useGeolocation";
 export { useDateMigration } from "./useDateMigration";
+export { useHeaderActions } from "./useHeaderActions";
