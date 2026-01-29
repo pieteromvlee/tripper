@@ -30,8 +30,8 @@ const CalendarLocationChipComponent = ({
       {...attributes}
       onClick={onClick}
       className={`
-        px-2 py-1 mb-1 text-xs truncate cursor-pointer border
-        flex items-center gap-1
+        px-1.5 py-0.5 text-xs truncate cursor-pointer border
+        flex items-center gap-1 flex-shrink-0
         transition-all touch-manipulation
         ${
           isSelected

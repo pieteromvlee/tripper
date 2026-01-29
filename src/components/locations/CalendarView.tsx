@@ -5,6 +5,7 @@ import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Doc, Id } from "../../../convex/_generated/dataModel";
 import { CalendarCell } from "./CalendarCell";
+import { DayEventsModal } from "./DayEventsModal";
 import { formatDateString, getTimePart, isSameDay, getDatePart } from "../../lib/dateUtils";
 
 interface CalendarViewProps {
@@ -77,6 +78,11 @@ function generateCalendarGrid(year: number, month: number): CalendarDay[] {
   return days;
 }
 
+interface DayModalState {
+  date: Date;
+  locations: Doc<"locations">[];
+}
+
 export function CalendarView({
   locations,
   categories,
@@ -85,6 +91,7 @@ export function CalendarView({
   visibleCategories,
 }: CalendarViewProps) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [dayModal, setDayModal] = useState<DayModalState | null>(null);
   const updateLocation = useMutation(api.locations.update);
   const today = new Date();
 
@@ -145,6 +152,10 @@ export function CalendarView({
     setCurrentMonth(
       new Date(currentMonth.getFullYear(), currentMonth.getMonth() + delta, 1)
     );
+  }
+
+  function handleShowMore(date: Date, dayLocations: Doc<"locations">[]): void {
+    setDayModal({ date, locations: dayLocations });
   }
 
   const calendarDays = generateCalendarGrid(
@@ -208,10 +219,10 @@ export function CalendarView({
                 ))}
               </div>
 
-              <div className="flex-1 overflow-y-auto">
+              <div className="flex-1 overflow-hidden">
                 <div
-                  className="grid grid-cols-7 grid-rows-6 gap-px bg-border"
-                  style={{ gridTemplateRows: 'repeat(6, minmax(120px, 1fr))' }}
+                  className="grid grid-cols-7 gap-px bg-border h-full"
+                  style={{ gridTemplateRows: 'repeat(6, 1fr)' }}
                 >
                 {calendarDays.map((day, index) => (
                   <CalendarCell
@@ -223,6 +234,7 @@ export function CalendarView({
                     categories={categories}
                     selectedLocationId={selectedLocationId}
                     onLocationSelect={onLocationSelect}
+                    onShowMore={handleShowMore}
                   />
                 ))}
                 </div>
@@ -230,6 +242,18 @@ export function CalendarView({
             </div>
           </div>
         </div>
+
+        {/* Day events modal */}
+        {dayModal && (
+          <DayEventsModal
+            date={dayModal.date}
+            locations={dayModal.locations}
+            categories={categories}
+            selectedLocationId={selectedLocationId}
+            onLocationSelect={onLocationSelect}
+            onClose={() => setDayModal(null)}
+          />
+        )}
     </DndContext>
   );
 }

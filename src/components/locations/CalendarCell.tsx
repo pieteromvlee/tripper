@@ -12,7 +12,10 @@ interface CalendarCellProps {
   categories: Doc<"categories">[] | undefined;
   selectedLocationId: Id<"locations"> | null;
   onLocationSelect: (id: Id<"locations">) => void;
+  onShowMore: (date: Date, locations: Doc<"locations">[]) => void;
 }
+
+const MAX_VISIBLE_EVENTS = 3;
 
 const CalendarCellComponent = ({
   date,
@@ -22,6 +25,7 @@ const CalendarCellComponent = ({
   categories,
   selectedLocationId,
   onLocationSelect,
+  onShowMore,
 }: CalendarCellProps) => {
   // Create droppable ID in format: day-YYYY-MM-DD
   const dateStr = formatDateString(date);
@@ -29,11 +33,14 @@ const CalendarCellComponent = ({
     id: `day-${dateStr}`,
   });
 
+  const visibleLocations = locations.slice(0, MAX_VISIBLE_EVENTS);
+  const hiddenCount = locations.length - visibleLocations.length;
+
   return (
     <div
       ref={setNodeRef}
       className={`
-        h-full overflow-y-auto p-2 bg-surface
+        h-full overflow-hidden p-1.5 bg-surface flex flex-col
         transition-colors
         ${isCurrentMonth ? "text-text-primary" : "text-text-muted opacity-50"}
         ${
@@ -46,18 +53,31 @@ const CalendarCellComponent = ({
       `}
     >
       {/* Day number */}
-      <div className="text-xs font-medium mb-1">{date.getDate()}</div>
+      <div className="text-xs font-medium mb-1 flex-shrink-0">{date.getDate()}</div>
 
-      {/* Location chips */}
-      {locations.map((location) => (
-        <CalendarLocationChip
-          key={location._id}
-          location={location}
-          categories={categories}
-          isSelected={selectedLocationId === location._id}
-          onClick={() => onLocationSelect(location._id)}
-        />
-      ))}
+      {/* Location chips - fixed height container */}
+      <div className="flex-1 min-h-0 overflow-hidden flex flex-col gap-0.5">
+        {visibleLocations.map((location) => (
+          <CalendarLocationChip
+            key={location._id}
+            location={location}
+            categories={categories}
+            isSelected={selectedLocationId === location._id}
+            onClick={() => onLocationSelect(location._id)}
+          />
+        ))}
+        {hiddenCount > 0 && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onShowMore(date, locations);
+            }}
+            className="text-xs text-blue-500 hover:text-blue-600 px-1 flex-shrink-0 text-left hover:underline"
+          >
+            +{hiddenCount} more
+          </button>
+        )}
+      </div>
     </div>
   );
 };
